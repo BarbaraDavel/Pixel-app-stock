@@ -1,0 +1,102 @@
+:root {
+  --pixel-naranja: #ff9f43;
+  --pixel-lila: #a66bff;
+  --pixel-fondo: #f6f3ff;
+  --pixel-texto: #333;
+  --pixel-card: #ffffff;
+  --pixel-borde: #e0ddf5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
+  color: var(--pixel-texto);
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pixel-borde);
+  position: sticky;
+  top: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.logo-fox {
+  font-size: 1.4rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #555;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  background: var(--pixel-naranja);
+  color: #fff;
+}
+
+.main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.card {
+  background: var(--pixel-card);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--pixel-borde);
+}
+
+.card h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.card p {
+  margin-bottom: 0.7rem;
+  line-height: 1.4;
+}
+
+.card ul {
+  margin-left: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.card li {
+  margin-bottom: 0.3rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #777;
+}
