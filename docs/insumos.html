@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Insumos – Pixel Stock</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="module" src="./app.js"></script>
+</head>
+
+<body>
+<header>
+  <h1>🦊 Pixel – Insumos</h1>
+  <nav>
+    <a href="./index.html">Inicio</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+  </nav>
+</header>
+
+<main class="card">
+  <h2>Cargar Insumo</h2>
+
+  <form id="formInsumo" class="form">
+    <input type="text" id="nombre" placeholder="Nombre del insumo" required />
+    <input type="number" id="precio" placeholder="Precio del paquete" required />
+    <input type="number" id="cantidad" placeholder="Cantidad en el paquete" required />
+    <button type="submit">Agregar</button>
+  </form>
+
+  <h3>Lista de Insumos</h3>
+  <ul id="listaInsumos"></ul>
+</main>
+
+</body>
+</html>
