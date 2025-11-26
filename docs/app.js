@@ -1,27 +1,47 @@
-// Pixel App - Control de Insumos, Productos y Stock
-console.log("Pixel App cargada 🦊");
+console.log("Pixel Stock Manager cargado correctamente 🦊");
 
-// Detectar en qué página estamos
-const page = location.pathname.split("/").pop();
-console.log("Página actual:", page);
+// ---- VARIABLES ----
+let insumos = []; // memoria temporal hasta conectar Firebase
 
-/* -------------------------------------
-   MANEJO DE INSUMOS
--------------------------------------- */
-if (page === "insumos.html") {
+// ---- DETECTAR SI ESTAMOS EN LA PAGINA DE INSUMOS ----
+const form = document.getElementById("formInsumo");
+const lista = document.getElementById("listaInsumos");
 
-  console.log("Cargando módulo de Insumos...");
+if (form) {
+  console.log("Página de INSUMOS detectada ✔");
 
-  const form = document.getElementById("formInsumo");
-  const lista = document.getElementById("listaInsumos");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+    const nombre = document.getElementById("nombre").value;
+    const precio = document.getElementById("precio").value;
+    const cantidad = document.getElementById("cantidad").value;
 
-      const nombre = document.getElementById("nombre").value;
-      const precio = document.getElementById("precio").value;
-      const cantidad = document.getElementById("cantidad").value;
+    // crear el insumo
+    const nuevoInsumo = {
+      id: Date.now(),
+      nombre,
+      precio,
+      cantidad,
+    };
 
-      const li = document.createElement("li");
-      li.textContent = `${nombre} — $${precio}
+    insumos.push(nuevoInsumo);
+    mostrarInsumos();
+
+    // limpiar formulario
+    form.reset();
+  });
+}
+
+// ---- FUNCION PARA MOSTRAR INSUMOS ----
+function mostrarInsumos() {
+  if (!lista) return;
+
+  lista.innerHTML = ""; // limpiar
+
+  insumos.forEach((insumo) => {
+    const li = document.createElement("li");
+    li.textContent = `${insumo.nombre} — $${insumo.precio} — ${insumo.cantidad} unidades`;
+    lista.appendChild(li);
+  });
+}
