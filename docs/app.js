@@ -1,76 +1,27 @@
-// app.js — Funciones generales de Pixel Stock
+// Pixel App - Control de Insumos, Productos y Stock
+console.log("Pixel App cargada 🦊");
 
-import {
-  db,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc
-} from "../firebase.js";
+// Detectar en qué página estamos
+const page = location.pathname.split("/").pop();
+console.log("Página actual:", page);
 
+/* -------------------------------------
+   MANEJO DE INSUMOS
+-------------------------------------- */
+if (page === "insumos.html") {
 
-// =================== INSUMOS =======================
+  console.log("Cargando módulo de Insumos...");
 
-const form = document.getElementById("formInsumo");
-const lista = document.getElementById("listaInsumos");
+  const form = document.getElementById("formInsumo");
+  const lista = document.getElementById("listaInsumos");
 
-// ---- AGREGAR INSUMO ----
-if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
 
-    const nombre = document.getElementById("nombre").value.trim();
-    const precio = Number(document.getElementById("precio").value);
-    const cantidad = Number(document.getElementById("cantidad").value);
+      const nombre = document.getElementById("nombre").value;
+      const precio = document.getElementById("precio").value;
+      const cantidad = document.getElementById("cantidad").value;
 
-    await addDoc(collection(db, "insumos"), {
-      nombre,
-      precio,
-      cantidad
-    });
-
-    alert("Insumo agregado!");
-    form.reset();
-    cargarInsumos();
-  });
-}
-
-// ---- LISTAR INSUMOS ----
-async function cargarInsumos() {
-  if (!lista) return;
-
-  lista.innerHTML = "Cargando...";
-
-  const querySnapshot = await getDocs(collection(db, "insumos"));
-  lista.innerHTML = "";
-
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <strong>${data.nombre}</strong><br>
-      Precio: ${data.precio} – Cantidad: ${data.cantidad}<br>
-      <button data-id="${docSnap.id}" class="btn-delete">🗑 Eliminar</button>
-    `;
-
-    lista.appendChild(li);
-  });
-
-  // Evento eliminar
-  document.querySelectorAll(".btn-delete").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.getAttribute("data-id");
-      await deleteDoc(doc(db, "insumos", id));
-      cargarInsumos();
-    });
-  });
-}
-
-
-// Ejecutar si estamos en la página de insumos
-if (window.location.pathname.includes("insumos")) {
-  cargarInsumos();
-}
+      const li = document.createElement("li");
+      li.textContent = `${nombre} — $${precio}
