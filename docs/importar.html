@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Importar Insumos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Importar
+  </div>
+  <div class="nav-links">
+    <a href="./insumos.html">Volver</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <h1>Importar Insumos Iniciales</h1>
+    <p>Estos se agregarán con valores por defecto (costo 0, stock 0).</p>
+
+    <ul>
+      <li>Adhesivo A4</li>
+      <li>Matelina 190 gr</li>
+      <li>Filmilo vidrio fino</li>
+      <li>Bolsitas pouch</li>
+      <li>Cinta doble faz</li>
+      <li>Cadenitas llavero</li>
+      <li>Aros llavero</li>
+      <li>Papel común A4</li>
+      <li>Hojas imantadas</li>
+    </ul>
+
+    <button id="importar" style="background:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer">
+      IMPORTAR TODO
+    </button>
+  </div>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module">
+  import { db } from "./js/firebase.js";
+  import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  const insumos = [
+    "Adhesivo A4",
+    "Matelina 190 gr",
+    "Filmilo vidrio fino",
+    "Bolsitas pouch",
+    "Cinta doble faz",
+    "Cadenitas llavero",
+    "Aros llavero",
+    "Papel común A4",
+    "Hojas imantadas"
+  ];
+
+  document.getElementById("importar").onclick = async () => {
+    for (let n of insumos) {
+      await addDoc(collection(db, "insumos"), {
+        nombre: n,
+        costoUnitario: 0,
+        stock: 0,
+        stockMinimo: 5
+      });
+    }
+    alert("Insumos importados 🎉");
+  };
+</script>
+
+</body>
+</html>

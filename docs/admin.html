@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Administrador - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Admin
+  </div>
+  <div class="nav-links">
+    <a href="./insumos.html">Volver</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <h1>Herramientas administrativas</h1>
+    <p>⚠️ Solo usar en pruebas. Esto borra todo.</p>
+
+    <button id="borrarTodo" style="background:#ff6b6b;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer">
+      BORRAR TODA LA BASE 🔥
+    </button>
+  </div>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module">
+  import { db } from "./js/firebase.js";
+  import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  async function borrarColeccion(nombre) {
+    const col = collection(db, nombre);
+    const snap = await getDocs(col);
+    for (let d of snap.docs) {
+      await deleteDoc(doc(db, nombre, d.id));
+    }
+  }
+
+  document.getElementById("borrarTodo").onclick = async () => {
+    if (!confirm("¿SEGURO? Esto borra TODO.")) return;
+
+    await borrarColeccion("insumos");
+    await borrarColeccion("productos");
+    await borrarColeccion("ventas");
+
+    alert("Todo borrado 🎉");
+  };
+</script>
+
+</body>
+</html>
