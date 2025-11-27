@@ -1,46 +1,42 @@
 import { db } from "./firebase.js";
-
 import {
   collection,
   addDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-console.log("Firebase cargado correctamente");
+console.log("Firebase cargado correctamente ✔️");
 
-// ---------------------------------
-// Guardar insumo
-// ---------------------------------
-
+// ========= AGREGAR INSUMO =========
 const form = document.getElementById("formInsumo");
 const lista = document.getElementById("listaInsumos");
 
-form?.addEventListener("submit", async (e) => {
-  e.preventDefault();
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const nombre = document.getElementById("nombre").value.trim();
-  const precio = Number(document.getElementById("precio").value);
-  const cantidad = Number(document.getElementById("cantidad").value);
+    const nombre = document.getElementById("nombre").value.trim();
+    const precio = Number(document.getElementById("precio").value);
+    const cantidad = Number(document.getElementById("cantidad").value);
 
-  try {
-    await addDoc(collection(db, "insumos"), {
-      nombre,
-      precio,
-      cantidad
-    });
+    try {
+      await addDoc(collection(db, "insumos"), {
+        nombre,
+        precio,
+        cantidad
+      });
 
-    alert("Insumo agregado correctamente");
-    form.reset();
-    cargarInsumos();
+      alert("Insumo agregado correctamente ✔️");
+      form.reset();
+      cargarInsumos();
 
-  } catch (err) {
-    console.error("Error al guardar:", err);
-  }
-});
+    } catch (err) {
+      console.error("❌ Error al guardar:", err);
+    }
+  });
+}
 
-// ---------------------------------
-// Cargar insumos
-// ---------------------------------
+// ========= CARGAR INSUMOS =========
 async function cargarInsumos() {
   lista.innerHTML = "";
 
