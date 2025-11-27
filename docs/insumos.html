@@ -1,93 +1,61 @@
-import { db } from "./firebase.js";
-import {
-  collection, addDoc, getDocs, updateDoc, doc, deleteDoc
-} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Insumos - Pixel Stock</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
 
-const lista = document.getElementById("listaInsumos");
-const btnGuardar = document.getElementById("guardarInsumo");
-let editId = null;
+<body>
 
-async function cargarInsumos() {
-  lista.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "insumos"));
+<!-- HEADER PIXEL -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
 
-  querySnapshot.forEach((d) => {
-    const ins = d.data();
+  <div class="nav-links">
+    <a class="active" href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./historial.html">Historial</a>
+  </div>
+</div>
 
-    // VALIDACIONES
-    const nombre = ins.nombre || "(sin nombre)";
-    const costo = ins.costoUnitario ?? 0;
-    const stock = ins.stock ?? 0;
-    const minimo = ins.stockMinimo ?? 5;
+<div class="main">
 
-    lista.innerHTML += `
-      <tr>
-        <td>${nombre}</td>
-        <td>$${costo}</td>
-        <td>${stock}</td>
-        <td>${minimo}</td>
-        <td>
-          <button onclick="editarInsumo('${d.id}')">Editar</button>
-          <button onclick="descontar('${d.id}', ${stock})">Usar 1</button>
-          <button onclick="sumar('${d.id}', ${stock})">+1</button>
-          <button onclick="eliminar('${d.id}')">❌</button>
-        </td>
-      </tr>
-    `;
-  });
-}
+  <div class="card">
+    <h1>Insumos</h1>
 
-window.editarInsumo = async function(id) {
-  editId = id;
-  const ref = doc(db, "insumos", id);
-  const snap = await getDocs(collection(db, "insumos"));
-};
+    <h3>Agregar / Editar Insumo</h3>
+    <input id="insumoNombre" placeholder="Nombre del insumo">
+    <input id="insumoCosto" type="number" placeholder="Costo unitario">
+    <input id="insumoStock" type="number" placeholder="Stock actual">
+    <input id="insumoMin" type="number" placeholder="Stock mínimo (default 5)">
+    <button id="guardarInsumo">Guardar</button>
+  </div>
 
-window.descontar = async function(id, stock) {
-  const ref = doc(db, "insumos", id);
-  await updateDoc(ref, { stock: stock - 1 });
-  cargarInsumos();
-};
+  <br>
 
-window.sumar = async function(id, stock) {
-  const ref = doc(db, "insumos", id);
-  await updateDoc(ref, { stock: stock + 1 });
-  cargarInsumos();
-};
+  <div class="card">
+    <h3>Listado de Insumos</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Costo</th>
+          <th>Stock</th>
+          <th>Mínimo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="listaInsumos"></tbody>
+    </table>
+  </div>
 
-window.eliminar = async function(id) {
-  if (confirm("¿Eliminar insumo?")) {
-    await deleteDoc(doc(db, "insumos", id));
-    cargarInsumos();
-  }
-};
+</div>
 
-btnGuardar.onclick = async () => {
-  const nombre = document.getElementById("insumoNombre").value;
-  const costo = Number(document.getElementById("insumoCosto").value) || 0;
-  const stock = Number(document.getElementById("insumoStock").value) || 0;
-  const minimo = Number(document.getElementById("insumoMin").value) || 5;
-
-  if (!editId) {
-    // NUEVO DOCUMENTO
-    await addDoc(collection(db, "insumos"), {
-      nombre,
-      costoUnitario: costo,
-      stock,
-      stockMinimo: minimo
-    });
-  } else {
-    // EDITAR
-    await updateDoc(doc(db, "insumos", editId), {
-      nombre,
-      costoUnitario: costo,
-      stock,
-      stockMinimo: minimo
-    });
-    editId = null;
-  }
-
-  cargarInsumos();
-};
-
-cargarInsumos();
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/insumos.js"></script>
+</body>
+</html>
