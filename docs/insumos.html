@@ -13,9 +13,9 @@
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel Stock
   </div>
-
   <div class="nav-links">
     <a class="active" href="./insumos.html">Insumos</a>
+    <a href="./index.html">Inicio</a>
     <a href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
     <a href="./historial.html">Historial</a>
@@ -28,10 +28,9 @@
     <h1>Insumos</h1>
 
     <h3>Agregar / Editar Insumo</h3>
-    <input id="insumoNombre" placeholder="Nombre del insumo">
-    <input id="insumoCosto" type="number" placeholder="Costo unitario">
-    <input id="insumoStock" type="number" placeholder="Stock actual">
-    <input id="insumoMin" type="number" placeholder="Stock mínimo (default 5)">
+    <input id="nombreInsumo" placeholder="Nombre del insumo">
+    <input id="costoInsumo" type="number" placeholder="Costo unitario">
+    <input id="cantidadPaquete" type="number" placeholder="Cantidad que trae (ej: 50)">
     <button id="guardarInsumo">Guardar</button>
   </div>
 
@@ -44,8 +43,7 @@
         <tr>
           <th>Nombre</th>
           <th>Costo</th>
-          <th>Stock</th>
-          <th>Mínimo</th>
+          <th>Cant. por paquete</th>
           <th>Acciones</th>
         </tr>
       </thead>

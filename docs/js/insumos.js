@@ -1,35 +1,30 @@
 import { db } from "./firebase.js";
 import {
-  collection, addDoc, getDocs, updateDoc, doc, deleteDoc
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const lista = document.getElementById("listaInsumos");
 const btnGuardar = document.getElementById("guardarInsumo");
+
 let editId = null;
 
 async function cargarInsumos() {
   lista.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "insumos"));
+  const snap = await getDocs(collection(db, "insumos"));
 
-  querySnapshot.forEach((d) => {
+  snap.forEach((d) => {
     const ins = d.data();
-
-    // VALIDACIONES
-    const nombre = ins.nombre || "(sin nombre)";
+    const nombre = ins.nombre ?? "(sin nombre)";
     const costo = ins.costoUnitario ?? 0;
-    const stock = ins.stock ?? 0;
-    const minimo = ins.stockMinimo ?? 5;
+    const paquete = ins.cantidadPaquete ?? 0;
 
     lista.innerHTML += `
       <tr>
         <td>${nombre}</td>
         <td>$${costo}</td>
-        <td>${stock}</td>
-        <td>${minimo}</td>
+        <td>${paquete}</td>
         <td>
-          <button onclick="editarInsumo('${d.id}')">Editar</button>
-          <button onclick="descontar('${d.id}', ${stock})">Usar 1</button>
-          <button onclick="sumar('${d.id}', ${stock})">+1</button>
+          <button onclick="editar('${d.id}')">Editar</button>
           <button onclick="eliminar('${d.id}')">❌</button>
         </td>
       </tr>
@@ -37,52 +32,58 @@ async function cargarInsumos() {
   });
 }
 
-window.editarInsumo = async function(id) {
+window.editar = async function(id) {
   editId = id;
   const ref = doc(db, "insumos", id);
   const snap = await getDocs(collection(db, "insumos"));
 };
 
-window.descontar = async function(id, stock) {
-  const ref = doc(db, "insumos", id);
-  await updateDoc(ref, { stock: stock - 1 });
-  cargarInsumos();
-};
-
-window.sumar = async function(id, stock) {
-  const ref = doc(db, "insumos", id);
-  await updateDoc(ref, { stock: stock + 1 });
-  cargarInsumos();
-};
-
 window.eliminar = async function(id) {
-  if (confirm("¿Eliminar insumo?")) {
-    await deleteDoc(doc(db, "insumos", id));
-    cargarInsumos();
-  }
+  if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
+
+  await deleteDoc(doc(db, "insumos", id));
+
+  // borrar stock asociado
+  const stockSnap = await getDocs(collection(db, "stock"));
+  stockSnap.forEach(async (d) => {
+    if (d.data().insumoId === id) {
+      await deleteDoc(doc(db, "stock", d.id));
+    }
+  });
+
+  cargarInsumos();
 };
 
 btnGuardar.onclick = async () => {
-  const nombre = document.getElementById("insumoNombre").value;
-  const costo = Number(document.getElementById("insumoCosto").value) || 0;
-  const stock = Number(document.getElementById("insumoStock").value) || 0;
-  const minimo = Number(document.getElementById("insumoMin").value) || 5;
+  const nombre = document.getElementById("nombreInsumo").value;
+  const costo = Number(document.getElementById("costoInsumo").value) || 0;
+  const paquete = Number(document.getElementById("cantidadPaquete").value) || 0;
+
+  if (!nombre) {
+    alert("El insumo necesita nombre");
+    return;
+  }
 
   if (!editId) {
-    // NUEVO DOCUMENTO
-    await addDoc(collection(db, "insumos"), {
+    // crear insumo
+    const ref = await addDoc(collection(db, "insumos"), {
       nombre,
       costoUnitario: costo,
-      stock,
-      stockMinimo: minimo
+      cantidadPaquete: paquete
     });
+
+    // crear stock automático
+    await addDoc(collection(db, "stock"), {
+      insumoId: ref.id,
+      stockActual: 0,
+      stockMinimo: 5
+    });
+
   } else {
-    // EDITAR
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
-      stock,
-      stockMinimo: minimo
+      cantidadPaquete: paquete
     });
     editId = null;
   }

@@ -2,33 +2,44 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Stock - Pixel</title>
+  <title>Stock - Pixel Stock</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
 
-<header>
-  <div class="logo">Pixel</div>
-  <nav>
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./productos.html">Productos</a>
-    <a href="./stock.html">Stock</a>
+    <a class="active" href="./stock.html">Stock</a>
     <a href="./historial.html">Historial</a>
-  </nav>
-</header>
+  </div>
+</div>
 
-<h2>Stock General</h2>
+<div class="main">
 
-<table>
-  <thead>
-    <tr>
-      <th>Insumo</th>
-      <th>Stock</th>
-    </tr>
-  </thead>
-  <tbody id="stockLista"></tbody>
-</table>
+  <div class="card">
+    <h1>Stock</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Insumo</th>
+          <th>Actual</th>
+          <th>Mínimo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="stockLista"></tbody>
+    </table>
+  </div>
+
+</div>
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/stock.js"></script>
