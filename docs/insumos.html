@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Insumos – Pixel Stock</title>
   <link rel="stylesheet" href="./styles.css" />
-  <script type="module" src="./firebase.js"></script>
-  <script type="module" src="./app.js"></script>
 </head>
 
 <body>
@@ -31,6 +29,76 @@
   <h3>Lista de Insumos</h3>
   <ul id="listaInsumos"></ul>
 </main>
+
+<script type="module">
+  import { initializeApp } 
+    from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  // Configuración Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyC9b6YtyJkm_hkpTp-eXEN7Yr-V8m9OarQ",
+    authDomain: "pixel-app-9d439-ed678.firebaseapp.com",
+    projectId: "pixel-app-9d439-ed678",
+    storageBucket: "pixel-app-9d439-ed678.firebasestorage.app",
+    messagingSenderId: "209432229326",
+    appId: "1:209432229326:web:fd865c5ac691f99060679f",
+    measurementId: "G-MPKSR2DMJB"
+  };
+
+  // Inicializar Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  console.log("🔥 Firebase inicializado");
+
+  // =======================
+  // GUARDAR INSUMO
+  // =======================
+  const form = document.getElementById("formInsumo");
+  const lista = document.getElementById("listaInsumos");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById("nombre").value.trim();
+    const precio = Number(document.getElementById("precio").value);
+    const cantidad = Number(document.getElementById("cantidad").value);
+
+    await addDoc(collection(db, "insumos"), {
+      nombre,
+      precio,
+      cantidad
+    });
+
+    alert("Insumo agregado correctamente");
+    form.reset();
+    cargarInsumos();
+  });
+
+  // =======================
+  // LISTAR INSUMOS
+  // =======================
+  async function cargarInsumos() {
+    lista.innerHTML = "";
+
+    const snap = await getDocs(collection(db, "insumos"));
+    snap.forEach((doc) => {
+      const d = doc.data();
+      const li = document.createElement("li");
+      li.textContent = `${d.nombre} — $${d.precio} — ${d.cantidad} unidades`;
+      lista.appendChild(li);
+    });
+  }
+
+  cargarInsumos();
+</script>
 
 </body>
 </html>
