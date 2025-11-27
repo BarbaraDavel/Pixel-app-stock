@@ -8,40 +8,52 @@
 
 <body>
 
-<header>
-  <div class="logo">Pixel</div>
-  <nav>
-    <a href="./insumos.html">Insumos</a>
+<!-- HEADER PIXEL -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+
+  <div class="nav-links">
+    <a class="active" href="./insumos.html">Insumos</a>
     <a href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
     <a href="./historial.html">Historial</a>
-  </nav>
-</header>
+  </div>
+</div>
 
-<h2>Insumos</h2>
+<div class="main">
 
-<section class="form-section">
-  <h3>Agregar / Editar Insumo</h3>
-  <input id="insumoNombre" placeholder="Nombre del insumo">
-  <input id="insumoCosto" type="number" placeholder="Costo unitario">
-  <input id="insumoStock" type="number" placeholder="Stock actual">
-  <input id="insumoMin" type="number" placeholder="Stock mínimo (default 5)">
-  <button id="guardarInsumo">Guardar</button>
-</section>
+  <div class="card">
+    <h1>Insumos</h1>
 
-<h3>Listado de Insumos</h3>
-<table>
-  <thead>
-    <tr>
-      <th>Nombre</th>
-      <th>Costo</th>
-      <th>Stock</th>
-      <th>Mínimo</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="listaInsumos"></tbody>
-</table>
+    <h3>Agregar / Editar Insumo</h3>
+    <input id="insumoNombre" placeholder="Nombre del insumo">
+    <input id="insumoCosto" type="number" placeholder="Costo unitario">
+    <input id="insumoStock" type="number" placeholder="Stock actual">
+    <input id="insumoMin" type="number" placeholder="Stock mínimo (default 5)">
+    <button id="guardarInsumo">Guardar</button>
+  </div>
+
+  <br>
+
+  <div class="card">
+    <h3>Listado de Insumos</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Costo</th>
+          <th>Stock</th>
+          <th>Mínimo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="listaInsumos"></tbody>
+    </table>
+  </div>
+
+</div>
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/insumos.js"></script>
