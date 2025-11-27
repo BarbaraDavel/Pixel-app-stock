@@ -1,60 +1,41 @@
-console.log("Pixel Stock Manager cargado correctamente 🦊");
+import { db } from "./firebase.js";
+import { collection, addDoc, getDocs } 
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// ========= LOCAL STORAGE =========
+console.log("Firebase conectado correctamente");
 
-// Cargar insumos guardados (si hay)
-let insumos = JSON.parse(localStorage.getItem("insumos")) || [];
-
-// Guardar insumos en localStorage
-function guardarInsumos() {
-  localStorage.setItem("insumos", JSON.stringify(insumos));
-}
-
-// ========= DETECTAR PÁGINA: INSUMOS =========
-
+// ---------- Guardar insumo ----------
 const form = document.getElementById("formInsumo");
 const lista = document.getElementById("listaInsumos");
 
-if (form) {
-  console.log("Página de INSUMOS detectada ✔");
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  // mostrar los insumos guardados al cargar la página
-  mostrarInsumos();
+  const nombre = document.getElementById("nombre").value;
+  const precio = Number(document.getElementById("precio").value);
+  const cantidad = Number(document.getElementById("cantidad").value);
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const nombre = document.getElementById("nombre").value;
-    const precio = document.getElementById("precio").value;
-    const cantidad = document.getElementById("cantidad").value;
-
-    // Crear el insumo
-    const nuevoInsumo = {
-      id: Date.now(),
-      nombre,
-      precio: Number(precio),
-      cantidad: Number(cantidad),
-    };
-
-    insumos.push(nuevoInsumo);
-
-    guardarInsumos();
-    mostrarInsumos();
-
+  try {
+    await addDoc(collection(db, "insumos"), { nombre, precio, cantidad });
+    alert("Insumo agregado!");
     form.reset();
-  });
-}
+    cargarInsumos();
+  } catch (error) {
+    console.error("Error al guardar:", error);
+  }
+});
 
-// ========= FUNCION PARA MOSTRAR INSUMOS =========
+// ---------- Cargar lista ----------
+async function cargarInsumos() {
+  lista.innerHTML = "";
+  const snap = await getDocs(collection(db, "insumos"));
 
-function mostrarInsumos() {
-  if (!lista) return;
-
-  lista.innerHTML = ""; // limpiar lista
-
-  insumos.forEach((insumo) => {
+  snap.forEach((doc) => {
+    const data = doc.data();
     const li = document.createElement("li");
-    li.textContent = `${insumo.nombre} — $${insumo.precio} — ${insumo.cantidad} unidades`;
+    li.textContent = `${data.nombre} — $${data.precio} — ${data.cantidad} unidades`;
     lista.appendChild(li);
   });
 }
+
+cargarInsumos();

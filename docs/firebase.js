@@ -1,8 +1,8 @@
-// firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// Firebase desde CDN (compatible con GitHub Pages)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } 
+  from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// Tu configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC9b6YtyJkm_hkpTp-eXEN7Yr-V8m9OarQ",
   authDomain: "pixel-app-9d439-ed678.firebaseapp.com",
@@ -15,8 +15,4 @@ const firebaseConfig = {
 
 // Inicializar Firebase
 export const app = initializeApp(firebaseConfig);
-
-// Inicializar Firestore
 export const db = getFirestore(app);
-
-console.log("🔥 Firebase conectado correctamente");
