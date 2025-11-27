@@ -7,6 +7,7 @@
 </head>
 
 <body>
+
 <header>
   <h1>🦊 Pixel – Insumos</h1>
   <nav>
@@ -30,38 +31,56 @@
   <ul id="listaInsumos"></ul>
 </main>
 
+
+<!-- 🔥 FIREBASE + FIRESTORE + TU LÓGICA -->
 <script type="module">
+
+  /* ---------------------------
+      IMPORTS DE FIREBASE
+  ---------------------------- */
   import { initializeApp } 
-    from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 
   import { 
     getFirestore, 
     collection, 
     addDoc, 
     getDocs 
-  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+
+  /* ---------------------------
+      CONFIGURACIÓN DEL PROYECTO
+      (pixel-stock)
+  ---------------------------- */
   const firebaseConfig = {
-      apiKey: "AIzaSyC9b6YtyJkm_hkpTp-eXEN7Yr-V8m9OarQ",
-      authDomain: "pixel-app-9d439.firebaseapp.com",
-      projectId: "pixel-app-9d439",
-      storageBucket: "pixel-app-9d439.firebasestorage.app",
-      messagingSenderId: "209432229326",
-      appId: "1:209432229326:web:fd865c5ac691f99060679f",
-      measurementId: "G-MPKSR2DMJB"
+    apiKey: "AIzaSyDb0EsdqeYHqY57WMJ4QM3BueX4nJQwrhk",
+    authDomain: "pixel-stock.firebaseapp.com",
+    projectId: "pixel-stock",
+    storageBucket: "pixel-stock.firebasestorage.app",
+    messagingSenderId: "112098353574",
+    appId: "1:112098353574:web:92f03598f1e941dc38a607"
   };
 
-
-
+  /* ---------------------------
+      INICIALIZAR FIREBASE
+  ---------------------------- */
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  console.log("🔥 Firebase inicializado OK");
+  console.log("🔥 Firebase conectado con pixel-stock");
 
-  // ========== AGREGAR ==========
+
+  /* ---------------------------
+      REFERENCIAS DEL DOM
+  ---------------------------- */
   const form = document.getElementById("formInsumo");
   const lista = document.getElementById("listaInsumos");
 
+
+  /* ---------------------------
+      AGREGAR INSUMO
+  ---------------------------- */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -69,33 +88,36 @@
     const precio = Number(document.getElementById("precio").value);
     const cantidad = Number(document.getElementById("cantidad").value);
 
-    await addDoc(collection(db, "insumos"), {
-      nombre,
-      precio,
-      cantidad
-    });
+    await addDoc(collection(db, "insumos"), { nombre, precio, cantidad });
 
-    alert("🦊 Insumo agregado!");
+    alert("🦊 Insumo agregado correctamente!");
+
     form.reset();
     cargarInsumos();
   });
 
-  // ========== LISTAR ==========
+
+  /* ---------------------------
+      LISTAR INSUMOS
+  ---------------------------- */
   async function cargarInsumos() {
     lista.innerHTML = "";
+
     const snap = await getDocs(collection(db, "insumos"));
 
     snap.forEach((doc) => {
       const d = doc.data();
+
       const li = document.createElement("li");
       li.textContent = `${d.nombre} — $${d.precio} — ${d.cantidad} unidades`;
+
       lista.appendChild(li);
     });
   }
 
   cargarInsumos();
-</script>
 
+</script>
 
 </body>
 </html>
