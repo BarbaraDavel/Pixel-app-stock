@@ -89,6 +89,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+  // FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDbBescqYeHYq75YWMJ4QM3BueX4nJQwrhk",
     authDomain: "pixel-stock.firebaseapp.com",
@@ -108,7 +109,10 @@
   const filtro = document.getElementById("filtro");
   const btnActualizar = document.getElementById("btnActualizar");
 
-  // Unidades según tipo
+  // Para no repetir la notificación mil veces
+  let yaMostroNotificacion = false;
+
+  // Unidades según tipo (solo para mostrar más lindo)
   const unidades = {
     "matelina": "hojas",
     "filmilo": "láminas",
@@ -125,20 +129,42 @@
     alerta.style.display = "none";
 
     const snap = await getDocs(collection(db, "insumos"));
-    let datos = [];
+    let todos = [];
 
-    snap.forEach((doc) => datos.push({ id: doc.id, ...doc.data() }));
+    snap.forEach((doc) => todos.push({ id: doc.id, ...doc.data() }));
 
-    // ⬇ Ordenar por cantidad ascendente
-    datos.sort((a, b) => a.cantidad - b.cantidad);
+    // ---- Notificación automática (miramos SIEMPRE todos, sin filtro) ----
+    const bajosGlobal = todos.filter(i => i.cantidad > 0 && i.cantidad <= 4);
+    const sinGlobal   = todos.filter(i => i.cantidad === 0);
 
-    // ⬇ Filtrar según selección
+    if (!yaMostroNotificacion && (bajosGlobal.length || sinGlobal.length)) {
+      let msg = "⚠ Atención, revisá estos insumos:\n\n";
+
+      if (sinGlobal.length) {
+        msg += "❌ SIN STOCK:\n";
+        sinGlobal.forEach(i => { msg += `  • ${i.nombre} (0)\n`; });
+        msg += "\n";
+      }
+
+      if (bajosGlobal.length) {
+        msg += "🟡 STOCK BAJO (≤4):\n";
+        bajosGlobal.forEach(i => { msg += `  • ${i.nombre} (${i.cantidad})\n`; });
+      }
+
+      alert(msg);
+      yaMostroNotificacion = true;
+    }
+
+    // ---- A partir de acá solo trabajamos con lo que se ve en pantalla ----
+    // Ordenamos por cantidad ascendente
+    let datos = [...todos].sort((a, b) => a.cantidad - b.cantidad);
+
+    // Aplicar filtro visual
     const tipo = filtro.value;
 
     if (tipo === "bajo") {
       datos = datos.filter(i => i.cantidad > 0 && i.cantidad <= 4);
-    }
-    else if (tipo === "sin") {
+    } else if (tipo === "sin") {
       datos = datos.filter(i => i.cantidad === 0);
     }
 
@@ -165,13 +191,19 @@
       lista.appendChild(div);
     });
 
+    // Cartelito arriba solo si estamos viendo "Todos"
     if (alertaNecesaria && tipo === "todos") {
       alerta.style.display = "block";
     }
   }
 
   // Eventos
-  btnActualizar.addEventListener("click", cargarStock);
+  btnActualizar.addEventListener("click", () => {
+    // Cada vez que tocás actualizar, permitimos mostrar la notificación de nuevo
+    yaMostroNotificacion = false;
+    cargarStock();
+  });
+
   filtro.addEventListener("change", cargarStock);
 
   // Cargar al inicio

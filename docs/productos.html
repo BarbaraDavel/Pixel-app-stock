@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <title>Productos – Pixel Stock</title>
   <link rel="stylesheet" href="./styles.css">
-
-  <!-- SweetAlert2 (para mensajes lindos) -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    .card-section {
+      padding: 15px;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 
 <body>
@@ -23,39 +30,51 @@
 
 <main class="card">
 
-  <h2>Cargar producción</h2>
+  <h2>Registrar producción</h2>
 
-  <form id="formProducto" class="form">
-
+  <!-- SELECT DINÁMICO DE PRODUCTOS -->
+  <form id="formProduccion" class="form">
     <label>Producto:</label>
-    <select id="producto" required>
-      <option value="">Seleccionar...</option>
-
-      <!-- 🔹 LOS IDs SON ESTOS (NO CAMBIAR):  -->
-      <option value="sticker-adhesivo">Sticker adhesivo</option>
-      <option value="sticker-holo">Sticker holográfico</option>
-      <option value="sticker-mate">Sticker mate</option>
-      <option value="marcapagina">Marcapágina filmilo</option>
-      <option value="llavero-mini">Llavero mini libro</option>
+    <select id="selectProducto" required>
+      <option value="">Cargando...</option>
     </select>
 
     <label>Cantidad producida:</label>
-    <input type="number" id="cantidad" placeholder="Ej: 10" required>
+    <input type="number" id="cantidad" required>
 
     <button type="submit">Registrar producción</button>
   </form>
 
-  <h3>Consumo generado</h3>
-  <ul id="detalleConsumo"></ul>
+  <hr>
+
+  <!-- FORM PARA AGREGAR NUEVOS PRODUCTOS -->
+  <div class="card-section">
+    <h3>Agregar nuevo producto</h3>
+
+    <form id="formNuevoProducto" class="form">
+
+      <label>Nombre del producto:</label>
+      <input type="text" id="nuevoNombreProd" placeholder="Ej: Sticker cuadrado" required>
+
+      <label>Insumo utilizado:</label>
+      <select id="selectInsumoNuevo" required>
+        <option value="">Cargando...</option>
+      </select>
+
+      <label>Unidades por hoja (rinde):</label>
+      <input type="number" id="nuevoRinde" placeholder="Ej: 8" required>
+
+      <button type="submit">Guardar producto</button>
+    </form>
+  </div>
 
 </main>
 
-
-<!-- FIREBASE -->
+<!-- FIREBASE + LÓGICA -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
   import { 
-    getFirestore, collection, getDocs, doc, updateDoc 
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc 
   } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -70,85 +89,126 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  console.log("🔥 Firebase conectado con pixel-stock");
+  console.log("🔥 Firebase conectado");
 
-  const form = document.getElementById("formProducto");
-  const detalle = document.getElementById("detalleConsumo");
-  const productoSelect = document.getElementById("producto");
-  const cantidadInput = document.getElementById("cantidad");
+  const selectProducto = document.getElementById("selectProducto");
+  const selectInsumoNuevo = document.getElementById("selectInsumoNuevo");
 
-  // 📌 REGLAS DE CONSUMO — acá ponés tu lógica real
-  const reglas = {
-    "sticker-adhesivo": { insumo: "Adhesivo A4", rinde: 8 },
-    "sticker-holo":     { insumo: "Holográfico A4", rinde: 8 },
-    "sticker-mate":     { insumo: "Mate A4", rinde: 8 },
-    "marcapagina":      { insumo: "Filmilo", rinde: 6 },
-    "Matelina-190gr":     { insumo: "Matelina 190 gr", rinde: 4 }
-  };
+  const formNuevoProducto = document.getElementById("formNuevoProducto");
+  const formProduccion = document.getElementById("formProduccion");
 
-  // 🔹 Limpiar consumo al cambiar de producto
-  productoSelect.addEventListener("change", () => {
-    detalle.innerHTML = "";
-  });
+  const collProductos = collection(db, "productosConfig");
+  const collInsumos = collection(db, "insumos");
 
-  form.addEventListener("submit", async (e) => {
+  // ===========================================
+  // 🚀 Cargar insumos en SELECT (dinámico)
+  // ===========================================
+  async function cargarInsumos() {
+    const snap = await getDocs(collInsumos);
+    selectInsumoNuevo.innerHTML = '<option value="">Elegir...</option>';
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      selectInsumoNuevo.innerHTML +=
+        `<option value="${d.nombre}">${d.nombre}</option>`;
+    });
+  }
+
+  // ===========================================
+  // 🚀 Cargar productos en SELECT (dinámico)
+  // ===========================================
+  async function cargarProductos() {
+    const snap = await getDocs(collProductos);
+    selectProducto.innerHTML = '<option value="">Elegir producto...</option>';
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      selectProducto.innerHTML +=
+        `<option value="${doc.id}">${d.nombre}</option>`;
+    });
+  }
+
+  // ===========================================
+  // ➕ AGREGAR NUEVO PRODUCTO
+  // ===========================================
+  formNuevoProducto.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const producto = productoSelect.value;
-    const cantidad = Number(cantidadInput.value);
+    const nombre = document.getElementById("nuevoNombreProd").value.trim();
+    const insumo = selectInsumoNuevo.value;
+    const rinde = Number(document.getElementById("nuevoRinde").value);
 
-    if (!producto) {
-      Swal.fire("Error", "Seleccioná un producto", "error");
+    await addDoc(collProductos, { nombre, insumo, rinde });
+
+    Swal.fire("Listo!", "Producto agregado correctamente", "success");
+
+    formNuevoProducto.reset();
+    cargarProductos();
+  });
+
+  // ===========================================
+  // 🛠 Registrar producción (restar stock)
+  // ===========================================
+  formProduccion.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idProducto = selectProducto.value;
+    if (!idProducto) {
+      Swal.fire("Error", "Elegí un producto", "error");
       return;
     }
 
-    const regla = reglas[producto];
+    const cantidad = Number(document.getElementById("cantidad").value);
 
-    // Cálculo de hojas consumidas
-    const hojasNecesarias = Math.ceil(cantidad / regla.rinde);
+    // Traer la configuración del producto
+    const snap = await getDocs(collProductos);
+    let prod = null;
 
-    detalle.innerHTML = `
-      <li>🧾 Insumo usado: <b>${regla.insumo}</b></li>
-      <li>📦 Hojas consumidas: <b>${hojasNecesarias}</b></li>
-    `;
+    snap.forEach(doc => {
+      if (doc.id === idProducto) prod = doc.data();
+    });
 
-    // 🔥 Buscar insumo real en Firestore (coincidencia flexible)
-    const insumosSnap = await getDocs(collection(db, "insumos"));
+    const hojasNecesarias = Math.ceil(cantidad / prod.rinde);
+
+    // Buscar insumo en Firestore
+    const insumosSnap = await getDocs(collInsumos);
     let idInsumo = null;
     let stockActual = 0;
 
-    insumosSnap.forEach((d) => {
+    insumosSnap.forEach(d => {
       const data = d.data();
-      if (data.nombre.toLowerCase().includes(regla.insumo.toLowerCase())) {
+      if (data.nombre === prod.insumo) {
         idInsumo = d.id;
-        stockActual = Number(data.cantidad);
+        stockActual = data.cantidad;
       }
     });
 
     if (!idInsumo) {
-      Swal.fire(
-        "Insumo inexistente",
-        "Cargá primero este insumo en la sección 'Insumos'.",
-        "error"
-      );
+      Swal.fire("Error", "El insumo no existe aún en Firestore", "error");
       return;
     }
 
     const nuevoStock = stockActual - hojasNecesarias;
 
-    // 🔥 Actualizar Firestore
+    // Actualizar insumo
     const ref = doc(db, "insumos", idInsumo);
     await updateDoc(ref, { cantidad: nuevoStock });
 
-    Swal.fire(
-      "Producción registrada",
-      "El stock fue actualizado correctamente.",
-      "success"
-    );
+    // Alertas inteligentes
+    if (nuevoStock <= 0) {
+      Swal.fire("❌ Sin stock!", `${prod.insumo} está en 0`, "error");
+    } else if (nuevoStock <= 4) {
+      Swal.fire("🟡 Stock bajo", `${prod.insumo} quedó en ${nuevoStock}`, "warning");
+    } else {
+      Swal.fire("Listo 🦊", "Producción registrada", "success");
+    }
 
-    form.reset();
-    detalle.innerHTML = "";
+    formProduccion.reset();
   });
+
+  // Cargar selects al entrar
+  cargarInsumos();
+  cargarProductos();
 </script>
 
 </body>
