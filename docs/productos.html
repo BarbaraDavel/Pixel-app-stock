@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Productos – Pixel Stock</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+
+<header>
+  <h1>🦊 Pixel – Productos</h1>
+  <nav>
+    <a href="./index.html">Inicio</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+  </nav>
+</header>
+
+<main class="card">
+
+  <h2>Cargar producción</h2>
+
+  <form id="formProducto" class="form">
+
+    <label>Producto:</label>
+    <select id="producto" required>
+      <option value="">Seleccionar...</option>
+      <option value="sticker-adhesivo">Sticker adhesivo</option>
+      <option value="sticker-holo">Sticker holográfico</option>
+      <option value="sticker-mate">Sticker mate</option>
+      <option value="marcapagina">Marcapágina filmilo</option>
+      <option value="llavero-mini">Llavero mini libro</option>
+    </select>
+
+    <label>Cantidad producida:</label>
+    <input type="number" id="cantidad" placeholder="Ej: 10" required>
+
+    <button type="submit">Registrar producción</button>
+  </form>
+
+  <h3>Consumo generado</h3>
+  <ul id="detalleConsumo"></ul>
+
+</main>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc 
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDbBescqYeHYq75YWMJ4QM3BueX4nJQwrhk",
+    authDomain: "pixel-stock.firebaseapp.com",
+    projectId: "pixel-stock",
+    storageBucket: "pixel-stock.firebasestorage.app",
+    messagingSenderId: "120898353574",
+    appId: "1:120898353574:web:92f03598f1e941dc38a607"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  console.log("🔥 Firebase conectado con pixel-stock");
+
+  const form = document.getElementById("formProducto");
+  const detalle = document.getElementById("detalleConsumo");
+
+  // 📌 Reglas de consumo por producto
+  const reglas = {
+    "sticker-adhesivo": { hoja: "Adhesivo A4", rinde: 8 },
+    "sticker-holo": { hoja: "Holográfico A4", rinde: 8 },
+    "sticker-mate": { hoja: "Mate A4", rinde: 8 },
+    "marcapagina": { hoja: "Filmilo A4", rinde: 6 },
+    "llavero-mini": { hoja: "Matelina 190 gr", rinde: 4 }
+  };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const producto = document.getElementById("producto").value;
+    const cantidad = Number(document.getElementById("cantidad").value);
+
+    const regla = reglas[producto];
+
+    if (!regla) {
+      alert("❌ Producto no tiene reglas aún.");
+      return;
+    }
+
+    // Cálculo de hojas consumidas
+    const hojasNecesarias = Math.ceil(cantidad / regla.rinde);
+
+    detalle.innerHTML = `
+      <li>🧾 Insumo usado: <b>${regla.hoja}</b></li>
+      <li>📦 Hojas consumidas: <b>${hojasNecesarias}</b></li>
+    `;
+
+    // 🔥 Buscar el insumo en Firestore
+    const insumosSnap = await getDocs(collection(db, "insumos"));
+    let idEncontrado = null;
+    let stockActual = 0;
+
+    insumosSnap.forEach((d) => {
+      const data = d.data();
+      if (data.nombre.toLowerCase().includes(regla.hoja.toLowerCase())) {
+        idEncontrado = d.id;
+        stockActual = data.cantidad;
+      }
+    });
+
+    if (!idEncontrado) {
+      alert("❌ No existe el insumo en la base. Cargalo primero en 'Insumos'.");
+      return;
+    }
+
+    const nuevoStock = stockActual - hojasNecesarias;
+
+    // 🔥 Actualizar Firestore
+    const ref = doc(db, "insumos", idEncontrado);
+    await updateDoc(ref, { cantidad: nuevoStock });
+
+    alert("🦊 Producción registrada y stock actualizado correctamente");
+
+    form.reset();
+  });
+</script>
+
+</body>
+</html>

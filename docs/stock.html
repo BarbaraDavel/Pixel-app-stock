@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock – Pixel</title>
+  <link rel="stylesheet" href="./styles.css">
+
+  <style>
+    .stock-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ok { background: #d4ffd4; border-left: 6px solid #2ecc71; }
+    .bajo { background: #fff7d1; border-left: 6px solid #f1c40f; }
+    .sin { background: #ffd4d4; border-left: 6px solid #e74c3c; }
+
+    #btnActualizar {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #8A005A;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnActualizar:hover {
+      background: #C00063;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🦊 Pixel – Stock</h1>
+  <nav>
+    <a href="./index.html">Inicio</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+  </nav>
+</header>
+
+<main class="card">
+  <h2>📦 Estado de Stock</h2>
+
+  <div id="listaStock">
+    <p>Cargando datos...</p>
+  </div>
+
+  <button id="btnActualizar">Actualizar</button>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { 
+    getFirestore, collection, getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  // FIREBASE CONFIG
+  const firebaseConfig = {
+    apiKey: "AIzaSyDbBescqYeHYq75YWMJ4QM3BueX4nJQwrhk",
+    authDomain: "pixel-stock.firebaseapp.com",
+    projectId: "pixel-stock",
+    storageBucket: "pixel-stock.firebasestorage.app",
+    messagingSenderId: "120898353574",
+    appId: "1:120898353574:web:92f03598f1e941dc38a607"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  console.log("🔥 Firebase listo en stock.html");
+
+  const lista = document.getElementById("listaStock");
+  const btnActualizar = document.getElementById("btnActualizar");
+
+  // ============================
+  // Cargar stock
+  // ============================
+  async function cargarStock() {
+    lista.innerHTML = "<p>Cargando...</p>";
+
+    const snap = await getDocs(collection(db, "insumos"));
+    lista.innerHTML = "";
+
+    snap.forEach((doc) => {
+      const d = doc.data();
+
+      // Definir estado por cantidad
+      let clase = "ok";
+      if (d.cantidad === 0) clase = "sin";
+      else if (d.cantidad <= 4) clase = "bajo";
+
+      const div = document.createElement("div");
+      div.className = `stock-item ${clase}`;
+      div.innerHTML = `
+        <span>🧾 <b>${d.nombre}</b></span>
+        <span>${d.cantidad} unidades</span>
+      `;
+
+      lista.appendChild(div);
+    });
+  }
+
+  cargarStock();
+
+  // 🔄 Botón actualizar
+  btnActualizar.addEventListener("click", cargarStock);
+</script>
+
+</body>
+</html>
