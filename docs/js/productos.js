@@ -5,20 +5,21 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const lista = document.getElementById("productosLista");
-const btn = document.getElementById("guardarProd");
+const grid = document.getElementById("productosLista");
+const btnGuardar = document.getElementById("guardarProd");
+
 const inputNombre = document.getElementById("prodNombre");
 const inputPrecio = document.getElementById("prodPrecio");
 
 async function cargarProductos() {
-  lista.innerHTML = "";
+  grid.innerHTML = "";
 
   const snap = await getDocs(collection(db, "productos"));
 
   snap.forEach((d) => {
     const p = d.data();
 
-    lista.innerHTML += `
+    grid.innerHTML += `
       <div class="producto-card">
         <div>
           <div class="producto-nombre">${p.nombre}</div>
@@ -33,7 +34,7 @@ async function cargarProductos() {
   });
 }
 
-window.vender = async function (nombre, precio) {
+window.vender = async function(nombre, precio) {
   await addDoc(collection(db, "ventas"), {
     nombre,
     precio,
@@ -43,7 +44,7 @@ window.vender = async function (nombre, precio) {
   alert("Venta registrada 💖");
 };
 
-btn.onclick = async () => {
+btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
   const precio = Number(inputPrecio.value) || 0;
 

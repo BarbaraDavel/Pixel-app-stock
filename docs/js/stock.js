@@ -8,7 +8,7 @@ import {
 
 const tabla = document.getElementById("stockLista");
 
-// elementos del modal
+// modal
 const modal = document.getElementById("stockModal");
 const modalNombre = document.getElementById("modalNombre");
 const modalStockActual = document.getElementById("modalStockActual");
@@ -17,27 +17,25 @@ const btnModalGuardar = document.getElementById("modalGuardar");
 const btnModalCancelar = document.getElementById("modalCancelar");
 
 let modalStockId = null;
-const stockCache = {}; // idStock -> { nombre, stockActual, stockMinimo }
+let stockCache = {};
 
 async function cargarStock() {
   tabla.innerHTML = "";
+  stockCache = {};
 
-  const insumosSnap = await getDocs(collection(db, "insumos"));
+  const insSnap = await getDocs(collection(db, "insumos"));
   const stockSnap = await getDocs(collection(db, "stock"));
 
   const insumos = {};
-  insumosSnap.forEach((d) => {
-    insumos[d.id] = d.data();
-  });
+  insSnap.forEach((d) => insumos[d.id] = d.data());
 
-  stockCache.clear;
-  for (const d of stockSnap.docs) {
-    const stock = d.data();
-    const ins = insumos[stock.insumoId];
-    if (!ins) continue;
+  stockSnap.forEach((d) => {
+    const st = d.data();
+    const ins = insumos[st.insumoId];
+    if (!ins) return;
 
-    const actual = stock.stockActual ?? 0;
-    const minimo = stock.stockMinimo ?? 5;
+    const actual = st.stockActual ?? 0;
+    const minimo = st.stockMinimo ?? 5;
 
     let clase = "stock-ok";
     if (actual < minimo) clase = "stock-low";
@@ -61,29 +59,24 @@ async function cargarStock() {
         </td>
       </tr>
     `;
-  }
+  });
 }
 
-window.sumar = async function (id, actual) {
-  await updateDoc(doc(db, "stock", id), {
-    stockActual: actual + 1
-  });
+window.sumar = async (id, actual) => {
+  await updateDoc(doc(db, "stock", id), { stockActual: actual + 1 });
   cargarStock();
 };
 
-window.restar = async function (id, actual) {
+window.restar = async (id, actual) => {
   if (actual === 0) return;
-  await updateDoc(doc(db, "stock", id), {
-    stockActual: actual - 1
-  });
+  await updateDoc(doc(db, "stock", id), { stockActual: actual - 1 });
   cargarStock();
 };
 
-window.abrirModal = function (id) {
+window.abrirModal = (id) => {
   const data = stockCache[id];
-  if (!data) return;
-
   modalStockId = id;
+
   modalNombre.textContent = data.nombre;
   modalStockActual.value = data.stockActual;
   modalStockMinimo.value = data.stockMinimo;
@@ -91,31 +84,20 @@ window.abrirModal = function (id) {
   modal.classList.remove("hidden");
 };
 
-function cerrarModal() {
-  modal.classList.add("hidden");
-  modalStockId = null;
-}
+btnModalCancelar.onclick = () => modal.classList.add("hidden");
 
-btnModalCancelar.addEventListener("click", cerrarModal);
-
-btnModalGuardar.addEventListener("click", async () => {
-  if (!modalStockId) return;
-
-  const nuevoActual = Number(modalStockActual.value) || 0;
-  const nuevoMinimo = Number(modalStockMinimo.value) || 0;
-
+btnModalGuardar.onclick = async () => {
   await updateDoc(doc(db, "stock", modalStockId), {
-    stockActual: nuevoActual,
-    stockMinimo: nuevoMinimo
+    stockActual: Number(modalStockActual.value),
+    stockMinimo: Number(modalStockMinimo.value)
   });
 
-  cerrarModal();
+  modal.classList.add("hidden");
   cargarStock();
-});
+};
 
-// cerrar modal clickeando afuera
 modal.addEventListener("click", (e) => {
-  if (e.target === modal) cerrarModal();
+  if (e.target === modal) modal.classList.add("hidden");
 });
 
 cargarStock();

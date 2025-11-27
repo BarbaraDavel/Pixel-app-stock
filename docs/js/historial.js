@@ -1,7 +1,9 @@
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  orderBy,
+  query
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const lista = document.getElementById("listaVentas");
@@ -11,11 +13,16 @@ async function cargarVentas() {
   lista.innerHTML = "";
   let total = 0;
 
-  const snap = await getDocs(collection(db, "ventas"));
+  const ventasRef = collection(db, "ventas");
+  const q = query(ventasRef);
+  const snap = await getDocs(q);
 
   snap.forEach((d) => {
     const v = d.data();
-    const fecha = new Date(v.fecha).toLocaleString("es-AR");
+
+    const fecha = v.fecha
+      ? new Date(v.fecha).toLocaleString("es-AR")
+      : "(sin fecha)";
 
     lista.innerHTML += `
       <tr>

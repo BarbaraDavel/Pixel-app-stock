@@ -30,4 +30,22 @@
     <h3>Agregar Producto</h3>
 
     <input id="prodNombre" placeholder="Nombre del producto">
-    <
+    <input id="prodPrecio" type="number" placeholder="Precio de venta">
+    <button id="guardarProd" class="btn btn-primary">Agregar</button>
+  </div>
+
+  <br>
+
+  <!-- Listado -->
+  <div class="card">
+    <h3>Listado de Productos</h3>
+
+    <div id="productosLista" class="productos-grid"></div>
+  </div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/productos.js"></script>
+</body>
+</html>
