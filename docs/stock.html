@@ -13,7 +13,6 @@
     <span class="logo-fox">🦊</span> Pixel Stock
   </div>
   <div class="nav-links">
-    <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./productos.html">Productos</a>
     <a class="active" href="./stock.html">Stock</a>
@@ -22,9 +21,9 @@
 </div>
 
 <div class="main">
-
   <div class="card">
     <h1>Stock</h1>
+    <p class="hint">Rojo: bajo stock · Naranja: cerca del mínimo · Verde: OK</p>
 
     <table>
       <thead>
@@ -38,7 +37,25 @@
       <tbody id="stockLista"></tbody>
     </table>
   </div>
+</div>
 
+<!-- MODAL EDITAR STOCK -->
+<div id="stockModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Editar stock</h3>
+    <p id="modalNombre" class="hint"></p>
+
+    <label for="modalStockActual">Stock actual</label>
+    <input id="modalStockActual" type="number" min="0">
+
+    <label for="modalStockMinimo">Stock mínimo</label>
+    <input id="modalStockMinimo" type="number" min="0">
+
+    <div class="modal-actions">
+      <button id="modalCancelar" class="btn btn-outline">Cancelar</button>
+      <button id="modalGuardar" class="btn btn-primary">Guardar</button>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="js/firebase.js"></script>

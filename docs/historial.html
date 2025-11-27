@@ -2,35 +2,46 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Historial - Pixel</title>
+  <title>Historial - Pixel Stock</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
 
-<header>
-  <div class="logo">Pixel</div>
-  <nav>
-    <a href="./index.html">Inicio</a>    
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
     <a href="./insumos.html">Insumos</a>
     <a href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
-    <a href="./historial.html">Historial</a>
-  </nav>
-</header>
+    <a class="active" href="./historial.html">Historial</a>
+  </div>
+</div>
 
-<h2>Historial de Ventas</h2>
+<div class="main">
 
-<table>
-  <thead>
-    <tr>
-      <th>Producto</th>
-      <th>Precio</th>
-      <th>Fecha</th>
-    </tr>
-  </thead>
-  <tbody id="listaVentas"></tbody>
-</table>
+  <div class="card">
+    <h1>Historial de Ventas</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="listaVentas"></tbody>
+    </table>
+
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--pixel-borde);">
+
+    <h3>Total acumulado: <span id="totalAcumulado">$0</span></h3>
+  </div>
+
+</div>
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/historial.js"></script>

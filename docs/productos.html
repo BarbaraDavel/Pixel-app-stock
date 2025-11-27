@@ -2,44 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Productos - Pixel</title>
+  <title>Productos - Pixel Stock</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
 
-<header>
-  <div class="logo">Pixel</div>
-  <nav>
-    <a href="./index.html">Inicio</a>
+<!-- HEADER -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
     <a href="./insumos.html">Insumos</a>
-    <a href="./productos.html">Productos</a>
+    <a class="active" href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
     <a href="./historial.html">Historial</a>
-  </nav>
-</header>
+  </div>
+</div>
 
-<h2>Productos</h2>
+<div class="main">
 
-<section class="form-section">
-  <h3>Agregar Producto</h3>
-  <input id="prodNombre" placeholder="Nombre del producto">
-  <input id="prodPrecio" type="number" placeholder="Precio">
-  <button id="guardarProd">Guardar</button>
-</section>
+  <!-- Card agregar producto -->
+  <div class="card">
+    <h1>Productos</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Producto</th>
-      <th>Precio</th>
-      <th>Vender</th>
-    </tr>
-  </thead>
-  <tbody id="listaProductos"></tbody>
-</table>
+    <h3>Agregar Producto</h3>
 
-<script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/productos.js"></script>
-</body>
-</html>
+    <input id="prodNombre" placeholder="Nombre del producto">
+    <
