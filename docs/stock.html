@@ -21,6 +21,18 @@
     .bajo { background: #fff7d1; border-left: 6px solid #f1c40f; }
     .sin { background: #ffd4d4; border-left: 6px solid #e74c3c; }
 
+    #alertaGeneral {
+      padding: 15px;
+      background: #fff3cd;
+      color: #856404;
+      border-left: 6px solid #ffb700;
+      display: none;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
     #btnActualizar {
       margin-top: 10px;
       padding: 10px 20px;
@@ -50,7 +62,19 @@
 </header>
 
 <main class="card">
+
+  <!-- 🔔 ALERTA GENERAL -->
+  <div id="alertaGeneral">⚠ Algunos insumos están en nivel bajo o sin stock.</div>
+
   <h2>📦 Estado de Stock</h2>
+
+  <!-- 🔽 FILTRO -->
+  <label for="filtro"><b>Filtrar por estado:</b></label>
+  <select id="filtro">
+    <option value="todos">Todos</option>
+    <option value="bajo">Solo stock bajo (≤5)</option>
+    <option value="sin">Sin stock (0)</option>
+  </select>
 
   <div id="listaStock">
     <p>Cargando datos...</p>
@@ -59,13 +83,12 @@
   <button id="btnActualizar">Actualizar</button>
 </main>
 
+
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-  import { 
-    getFirestore, collection, getDocs 
-  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-  // FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyDbBescqYeHYq75YWMJ4QM3BueX4nJQwrhk",
     authDomain: "pixel-stock.firebaseapp.com",
@@ -81,40 +104,78 @@
   console.log("🔥 Firebase listo en stock.html");
 
   const lista = document.getElementById("listaStock");
+  const alerta = document.getElementById("alertaGeneral");
+  const filtro = document.getElementById("filtro");
   const btnActualizar = document.getElementById("btnActualizar");
+
+  // Unidades según tipo
+  const unidades = {
+    "matelina": "hojas",
+    "filmilo": "láminas",
+    "adhesivo": "hojas",
+    "holográfico": "hojas",
+    "mate": "hojas"
+  };
 
   // ============================
   // Cargar stock
   // ============================
   async function cargarStock() {
     lista.innerHTML = "<p>Cargando...</p>";
+    alerta.style.display = "none";
 
     const snap = await getDocs(collection(db, "insumos"));
+    let datos = [];
+
+    snap.forEach((doc) => datos.push({ id: doc.id, ...doc.data() }));
+
+    // ⬇ Ordenar por cantidad ascendente
+    datos.sort((a, b) => a.cantidad - b.cantidad);
+
+    // ⬇ Filtrar según selección
+    const tipo = filtro.value;
+
+    if (tipo === "bajo") {
+      datos = datos.filter(i => i.cantidad > 0 && i.cantidad <= 4);
+    }
+    else if (tipo === "sin") {
+      datos = datos.filter(i => i.cantidad === 0);
+    }
+
     lista.innerHTML = "";
 
-    snap.forEach((doc) => {
-      const d = doc.data();
+    let alertaNecesaria = false;
 
-      // Definir estado por cantidad
+    datos.forEach((d) => {
       let clase = "ok";
-      if (d.cantidad === 0) clase = "sin";
-      else if (d.cantidad <= 4) clase = "bajo";
+      if (d.cantidad === 0) { clase = "sin"; alertaNecesaria = true; }
+      else if (d.cantidad <= 4) { clase = "bajo"; alertaNecesaria = true; }
+
+      const unidad = unidades[
+        Object.keys(unidades).find(u => d.nombre.toLowerCase().includes(u))
+      ] || "unidades";
 
       const div = document.createElement("div");
       div.className = `stock-item ${clase}`;
       div.innerHTML = `
         <span>🧾 <b>${d.nombre}</b></span>
-        <span>${d.cantidad} unidades</span>
+        <span>${d.cantidad} ${unidad}</span>
       `;
 
       lista.appendChild(div);
     });
+
+    if (alertaNecesaria && tipo === "todos") {
+      alerta.style.display = "block";
+    }
   }
 
-  cargarStock();
-
-  // 🔄 Botón actualizar
+  // Eventos
   btnActualizar.addEventListener("click", cargarStock);
+  filtro.addEventListener("change", cargarStock);
+
+  // Cargar al inicio
+  cargarStock();
 </script>
 
 </body>

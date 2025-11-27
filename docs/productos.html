@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>Productos – Pixel Stock</title>
   <link rel="stylesheet" href="./styles.css">
+
+  <!-- SweetAlert2 (para mensajes lindos) -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -27,6 +30,8 @@
     <label>Producto:</label>
     <select id="producto" required>
       <option value="">Seleccionar...</option>
+
+      <!-- 🔹 LOS IDs SON ESTOS (NO CAMBIAR):  -->
       <option value="sticker-adhesivo">Sticker adhesivo</option>
       <option value="sticker-holo">Sticker holográfico</option>
       <option value="sticker-mate">Sticker mate</option>
@@ -45,11 +50,12 @@
 
 </main>
 
+
 <!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
   import { 
-    getFirestore, collection, addDoc, getDocs, doc, updateDoc 
+    getFirestore, collection, getDocs, doc, updateDoc 
   } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -68,64 +74,80 @@
 
   const form = document.getElementById("formProducto");
   const detalle = document.getElementById("detalleConsumo");
+  const productoSelect = document.getElementById("producto");
+  const cantidadInput = document.getElementById("cantidad");
 
-  // 📌 Reglas de consumo por producto
+  // 📌 REGLAS DE CONSUMO — acá ponés tu lógica real
   const reglas = {
-    "sticker-adhesivo": { hoja: "Adhesivo A4", rinde: 8 },
-    "sticker-holo": { hoja: "Holográfico A4", rinde: 8 },
-    "sticker-mate": { hoja: "Mate A4", rinde: 8 },
-    "marcapagina": { hoja: "Filmilo A4", rinde: 6 },
-    "llavero-mini": { hoja: "Matelina 190 gr", rinde: 4 }
+    "sticker-adhesivo": { insumo: "Adhesivo A4", rinde: 8 },
+    "sticker-holo":     { insumo: "Holográfico A4", rinde: 8 },
+    "sticker-mate":     { insumo: "Mate A4", rinde: 8 },
+    "marcapagina":      { insumo: "Filmilo", rinde: 6 },
+    "llavero-mini":     { insumo: "Matelina 190 gr", rinde: 4 }
   };
+
+  // 🔹 Limpiar consumo al cambiar de producto
+  productoSelect.addEventListener("change", () => {
+    detalle.innerHTML = "";
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const producto = document.getElementById("producto").value;
-    const cantidad = Number(document.getElementById("cantidad").value);
+    const producto = productoSelect.value;
+    const cantidad = Number(cantidadInput.value);
 
-    const regla = reglas[producto];
-
-    if (!regla) {
-      alert("❌ Producto no tiene reglas aún.");
+    if (!producto) {
+      Swal.fire("Error", "Seleccioná un producto", "error");
       return;
     }
+
+    const regla = reglas[producto];
 
     // Cálculo de hojas consumidas
     const hojasNecesarias = Math.ceil(cantidad / regla.rinde);
 
     detalle.innerHTML = `
-      <li>🧾 Insumo usado: <b>${regla.hoja}</b></li>
+      <li>🧾 Insumo usado: <b>${regla.insumo}</b></li>
       <li>📦 Hojas consumidas: <b>${hojasNecesarias}</b></li>
     `;
 
-    // 🔥 Buscar el insumo en Firestore
+    // 🔥 Buscar insumo real en Firestore (coincidencia flexible)
     const insumosSnap = await getDocs(collection(db, "insumos"));
-    let idEncontrado = null;
+    let idInsumo = null;
     let stockActual = 0;
 
     insumosSnap.forEach((d) => {
       const data = d.data();
-      if (data.nombre.toLowerCase().includes(regla.hoja.toLowerCase())) {
-        idEncontrado = d.id;
-        stockActual = data.cantidad;
+      if (data.nombre.toLowerCase().includes(regla.insumo.toLowerCase())) {
+        idInsumo = d.id;
+        stockActual = Number(data.cantidad);
       }
     });
 
-    if (!idEncontrado) {
-      alert("❌ No existe el insumo en la base. Cargalo primero en 'Insumos'.");
+    if (!idInsumo) {
+      Swal.fire(
+        "Insumo inexistente",
+        "Cargá primero este insumo en la sección 'Insumos'.",
+        "error"
+      );
       return;
     }
 
     const nuevoStock = stockActual - hojasNecesarias;
 
     // 🔥 Actualizar Firestore
-    const ref = doc(db, "insumos", idEncontrado);
+    const ref = doc(db, "insumos", idInsumo);
     await updateDoc(ref, { cantidad: nuevoStock });
 
-    alert("🦊 Producción registrada y stock actualizado correctamente");
+    Swal.fire(
+      "Producción registrada",
+      "El stock fue actualizado correctamente.",
+      "success"
+    );
 
     form.reset();
+    detalle.innerHTML = "";
   });
 </script>
 
