@@ -1,123 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Insumos – Pixel Stock</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <meta charset="UTF-8">
+  <title>Insumos - Pixel Stock</title>
+  <link rel="stylesheet" href="css/estilos.css">
 </head>
 
 <body>
 
 <header>
-  <h1>🦊 Pixel – Insumos</h1>
+  <div class="logo">Pixel</div>
   <nav>
-    <a href="./index.html">Inicio</a>
-    <a href="./productos.html">Productos</a>
-    <a href="./stock.html">Stock</a>
+    <a href="insumos.html">Insumos</a>
+    <a href="productos.html">Productos</a>
+    <a href="stock.html">Stock</a>
+    <a href="historial.html">Historial</a>
   </nav>
 </header>
 
-<main class="card">
-  <h2>Cargar Insumo</h2>
+<h2>Insumos</h2>
 
-  <form id="formInsumo" class="form">
-    <input type="text" id="nombre" placeholder="Nombre del insumo" required />
-    <input type="number" id="precio" placeholder="Precio del paquete" required />
-    <input type="number" id="cantidad" placeholder="Cantidad en el paquete" required />
-    <button type="submit">Agregar</button>
-  </form>
+<section class="form-section">
+  <h3>Agregar / Editar Insumo</h3>
+  <input id="insumoNombre" placeholder="Nombre del insumo">
+  <input id="insumoCosto" type="number" placeholder="Costo unitario">
+  <input id="insumoStock" type="number" placeholder="Stock actual">
+  <input id="insumoMin" type="number" placeholder="Stock mínimo (default 5)">
+  <button id="guardarInsumo">Guardar</button>
+</section>
 
-  <h3>Lista de Insumos</h3>
-  <ul id="listaInsumos"></ul>
-</main>
+<h3>Listado de Insumos</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Costo</th>
+      <th>Stock</th>
+      <th>Mínimo</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody id="listaInsumos"></tbody>
+</table>
 
-
-<!-- 🔥 FIREBASE + FIRESTORE + TU LÓGICA -->
-<script type="module">
-
-  /* ---------------------------
-      IMPORTS DE FIREBASE
-  ---------------------------- */
-  import { initializeApp } 
-    from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-
-  import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    getDocs 
-  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-
-
-  /* ---------------------------
-      CONFIGURACIÓN DEL PROYECTO
-      (pixel-stock)
-  ---------------------------- */
-  const firebaseConfig = {
-    apiKey: "AIzaSyDb0EsdqeYHqY57WMJ4QM3BueX4nJQwrhk",
-    authDomain: "pixel-stock.firebaseapp.com",
-    projectId: "pixel-stock",
-    storageBucket: "pixel-stock.firebasestorage.app",
-    messagingSenderId: "112098353574",
-    appId: "1:112098353574:web:92f03598f1e941dc38a607"
-  };
-
-  /* ---------------------------
-      INICIALIZAR FIREBASE
-  ---------------------------- */
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  console.log("🔥 Firebase conectado con pixel-stock");
-
-
-  /* ---------------------------
-      REFERENCIAS DEL DOM
-  ---------------------------- */
-  const form = document.getElementById("formInsumo");
-  const lista = document.getElementById("listaInsumos");
-
-
-  /* ---------------------------
-      AGREGAR INSUMO
-  ---------------------------- */
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const nombre = document.getElementById("nombre").value.trim();
-    const precio = Number(document.getElementById("precio").value);
-    const cantidad = Number(document.getElementById("cantidad").value);
-
-    await addDoc(collection(db, "insumos"), { nombre, precio, cantidad });
-
-    alert("🦊 Insumo agregado correctamente!");
-
-    form.reset();
-    cargarInsumos();
-  });
-
-
-  /* ---------------------------
-      LISTAR INSUMOS
-  ---------------------------- */
-  async function cargarInsumos() {
-    lista.innerHTML = "";
-
-    const snap = await getDocs(collection(db, "insumos"));
-
-    snap.forEach((doc) => {
-      const d = doc.data();
-
-      const li = document.createElement("li");
-      li.textContent = `${d.nombre} — $${d.precio} — ${d.cantidad} unidades`;
-
-      lista.appendChild(li);
-    });
-  }
-
-  cargarInsumos();
-
-</script>
-
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/insumos.js"></script>
 </body>
 </html>

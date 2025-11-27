@@ -2,213 +2,35 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Stock – Pixel</title>
-  <link rel="stylesheet" href="./styles.css">
-
-  <style>
-    .stock-item {
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .ok { background: #d4ffd4; border-left: 6px solid #2ecc71; }
-    .bajo { background: #fff7d1; border-left: 6px solid #f1c40f; }
-    .sin { background: #ffd4d4; border-left: 6px solid #e74c3c; }
-
-    #alertaGeneral {
-      padding: 15px;
-      background: #fff3cd;
-      color: #856404;
-      border-left: 6px solid #ffb700;
-      display: none;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    #btnActualizar {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #8A005A;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #btnActualizar:hover {
-      background: #C00063;
-    }
-  </style>
+  <title>Stock - Pixel</title>
+  <link rel="stylesheet" href="css/estilos.css">
 </head>
 
 <body>
 
 <header>
-  <h1>🦊 Pixel – Stock</h1>
+  <div class="logo">Pixel</div>
   <nav>
-    <a href="./index.html">Inicio</a>
-    <a href="./insumos.html">Insumos</a>
-    <a href="./productos.html">Productos</a>
-    <a href="./stock.html">Stock</a>
+    <a href="insumos.html">Insumos</a>
+    <a href="productos.html">Productos</a>
+    <a href="stock.html">Stock</a>
+    <a href="historial.html">Historial</a>
   </nav>
 </header>
 
-<main class="card">
+<h2>Stock General</h2>
 
-  <!-- 🔔 ALERTA GENERAL -->
-  <div id="alertaGeneral">⚠ Algunos insumos están en nivel bajo o sin stock.</div>
+<table>
+  <thead>
+    <tr>
+      <th>Insumo</th>
+      <th>Stock</th>
+    </tr>
+  </thead>
+  <tbody id="stockLista"></tbody>
+</table>
 
-  <h2>📦 Estado de Stock</h2>
-
-  <!-- 🔽 FILTRO -->
-  <label for="filtro"><b>Filtrar por estado:</b></label>
-  <select id="filtro">
-    <option value="todos">Todos</option>
-    <option value="bajo">Solo stock bajo (≤5)</option>
-    <option value="sin">Sin stock (0)</option>
-  </select>
-
-  <div id="listaStock">
-    <p>Cargando datos...</p>
-  </div>
-
-  <button id="btnActualizar">Actualizar</button>
-</main>
-
-
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-  // FIREBASE CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyDbBescqYeHYq75YWMJ4QM3BueX4nJQwrhk",
-    authDomain: "pixel-stock.firebaseapp.com",
-    projectId: "pixel-stock",
-    storageBucket: "pixel-stock.firebasestorage.app",
-    messagingSenderId: "120898353574",
-    appId: "1:120898353574:web:92f03598f1e941dc38a607"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  console.log("🔥 Firebase listo en stock.html");
-
-  const lista = document.getElementById("listaStock");
-  const alerta = document.getElementById("alertaGeneral");
-  const filtro = document.getElementById("filtro");
-  const btnActualizar = document.getElementById("btnActualizar");
-
-  // Para no repetir la notificación mil veces
-  let yaMostroNotificacion = false;
-
-  // Unidades según tipo (solo para mostrar más lindo)
-  const unidades = {
-    "matelina": "hojas",
-    "filmilo": "láminas",
-    "adhesivo": "hojas",
-    "holográfico": "hojas",
-    "mate": "hojas"
-  };
-
-  // ============================
-  // Cargar stock
-  // ============================
-  async function cargarStock() {
-    lista.innerHTML = "<p>Cargando...</p>";
-    alerta.style.display = "none";
-
-    const snap = await getDocs(collection(db, "insumos"));
-    let todos = [];
-
-    snap.forEach((doc) => todos.push({ id: doc.id, ...doc.data() }));
-
-    // ---- Notificación automática (miramos SIEMPRE todos, sin filtro) ----
-    const bajosGlobal = todos.filter(i => i.cantidad > 0 && i.cantidad <= 4);
-    const sinGlobal   = todos.filter(i => i.cantidad === 0);
-
-    if (!yaMostroNotificacion && (bajosGlobal.length || sinGlobal.length)) {
-      let msg = "⚠ Atención, revisá estos insumos:\n\n";
-
-      if (sinGlobal.length) {
-        msg += "❌ SIN STOCK:\n";
-        sinGlobal.forEach(i => { msg += `  • ${i.nombre} (0)\n`; });
-        msg += "\n";
-      }
-
-      if (bajosGlobal.length) {
-        msg += "🟡 STOCK BAJO (≤4):\n";
-        bajosGlobal.forEach(i => { msg += `  • ${i.nombre} (${i.cantidad})\n`; });
-      }
-
-      alert(msg);
-      yaMostroNotificacion = true;
-    }
-
-    // ---- A partir de acá solo trabajamos con lo que se ve en pantalla ----
-    // Ordenamos por cantidad ascendente
-    let datos = [...todos].sort((a, b) => a.cantidad - b.cantidad);
-
-    // Aplicar filtro visual
-    const tipo = filtro.value;
-
-    if (tipo === "bajo") {
-      datos = datos.filter(i => i.cantidad > 0 && i.cantidad <= 4);
-    } else if (tipo === "sin") {
-      datos = datos.filter(i => i.cantidad === 0);
-    }
-
-    lista.innerHTML = "";
-
-    let alertaNecesaria = false;
-
-    datos.forEach((d) => {
-      let clase = "ok";
-      if (d.cantidad === 0) { clase = "sin"; alertaNecesaria = true; }
-      else if (d.cantidad <= 4) { clase = "bajo"; alertaNecesaria = true; }
-
-      const unidad = unidades[
-        Object.keys(unidades).find(u => d.nombre.toLowerCase().includes(u))
-      ] || "unidades";
-
-      const div = document.createElement("div");
-      div.className = `stock-item ${clase}`;
-      div.innerHTML = `
-        <span>🧾 <b>${d.nombre}</b></span>
-        <span>${d.cantidad} ${unidad}</span>
-      `;
-
-      lista.appendChild(div);
-    });
-
-    // Cartelito arriba solo si estamos viendo "Todos"
-    if (alertaNecesaria && tipo === "todos") {
-      alerta.style.display = "block";
-    }
-  }
-
-  // Eventos
-  btnActualizar.addEventListener("click", () => {
-    // Cada vez que tocás actualizar, permitimos mostrar la notificación de nuevo
-    yaMostroNotificacion = false;
-    cargarStock();
-  });
-
-  filtro.addEventListener("change", cargarStock);
-
-  // Cargar al inicio
-  cargarStock();
-</script>
-
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/stock.js"></script>
 </body>
 </html>
