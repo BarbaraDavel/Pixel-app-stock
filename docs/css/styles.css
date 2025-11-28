@@ -1,3 +1,6 @@
+/* ========================================
+   PALETA PIXEL
+======================================== */
 :root {
   --pixel-naranja: #ff9f43;
   --pixel-lila: #a66bff;
@@ -7,11 +10,12 @@
   --pixel-borde: #e0ddf5;
 }
 
+/* GLOBAL */
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
 }
 
 body {
@@ -20,28 +24,28 @@ body {
   min-height: 100vh;
 }
 
+/* ========================================
+   TOPBAR
+======================================== */
 .topbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 0.8rem 1.5rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.8);
   border-bottom: 1px solid var(--pixel-borde);
+  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
+  z-index: 100;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-weight: 600;
   font-size: 1.1rem;
-}
-
-.logo-fox {
-  font-size: 1.4rem;
+  font-weight: 600;
 }
 
 .nav-links {
@@ -52,19 +56,22 @@ body {
 .nav-links a {
   text-decoration: none;
   color: #555;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  font-size: 0.9rem;
+  transition: 0.2s;
 }
 
 .nav-links a.active,
 .nav-links a:hover {
   background: var(--pixel-naranja);
-  color: #fff;
+  color: white;
 }
 
+/* ========================================
+   LAYOUT
+======================================== */
 .main {
-  max-width: 900px;
+  max-width: 950px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -73,76 +80,52 @@ body {
   background: var(--pixel-card);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--pixel-borde);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+  margin-bottom: 1.5rem;
 }
 
 .card h1 {
-  font-size: 1.6rem;
   margin-bottom: 0.8rem;
-}
-
-.card p {
-  margin-bottom: 0.7rem;
-  line-height: 1.4;
-}
-
-.card ul {
-  margin-left: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.card li {
-  margin-bottom: 0.3rem;
 }
 
 .hint {
   font-size: 0.9rem;
   color: #777;
 }
-/* ===========================
-   TABLAS & BOTONES PIXEL
-=========================== */
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.8rem;
+/* ========================================
+   INPUTS GENERALES
+======================================== */
+input, select {
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--pixel-borde);
+  outline: none;
+  transition: 0.2s;
   font-size: 0.9rem;
 }
 
-th, td {
-  padding: 0.45rem 0.6rem;
-  text-align: left;
+input:focus, select:focus {
+  border-color: var(--pixel-lila);
+  box-shadow: 0 0 0 3px rgba(166,107,255,0.2);
 }
 
-thead th {
-  border-bottom: 2px solid var(--pixel-borde);
-  font-weight: 600;
-}
-
-tbody tr:nth-child(even) {
-  background: #faf8ff;
-}
-
-/* Botones genéricos */
-
+/* ========================================
+   BOTONES
+======================================== */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.65rem;
+  padding: 0.4rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--pixel-borde);
-  background: #fff;
-  font-size: 0.8rem;
+  background: white;
   cursor: pointer;
-  gap: 0.25rem;
+  font-size: 0.85rem;
+  transition: 0.2s;
 }
 
-.btn-sm {
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
+.btn:hover {
+  filter: brightness(1.07);
 }
 
 .btn-primary {
@@ -152,260 +135,122 @@ tbody tr:nth-child(even) {
 }
 
 .btn-outline {
-  background: transparent;
-  border-color: var(--pixel-lila);
+  background: none;
+  border: 2px solid var(--pixel-lila);
   color: var(--pixel-lila);
+}
+
+.btn-outline:hover {
+  background: var(--pixel-lila);
+  color: #fff;
 }
 
 .btn-danger {
   background: #ff6b81;
   border-color: #ff6b81;
-  color: #fff;
+  color: white;
 }
 
-/* Estados de stock */
-
-.stock-ok {
-  color: #2e7d32;
+.btn-sm {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
 }
 
-.stock-warning {
-  color: #f57c00;
-}
-
-.stock-low {
-  color: #c62828;
-}
-
-/* Modal */
-
-.hidden {
-  display: none;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.modal {
-  background: #fff;
-  border-radius: 1rem;
-  padding: 1.4rem;
-  width: 320px;
-  max-width: 90%;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
-  border: 1px solid var(--pixel-borde);
-}
-
-.modal h3 {
-  margin-bottom: 0.6rem;
-}
-
-.modal label {
-  display: block;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.15rem;
-}
-
-.modal input {
+/* ========================================
+   TABLAS
+======================================== */
+table {
   width: 100%;
-  padding: 0.35rem 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--pixel-borde);
+  border-collapse: collapse;
+  margin-top: 0.8rem;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  margin-top: 0.9rem;
+thead th {
+  text-align: left;
+  padding: 0.6rem;
+  border-bottom: 2px solid var(--pixel-borde);
 }
 
-/* Inputs genéricos en cards */
-
-.card input {
-  padding: 0.35rem 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--pixel-borde);
-  font-size: 0.85rem;
-  margin-right: 0.3rem;
+td {
+  padding: 0.6rem;
 }
-/* ===========================
-   PRODUCTOS GRID PIXEL
-=========================== */
 
+tbody tr:nth-child(even) {
+  background: #faf8ff;
+}
+
+/* ========================================
+   PRODUCTOS GRID
+======================================== */
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
 .producto-card {
-  background: var(--pixel-card);
-  border-radius: 1rem;
   padding: 1rem;
+  border-radius: 1rem;
+  background: white;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
 .producto-nombre {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  margin-bottom: 0.3rem;
 }
 
 .producto-precio {
-  font-weight: 700;
   color: var(--pixel-naranja);
-  margin-bottom: 1rem;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  border: 1px solid var(--pixel-borde);
-  background: #fff;
-  font-size: 0.8rem;
-  cursor: pointer;
-  gap: 0.25rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
 }
 
-.btn-sm {
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
-}
-
-.btn-outline {
-  background: transparent;
-  border-color: var(--pixel-lila);
-  color: var(--pixel-lila);
-}
-/* OCULTAR MODALES */
+/* ========================================
+   MODAL
+======================================== */
 .hidden {
   display: none !important;
 }
 
-/* Fondo del modal */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 9999;
 }
 
-/* Caja del modal */
 .modal {
-  background: #fff;
+  background: white;
   padding: 1.8rem;
-  width: 350px;
   border-radius: 1rem;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* Animación suave */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to { opacity: 1; transform: scale(1); }
-}
-.hidden {
-  display: none !important;
-}
-
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.modal {
-  background: #fff;
-  padding: 1.8rem;
   width: 360px;
-  border-radius: 1rem;
-  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-}
-#guardarProd {
-  padding: 0.45rem 1.2rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--pixel-naranja);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
+  max-width: 95%;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+  animation: fadeIn 0.15s ease-out;
 }
 
-#guardarProd:hover {
-  filter: brightness(1.1);
-}
-#guardarProd {
-  padding: 0.45rem 1.2rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--pixel-naranja);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.95); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-#guardarProd:hover {
-  filter: brightness(1.1);
-}
-.producto-card input {
-  width: 100%;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  margin-top: 0.5rem;
-  outline: none;
-  transition: 0.2s;
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
 }
 
-.producto-card input:focus {
-  border-color: var(--pixel-lila);
-  box-shadow: 0 0 0 2px rgba(166,107,255,0.2);
-}
-.btn-outline {
-  background: none;
-  border: 2px solid var(--pixel-lila);
-  color: var(--pixel-lila);
-  border-radius: 999px;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn-outline:hover {
-  background: var(--pixel-lila);
-  color: white;
-}
+/* ========================================
+   ESTADOS DE STOCK
+======================================== */
+.stock-ok { color: #2e7d32; }
+.stock-warning { color: #f57c00; }
+.stock-low { color: #c62828; }
