@@ -25,7 +25,7 @@
 
 <div class="main">
 
-  <!-- Card agregar producto -->
+  <!-- AGREGAR PRODUCTO -->
   <div class="card">
     <h1>Productos</h1>
 
@@ -38,7 +38,7 @@
 
   <br>
 
-  <!-- Listado -->
+  <!-- LISTADO -->
   <div class="card">
     <h3>Listado de Productos</h3>
     <div id="productosLista" class="productos-grid"></div>
@@ -46,7 +46,7 @@
 
   <br>
 
-  <!-- Venta actual -->
+  <!-- VENTA ACTUAL -->
   <div class="card">
     <h3>Venta actual</h3>
     <p id="ventaVacia" class="hint">Todavía no agregaste productos a la venta.</p>
@@ -75,34 +75,57 @@
 
 </div>
 
-<!-- Modal EDITAR PRODUCTO -->
+<!-- MODAL EDITAR PRODUCTO -->
 <div id="editarProductoModal" class="modal-backdrop hidden">
   <div class="modal">
-    <h3>Editar Producto</h3>
+    <h3>Editar producto</h3>
 
     <label>Nombre</label>
     <input id="editNombre">
 
-    <label>Precio</label>
+    <label>Precio de venta</label>
     <input id="editPrecio" type="number">
 
-    <hr style="margin:1rem 0;">
+    <h4>Receta</h4>
+    <div id="recetaProductoDetalle" class="hint" style="min-height:50px;"></div>
 
-    <h3>Receta de este producto</h3>
-    <div id="recetaProductoDetalle" class="hint" style="margin-bottom:1rem;">
-      (Cargando...)
-    </div>
-
-    <h3>Costo de producción</h3>
-    <div id="costoProduccionBox" class="hint" style="margin-bottom:1rem;">
-      (Calculando...)
-    </div>
-
-    <a href="./recetas.html" class="btn btn-outline">Editar recetas</a>
+    <h4>Costo de producción</h4>
+    <div id="costoProduccionBox" class="hint"></div>
 
     <div class="modal-actions">
       <button id="cancelarEdicion" class="btn btn-outline">Cancelar</button>
-      <button id="guardarEdicion" class="btn btn-primary">Guardar</button>
+      <button id="guardarEdicion" class="btn btn-primary">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VENTA -->
+<div id="ventaModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Confirmar venta</h3>
+
+    <label>Nombre del cliente</label>
+    <input id="clienteNombre">
+
+    <label>Teléfono</label>
+    <input id="clienteTelefono">
+
+    <label>Medio de pago</label>
+    <select id="metodoPago">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Transferencia">Transferencia</option>
+      <option value="Débito">Débito</option>
+      <option value="Crédito">Crédito</option>
+      <option value="Mercado Pago">Mercado Pago</option>
+      <option value="Otro">Otro</option>
+    </select>
+
+    <label>Notas (opcional)</label>
+    <input id="notaVenta">
+
+    <div class="modal-actions">
+      <button id="ventaCancelar" class="btn btn-outline">Cancelar</button>
+      <button id="ventaConfirmar" class="btn btn-primary">Confirmar venta</button>
     </div>
   </div>
 </div>
