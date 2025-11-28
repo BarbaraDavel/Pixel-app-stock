@@ -18,6 +18,22 @@ const inputPaquete = document.getElementById("cantidadPaquete");
 
 let editId = null;
 
+/* ============================
+       TOAST PIXEL
+============================ */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+
+  setTimeout(() => {
+    t.classList.remove("show");
+  }, 2200);
+}
+
+/* ============================
+       CARGAR INSUMOS
+============================ */
 async function cargarInsumos() {
   lista.innerHTML = "";
   const snap = await getDocs(collection(db, "insumos"));
@@ -34,7 +50,7 @@ async function cargarInsumos() {
         <td>$${costo}</td>
         <td>${paquete}</td>
         <td>
-          <button class="btn btn-sm" onclick="editar('${d.id}')">Editar</button>
+          <button class="btn btn-sm btn-outline" onclick="editar('${d.id}')">Editar</button>
           <button class="btn btn-sm btn-danger" onclick="eliminar('${d.id}')">✕</button>
         </td>
       </tr>
@@ -42,6 +58,9 @@ async function cargarInsumos() {
   });
 }
 
+/* ============================
+       EDITAR
+============================ */
 window.editar = async function (id) {
   editId = id;
   const ref = doc(db, "insumos", id);
@@ -51,8 +70,13 @@ window.editar = async function (id) {
   inputNombre.value = ins.nombre ?? "";
   inputCosto.value = ins.costoUnitario ?? 0;
   inputPaquete.value = ins.cantidadPaquete ?? 0;
+
+  showToast("Editando insumo…");
 };
 
+/* ============================
+       ELIMINAR
+============================ */
 window.eliminar = async function (id) {
   if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
 
@@ -67,15 +91,19 @@ window.eliminar = async function (id) {
   }
 
   cargarInsumos();
+  showToast("Insumo eliminado 💔");
 };
 
+/* ============================
+       GUARDAR (nuevo/editar)
+============================ */
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
   const costo = Number(inputCosto.value) || 0;
   const paquete = Number(inputPaquete.value) || 0;
 
   if (!nombre) {
-    alert("El insumo necesita nombre");
+    showToast("El insumo necesita nombre");
     return;
   }
 
@@ -87,20 +115,25 @@ btnGuardar.onclick = async () => {
       cantidadPaquete: paquete
     });
 
-    // stock inicial = cantidad del paquete (lo que elegiste)
+    // stock inicial consistente con productos.js y stock.js
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
-      stockActual: paquete,
-      stockMinimo: 5
+      nombre,
+      actual: paquete,
+      minimo: 5
     });
+
+    showToast("Insumo agregado 💖");
   } else {
-    // editar insumo (no tocamos stock aquí)
+    // editar insumo
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
+
     editId = null;
+    showToast("Insumo actualizado ✨");
   }
 
   inputNombre.value = "";
