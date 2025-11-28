@@ -393,3 +393,73 @@ thead th {
   from { transform: scale(0.9); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
+/* ===============================
+   TABLA INSUMOS MEJORADA
+================================= */
+
+.tabla-insumos {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tabla-insumos thead {
+  background: linear-gradient(90deg, #ffe8d6, #fde2ff);
+}
+
+.tabla-insumos th {
+  padding: 14px 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: left;
+  color: #444;
+}
+
+.tabla-insumos tbody tr {
+  transition: background 0.25s ease;
+}
+
+.tabla-insumos tbody tr:nth-child(even) {
+  background: #faf9fb;
+}
+
+.tabla-insumos tbody tr:hover {
+  background: #fff4e6;
+}
+
+.tabla-insumos td {
+  padding: 12px 10px;
+  font-size: 0.95rem;
+  color: #555;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Botones de acciones */
+.boton-accion {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid #c78bfa;
+  background: #f9f0ff;
+  color: #7a2ea8;
+  transition: 0.2s;
+}
+
+.boton-accion:hover {
+  background: #e9d4ff;
+}
+
+.boton-eliminar {
+  border: 1px solid #ff9a9a;
+  background: #fff0f0;
+  color: #d9534f;
+}
+
+.boton-eliminar:hover {
+  background: #ffe0e0;
+}

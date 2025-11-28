@@ -4,7 +4,8 @@ import {
   getDocs,
   updateDoc,
   addDoc,
-  doc
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const tbody = document.getElementById("stockLista");
@@ -18,27 +19,42 @@ const btnModalCancelar = document.getElementById("modalCancelar");
 const btnModalGuardar = document.getElementById("modalGuardar");
 
 let stockCache = {};
+let insumosMap = {};
 let seleccionado = null;
 
+// =========================
+// CARGAR STOCK
+// =========================
 async function cargarStock() {
   tbody.innerHTML = "";
   stockCache = {};
 
-  const snap = await getDocs(collection(db, "stock"));
+  // Traer insumos
+  const insSnap = await getDocs(collection(db, "insumos"));
+  insumosMap = {};
+  insSnap.forEach(i => insumosMap[i.id] = i.data());
 
-  snap.forEach((d) => {
+  // Traer stock
+  const stockSnap = await getDocs(collection(db, "stock"));
+  stockSnap.forEach((d) => {
     const s = d.data();
-    stockCache[d.id] = s;
+    stockCache[d.id] = { id: d.id, ...s };
+
+    const ins = insumosMap[s.insumoId];
+    const nombre = ins?.nombre || "(sin nombre)";
+
+    const actual = s.stockActual ?? 0;
+    const minimo = s.stockMinimo ?? 0;
 
     let color = "stock-ok";
-    if (s.actual <= s.minimo) color = "stock-low";
-    else if (s.actual - s.minimo <= 3) color = "stock-warning";
+    if (actual <= minimo) color = "stock-low";
+    else if (actual - minimo <= 3) color = "stock-warning";
 
     tbody.innerHTML += `
       <tr>
-        <td>${s.nombre}</td>
-        <td class="${color}">${s.actual}</td>
-        <td>${s.minimo}</td>
+        <td>${nombre}</td>
+        <td class="${color}">${actual}</td>
+        <td>${minimo}</td>
         <td>
           <button onclick="abrirModal('${d.id}')" class="btn btn-sm">Editar</button>
         </td>
@@ -47,13 +63,18 @@ async function cargarStock() {
   });
 }
 
+// =========================
+// MODAL
+// =========================
 window.abrirModal = function (id) {
   seleccionado = id;
   const item = stockCache[id];
 
-  modalNombre.textContent = item.nombre;
-  modalStockActual.value = item.actual;
-  modalStockMinimo.value = item.minimo;
+  const ins = insumosMap[item.insumoId];
+  modalNombre.textContent = ins?.nombre || "(sin nombre)";
+
+  modalStockActual.value = item.stockActual ?? 0;
+  modalStockMinimo.value = item.stockMinimo ?? 0;
 
   modal.classList.remove("hidden");
 };
@@ -64,6 +85,9 @@ modal.addEventListener("click", (e) => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
+// =========================
+// GUARDAR CAMBIOS
+// =========================
 btnModalGuardar.onclick = async () => {
   if (!seleccionado) return;
 
@@ -72,20 +96,18 @@ btnModalGuardar.onclick = async () => {
   const nuevoActual = Number(modalStockActual.value);
   const nuevoMinimo = Number(modalStockMinimo.value);
 
-  // Calcular diferencia de stock para registrar compra automática
-  const diferencia = nuevoActual - item.actual;
+  const diferencia = nuevoActual - (item.stockActual ?? 0);
 
-  // Actualizar stock en Firestore
   await updateDoc(doc(db, "stock", seleccionado), {
-    actual: nuevoActual,
-    minimo: nuevoMinimo
+    stockActual: nuevoActual,
+    stockMinimo: nuevoMinimo
   });
 
-  // Si aumentó → registrar COMPRA automáticamente en movimientos_stock
+  // Si hubo aumento → registrar compra automática
   if (diferencia > 0) {
     await addDoc(collection(db, "movimientos_stock"), {
       tipo: "COMPRA",
-      insumoId: seleccionado,
+      insumoId: item.insumoId,
       cantidad: diferencia,
       costoUnit: 0,
       costoTotal: 0,
@@ -98,4 +120,5 @@ btnModalGuardar.onclick = async () => {
   cargarStock();
 };
 
+// =========================
 cargarStock();

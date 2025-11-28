@@ -115,6 +115,7 @@ btnGuardar.onclick = async () => {
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
+    
 
     mostrarPopup("Insumo actualizado ✔️");
 
