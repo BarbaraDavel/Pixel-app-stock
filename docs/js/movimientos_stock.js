@@ -30,6 +30,9 @@ const modalCerrar = document.getElementById("modalCerrar");
 let insumosCache = {};
 let movimientosCache = [];
 
+// =============================
+// CARGAR INSUMOS
+// =============================
 async function cargarInsumos() {
   const snap = await getDocs(collection(db, "insumos"));
   insumoSel.innerHTML = "";
@@ -40,6 +43,9 @@ async function cargarInsumos() {
   });
 }
 
+// =============================
+// CARGAR MOVIMIENTOS
+// =============================
 async function cargarMovimientos() {
   movimientosCache = [];
   const snap = await getDocs(collection(db, "movimientos_stock"));
@@ -48,10 +54,17 @@ async function cargarMovimientos() {
 
   snap.forEach((d) => movimientosCache.push({ id: d.id, ...d.data() }));
 
-  movimientosCache.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  movimientosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   movimientosCache.forEach((m) => {
-    let detalle = m.tipo === "VENTA" ? `Venta a ${m.clienteNombre}` : insumosCache[m.insumoId]?.nombre || "";
+    let detalle = "—";
+
+    if (m.tipo === "VENTA") {
+      detalle = `Venta a ${m.clienteNombre}`;
+    } else {
+      detalle = insumosCache[m.insumoId]?.nombre || `(Insumo ${m.insumoId})`;
+    }
+
     let costo = m.costoTotal ? `$${m.costoTotal}` : "—";
 
     if (m.tipo === "COMPRA" && m.costoTotal) {
@@ -80,6 +93,9 @@ async function cargarMovimientos() {
   totalComprasSpan.textContent = totalCompras;
 }
 
+// =============================
+// REGISTRAR MOVIMIENTO
+// =============================
 btnRegistrar.onclick = async () => {
   const insumoId = insumoSel.value;
   const cantidad = Number(cantInput.value);
@@ -111,6 +127,9 @@ btnRegistrar.onclick = async () => {
   cargarMovimientos();
 };
 
+// =============================
+// VER VENTA
+// =============================
 window.verVenta = async function (id) {
   const ref = doc(db, "ventas", id);
   const d = await getDoc(ref);
@@ -139,5 +158,12 @@ modal.addEventListener("click", (e) => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
-await cargarInsumos();
-await cargarMovimientos();
+// =============================
+// ORDEN CORRECTO DE CARGA
+// =============================
+(async () => {
+  await cargarInsumos();
+  setTimeout(async () => {
+    await cargarMovimientos();
+  }, 150);
+})();
