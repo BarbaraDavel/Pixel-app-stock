@@ -2,46 +2,80 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Pixel – Stock Manager</title>
+  <title>Pixel Stock - Inicio</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo-fox">🦊</span>
-      <span class="brand-name">Pixel – Stock</span>
-    </div>
-    <nav class="nav-links">
-      <a href="./index.html" class="active">Inicio</a>
-      <a href="./insumos.html">Insumos</a>
-      <a href="./stock.html">Stock</a>
-      <a href="./movimientos_stock.html">Movimientos</a>
-      <a href="./recetas.html">Recetas</a>
-      <a href="./productos.html">Productos</a>
-      <a href="./clientes.html">Clientes</a>
-      <a href="./dashboard.html">Dashboard</a>        
-    </nav>
-  </header>
 
-  <main class="main">
-    <section class="card">
-      <h1>Panel de control Pixel</h1>
-      <p>
-        Bienvenida a tu mini app para manejar <strong>insumos, productos, costos y stock</strong>.
-      </p>
-      <ul>
-        <li>✔ Cargar insumos (papeles, filmilo, llaveros, etc.)</li>
-        <li>✔ Definir productos y sus costos</li>
-        <li>✔ Ver stock disponible</li>
-        <li>✔ Más adelante: conexión a Firebase</li>
-      </ul>
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a class="active" href="./index.html">Inicio</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./movimientos_stock.html">Movimientos</a>
+    <a href="./recetas.html">Recetas</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./clientes.html">Clientes</a>
+    <a href="./dashboard.html">Dashboard</a>
+  </div>
+</div>
 
-      <p class="hint">
-        Por ahora es solo la base visual. En el próximo paso le conectamos Firestore.
-      </p>
-    </section>
-  </main>
+<div class="main">
 
-  <script type="module" src="./app.js" defer></script>
+  <div class="home-brand-card">
+    <h1>Bienvenida a Pixel Stock</h1>
+    <p class="sub">Tu panel central para gestionar insumos, stock, recetas y productos ✨</p>
+  </div>
+
+  <div class="home-grid">
+
+    <a class="home-card" href="./insumos.html">
+      <span class="icon">📦</span>
+      <p>Insumos</p>
+    </a>
+
+    <a class="home-card" href="./stock.html">
+      <span class="icon">🧮</span>
+      <p>Stock</p>
+    </a>
+
+    <a class="home-card" href="./movimientos_stock.html">
+      <span class="icon">🔄</span>
+      <p>Movimientos</p>
+    </a>
+
+    <a class="home-card" href="./recetas.html">
+      <span class="icon">🧪</span>
+      <p>Recetas</p>
+    </a>
+
+    <a class="home-card" href="./productos.html">
+      <span class="icon">🏷️</span>
+      <p>Productos</p>
+    </a>
+
+    <a class="home-card" href="./clientes.html">
+      <span class="icon">👥</span>
+      <p>Clientes</p>
+    </a>
+
+    <a class="home-card" href="./dashboard.html">
+      <span class="icon">📊</span>
+      <p>Dashboard</p>
+    </a>
+
+  </div>
+
+  <div class="home-footer-card">
+    <p>Hecho con 💜 por <strong>Pixel</strong> 🦊</p>
+    <p class="tiny">Una herramienta interna creada por Barbi para su propio emprendimiento ✨</p>
+  </div>
+
+</div>
+
 </body>
 </html>
