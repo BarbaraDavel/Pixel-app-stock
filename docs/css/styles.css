@@ -546,3 +546,52 @@ thead th {
 .btn-delete:hover {
   background: #ffd6d6;
 }
+/* ===============================
+       TABLA STOCK PIXEL
+================================= */
+
+.tabla-insumos td,
+.tabla-insumos th {
+  text-align: left;
+}
+
+.stock-ok {
+  color: #2ecc71;
+  font-weight: 700;
+}
+
+.stock-warning {
+  color: #e67e22;
+  font-weight: 700;
+}
+
+.stock-low {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+/* Botón editar stock */
+.boton-stock {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid #a66bff;
+  background: #f6edff;
+  color: #7a2ea8;
+  transition: 0.2s;
+}
+
+.boton-stock:hover {
+  background: #e8d5ff;
+}
+
+/* Modal stock más lindo */
+.modal label {
+  margin-top: 0.6rem;
+  font-weight: 600;
+  color: #555;
+}
+.modal input {
+  margin-bottom: 0.6rem;
+}

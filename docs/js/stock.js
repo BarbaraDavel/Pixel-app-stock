@@ -60,6 +60,7 @@ async function cargarStock() {
         </td>
       </tr>
     `;
+
   });
 }
 
