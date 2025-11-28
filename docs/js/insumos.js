@@ -18,22 +18,9 @@ const inputPaquete = document.getElementById("cantidadPaquete");
 
 let editId = null;
 
-/* ============================
-       TOAST PIXEL
-============================ */
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-
-  setTimeout(() => {
-    t.classList.remove("show");
-  }, 2200);
-}
-
-/* ============================
-       CARGAR INSUMOS
-============================ */
+// =============================
+//   CARGAR LISTA DE INSUMOS
+// =============================
 async function cargarInsumos() {
   lista.innerHTML = "";
   const snap = await getDocs(collection(db, "insumos"));
@@ -58,9 +45,9 @@ async function cargarInsumos() {
   });
 }
 
-/* ============================
-       EDITAR
-============================ */
+// =============================
+//   EDITAR INSUMO
+// =============================
 window.editar = async function (id) {
   editId = id;
   const ref = doc(db, "insumos", id);
@@ -71,12 +58,12 @@ window.editar = async function (id) {
   inputCosto.value = ins.costoUnitario ?? 0;
   inputPaquete.value = ins.cantidadPaquete ?? 0;
 
-  showToast("Editando insumo…");
+  mostrarToast("Editando insumo…");
 };
 
-/* ============================
-       ELIMINAR
-============================ */
+// =============================
+//   ELIMINAR INSUMO + STOCK
+// =============================
 window.eliminar = async function (id) {
   if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
 
@@ -91,41 +78,40 @@ window.eliminar = async function (id) {
   }
 
   cargarInsumos();
-  showToast("Insumo eliminado 💔");
+  mostrarToast("Insumo eliminado 🗑️");
 };
 
-/* ============================
-       GUARDAR (nuevo/editar)
-============================ */
+// =============================
+//   GUARDAR / EDITAR INSUMO
+// =============================
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
   const costo = Number(inputCosto.value) || 0;
   const paquete = Number(inputPaquete.value) || 0;
 
   if (!nombre) {
-    showToast("El insumo necesita nombre");
+    mostrarToast("El insumo necesita nombre", true);
     return;
   }
 
   if (!editId) {
-    // nuevo insumo
+    // NUEVO INSUMO
     const ref = await addDoc(collection(db, "insumos"), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
 
-    // stock inicial consistente con productos.js y stock.js
+    // stock inicial
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
-      nombre,
-      actual: paquete,
-      minimo: 5
+      stockActual: paquete,
+      stockMinimo: 5
     });
 
-    showToast("Insumo agregado 💖");
+    mostrarToast("Insumo agregado 💖");
   } else {
-    // editar insumo
+    // EDITAR INSUMO
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
@@ -133,7 +119,7 @@ btnGuardar.onclick = async () => {
     });
 
     editId = null;
-    showToast("Insumo actualizado ✨");
+    mostrarToast("Insumo actualizado ✨");
   }
 
   inputNombre.value = "";
@@ -142,5 +128,24 @@ btnGuardar.onclick = async () => {
 
   cargarInsumos();
 };
+
+// =============================
+//   TOAST PIXEL
+// =============================
+function mostrarToast(msg, error = false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+
+  if (error) t.classList.add("error");
+  else t.classList.remove("error");
+
+  t.classList.add("show");
+  t.classList.remove("hidden");
+
+  setTimeout(() => {
+    t.classList.remove("show");
+    setTimeout(() => t.classList.add("hidden"), 300);
+  }, 2000);
+}
 
 cargarInsumos();

@@ -238,3 +238,67 @@ thead th {
 #guardarInsumo:hover {
   filter: brightness(1.1);
 }
+/* Inputs Pixel */
+.input-pixel {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--pixel-borde);
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.input-pixel:focus {
+  border-color: var(--pixel-lila);
+  box-shadow: 0 0 0 2px rgba(166, 107, 255, 0.25);
+  outline: none;
+}
+
+/* Botón primario Pixel */
+#guardarInsumo {
+  padding: 0.6rem 1.1rem;
+  background: var(--pixel-naranja);
+  border: none;
+  color: white;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#guardarInsumo:hover {
+  filter: brightness(1.15);
+}
+
+/* GRID del formulario */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.8rem;
+}
+
+/* =======================
+        TOAST
+=======================*/
+.toast {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  padding: 0.9rem 1.3rem;
+  background: var(--pixel-naranja);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.3s ease;
+  z-index: 99999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.error {
+  background: #ff4d4d;
+}
