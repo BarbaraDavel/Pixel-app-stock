@@ -36,7 +36,7 @@ async function cargarInsumos() {
         <td>${nombre}</td>
         <td>$${costo}</td>
         <td>${paquete}</td>
-        <td>
+        <td style="display:flex; gap:6px;">
           <button class="boton-accion" onclick="editar('${d.id}')">Editar</button>
           <button class="boton-eliminar" onclick="eliminar('${d.id}')">✕</button>
         </td>
@@ -58,7 +58,7 @@ window.editar = async function (id) {
   inputCosto.value = ins.costoUnitario ?? 0;
   inputPaquete.value = ins.cantidadPaquete ?? 0;
 
-  mostrarToast("Editando insumo…");
+  mostrarPopup("Editando insumo…");
 };
 
 // =============================
@@ -78,7 +78,7 @@ window.eliminar = async function (id) {
   }
 
   cargarInsumos();
-  mostrarToast("Insumo eliminado 🗑️");
+  mostrarPopup("Insumo eliminado 🗑️");
 };
 
 // =============================
@@ -103,22 +103,20 @@ btnGuardar.onclick = async () => {
 
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
-      stockActual: paquete,
-      stockMinimo: 5
+      nombre,
+      actual: paquete,
+      minimo: 5
     });
 
     mostrarPopup("Insumo agregado ✔️");
-
   } else {
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
-    
 
     mostrarPopup("Insumo actualizado ✔️");
-
     editId = null;
   }
 
@@ -130,26 +128,8 @@ btnGuardar.onclick = async () => {
 };
 
 // =============================
-//   TOAST PIXEL
+//   POPUP
 // =============================
-function mostrarToast(msg, error = false) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-
-  if (error) t.classList.add("error");
-  else t.classList.remove("error");
-
-  t.classList.add("show");
-  t.classList.remove("hidden");
-
-  setTimeout(() => {
-    t.classList.remove("show");
-    setTimeout(() => t.classList.add("hidden"), 300);
-  }, 2000);
-}
-
-cargarInsumos();
-
 function mostrarPopup(msg = "Guardado") {
   const popup = document.getElementById("popupPixel");
   const texto = document.getElementById("popupText");
@@ -159,5 +139,7 @@ function mostrarPopup(msg = "Guardado") {
 
   setTimeout(() => {
     popup.classList.add("hidden");
-  }, 1700);
+  }, 1500);
 }
+
+cargarInsumos();
