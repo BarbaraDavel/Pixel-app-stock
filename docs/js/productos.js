@@ -157,7 +157,7 @@ btnVentaCancelar.onclick = () => {
 
 modal.addEventListener("click", (e) => {
   if (e.target === modal) modal.classList.add("hidden");
-};
+});
 
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) {
