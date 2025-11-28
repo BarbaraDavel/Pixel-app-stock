@@ -1,92 +1,96 @@
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const tbody = document.getElementById("clientesLista");
+const lista = document.getElementById("clientesLista");
 
+// Modal
 const modal = document.getElementById("clienteModal");
 const modalTitulo = document.getElementById("clienteModalTitulo");
-const modalBody = document.getElementById("clienteModalBody");
+const modalMovs = document.getElementById("clienteMovimientos");
+const modalTotal = document.getElementById("clienteModalTotal");
 const modalCerrar = document.getElementById("clienteModalCerrar");
 
-let clientesMapa = {};
+let ventasCache = [];
 
+// =========================
+// CARGAR CLIENTES
+// =========================
 async function cargarClientes() {
-  clientesMapa = {};
-  tbody.innerHTML = "";
+  lista.innerHTML = "";
+  ventasCache = [];
 
   const snap = await getDocs(collection(db, "ventas"));
 
-  snap.forEach(d => {
-    const v = d.data();
+  snap.forEach(d => ventasCache.push({ id: d.id, ...d.data() }));
 
-    const nombre = (v.clienteNombre || "Sin nombre").trim();
-    const tel = (v.clienteTelefono || "").trim();
-    const key = `${nombre}||${tel}`;
+  // Agrupar por cliente
+  const clientesMap = {};
 
-    const total = v.total ?? 0;
-    const fecha = v.fecha ? new Date(v.fecha) : null;
-
-    if (!clientesMapa[key]) {
-      clientesMapa[key] = {
-        nombre,
-        telefono: tel || "—",
-        totalGastado: 0,
-        compras: 0,
-        ultimaFecha: null,
-        ventas: []
+  ventasCache.forEach(v => {
+    if (!clientesMap[v.clienteNombre]) {
+      clientesMap[v.clienteNombre] = {
+        telefono: v.clienteTelefono || "—",
+        total: 0,
+        ultima: null,
+        movimientos: []
       };
     }
 
-    const c = clientesMapa[key];
-    c.totalGastado += total;
-    c.compras += 1;
-    c.ventas.push(v);
+    const c = clientesMap[v.clienteNombre];
 
-    if (fecha && (!c.ultimaFecha || fecha > c.ultimaFecha)) {
-      c.ultimaFecha = fecha;
+    c.total += v.total;
+    c.movimientos.push(v);
+
+    if (!c.ultima || new Date(v.fecha) > new Date(c.ultima)) {
+      c.ultima = v.fecha;
     }
   });
 
-  Object.values(clientesMapa).forEach((c, idx) => {
-    tbody.innerHTML += `
+  // Mostrar tabla
+  Object.entries(clientesMap).forEach(([nombre, data]) => {
+    lista.innerHTML += `
       <tr>
-        <td>${c.nombre}</td>
-        <td>${c.telefono}</td>
-        <td>${c.compras}</td>
-        <td>$${c.totalGastado}</td>
-        <td>${c.ultimaFecha ? c.ultimaFecha.toLocaleString("es-AR") : "—"}</td>
-        <td><button onclick="verCliente('${idx}')" class="btn btn-sm btn-outline">Ver</button></td>
+        <td>${nombre}</td>
+        <td>${data.telefono}</td>
+        <td>$${data.total}</td>
+        <td>${data.ultima ? new Date(data.ultima).toLocaleString() : "—"}</td>
+        <td>
+          <button class="btn-pp btn-edit-pp" onclick="verDetalleCliente('${nombre}')">
+            👁️ Ver
+          </button>
+        </td>
       </tr>
     `;
   });
 }
 
-window.verCliente = (indexStr) => {
-  const index = Number(indexStr);
-  const lista = Object.values(clientesMapa);
-  const c = lista[index];
+// =========================
+// MODAL DETALLE CLIENTE
+// =========================
+window.verDetalleCliente = function(nombre) {
+  const datos = ventasCache.filter(v => v.clienteNombre === nombre);
 
-  modalTitulo.textContent = `Compras de ${c.nombre}`;
-  modalBody.innerHTML = "";
+  modalTitulo.textContent = `Compras de ${nombre}`;
+  modalMovs.innerHTML = "";
+  let total = 0;
 
-  c.ventas.forEach(v => {
-    const fecha = v.fecha ? new Date(v.fecha).toLocaleString("es-AR") : "—";
-
-    const items = v.items?.map(i =>
-      `${i.cantidad}× ${i.nombre} — $${i.subtotal}`
-    ).join("<br>");
-
-    modalBody.innerHTML += `
-      <div style="margin-bottom: 0.6rem;">
-        <strong>${fecha}</strong><br>
-        ${items}
+  datos.forEach(v => {
+    modalMovs.innerHTML += `
+      <div style="margin-bottom:0.8rem;">
+        <strong>${new Date(v.fecha).toLocaleString()}</strong><br>
+        ${v.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}
         <br><strong>Total:</strong> $${v.total}
       </div>
     `;
+    total += v.total;
   });
+
+  modalTotal.textContent = `Total gastado: $${total}`;
 
   modal.classList.remove("hidden");
 };
@@ -96,5 +100,5 @@ modal.addEventListener("click", e => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
-// cargar
+// =========================
 cargarClientes();

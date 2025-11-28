@@ -13,51 +13,48 @@
     <span class="logo-fox">🦊</span> Pixel
   </div>
   <div class="nav-links">
-    <a href="./index.html">Inicio</a>
+    <a href="./index.html">Inicio</a>    
     <a href="./insumos.html">Insumos</a>
     <a href="./stock.html">Stock</a>
     <a href="./movimientos_stock.html">Movimientos</a>
     <a href="./recetas.html">Recetas</a>
     <a href="./productos.html">Productos</a>
     <a class="active" href="./clientes.html">Clientes</a>
-<!--     <a href="./dashboard.html">Dashboard</a> -->
   </div>
 </div>
 
 <div class="main">
+
   <div class="card">
     <h1>Clientes</h1>
     <p class="hint">Resumen de compras por cliente, generado automáticamente desde las ventas.</p>
 
-    <table>
+    <table class="tabla-stock">
       <thead>
         <tr>
           <th>Cliente</th>
           <th>Teléfono</th>
-          <th>Compras</th>
-          <th>Total gastado</th>
+          <th>Compras total gastado</th>
           <th>Última compra</th>
-          <th></th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="clientesLista"></tbody>
     </table>
   </div>
+
 </div>
 
-<!-- Modal detalle del cliente -->
+<!-- MODAL DETALLE CLIENTE -->
 <div id="clienteModal" class="modal-backdrop hidden">
   <div class="modal">
     <h3 id="clienteModalTitulo"></h3>
 
-    <div id="clienteModalBody" style="
-      max-height: 280px; 
-      overflow-y: auto;
-      margin-top: 0.8rem;
-      font-size: 0.9rem;">
-    </div>
+    <div id="clienteMovimientos"></div>
 
-    <div class="modal-actions">
+    <p id="clienteModalTotal" style="margin-top:1rem; font-weight:700;"></p>
+
+    <div style="text-align:right; margin-top:1.3rem;">
       <button id="clienteModalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
   </div>
@@ -65,5 +62,6 @@
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/clientes.js"></script>
+
 </body>
 </html>
