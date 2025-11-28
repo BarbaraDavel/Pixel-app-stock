@@ -1,6 +1,3 @@
-/* ========================================
-   PALETA PIXEL
-======================================== */
 :root {
   --pixel-naranja: #ff9f43;
   --pixel-lila: #a66bff;
@@ -10,110 +7,72 @@
   --pixel-borde: #e0ddf5;
 }
 
-/* GLOBAL */
+/* RESET */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
 }
 
+/* FONDO */
 body {
   background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
-  color: var(--pixel-texto);
   min-height: 100vh;
+  color: var(--pixel-texto);
 }
 
-/* ========================================
-   TOPBAR
-======================================== */
+/* HEADER */
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.8rem 1.5rem;
-  background: rgba(255,255,255,0.8);
-  border-bottom: 1px solid var(--pixel-borde);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--pixel-borde);
   position: sticky;
   top: 0;
-  z-index: 100;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
+/* NAV */
 .nav-links {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
-
 .nav-links a {
-  text-decoration: none;
-  color: #555;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  transition: 0.2s;
+  text-decoration: none;
+  color: #444;
 }
-
 .nav-links a.active,
 .nav-links a:hover {
   background: var(--pixel-naranja);
   color: white;
 }
 
-/* ========================================
-   LAYOUT
-======================================== */
-.main {
-  max-width: 950px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
+/* CARDS */
 .card {
   background: var(--pixel-card);
   border-radius: 1rem;
   padding: 1.5rem;
+  margin-top: 1rem;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
 }
 
-.card h1 {
-  margin-bottom: 0.8rem;
-}
-
-.hint {
-  font-size: 0.9rem;
-  color: #777;
-}
-
-/* ========================================
-   INPUTS GENERALES
-======================================== */
+/* INPUTS */
 input, select {
-  padding: 0.45rem 0.7rem;
-  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.55rem;
   border: 1px solid var(--pixel-borde);
-  outline: none;
-  transition: 0.2s;
   font-size: 0.9rem;
+  width: 100%;
+  margin-bottom: 0.6rem;
 }
 
-input:focus, select:focus {
-  border-color: var(--pixel-lila);
-  box-shadow: 0 0 0 3px rgba(166,107,255,0.2);
-}
-
-/* ========================================
-   BOTONES
-======================================== */
+/* BOTONES */
 .btn {
   padding: 0.4rem 1rem;
   border-radius: 999px;
@@ -121,182 +80,78 @@ input:focus, select:focus {
   background: white;
   cursor: pointer;
   font-size: 0.85rem;
-  transition: 0.2s;
-}
-
-.btn:hover {
-  filter: brightness(1.07);
 }
 
 .btn-primary {
   background: var(--pixel-naranja);
   border-color: var(--pixel-naranja);
-  color: #fff;
+  color: white;
 }
 
 .btn-outline {
-  background: none;
-  border: 2px solid var(--pixel-lila);
+  border-color: var(--pixel-lila);
   color: var(--pixel-lila);
+  background: transparent;
 }
 
 .btn-outline:hover {
   background: var(--pixel-lila);
-  color: #fff;
-}
-
-.btn-danger {
-  background: #ff6b81;
-  border-color: #ff6b81;
   color: white;
 }
 
-.btn-sm {
-  padding: 0.25rem 0.55rem;
-  font-size: 0.75rem;
-}
-
-/* ========================================
-   TABLAS
-======================================== */
+/* TABLAS */
 table {
   width: 100%;
+  margin-top: 1rem;
   border-collapse: collapse;
-  margin-top: 0.8rem;
 }
-
-thead th {
-  text-align: left;
+th, td {
   padding: 0.6rem;
+}
+thead th {
   border-bottom: 2px solid var(--pixel-borde);
 }
 
-td {
-  padding: 0.6rem;
-}
-
-tbody tr:nth-child(even) {
-  background: #faf8ff;
-}
-
-/* ========================================
-   PRODUCTOS GRID
-======================================== */
+/* GRID DE PRODUCTOS */
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
 }
-
 .producto-card {
   padding: 1rem;
   border-radius: 1rem;
-  background: white;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  background: var(--pixel-card);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
 }
-
 .producto-nombre {
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
-
 .producto-precio {
   color: var(--pixel-naranja);
-  font-weight: 700;
-  margin-bottom: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
 }
 
-/* ========================================
-   MODAL
-======================================== */
-.hidden {
-  display: none !important;
-}
+/* MODAL */
+.hidden { display: none !important; }
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(4px);
   z-index: 9999;
 }
 
 .modal {
   background: white;
-  padding: 1.8rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   width: 360px;
-  max-width: 95%;
-  box-shadow: 0 6px 25px rgba(0,0,0,0.2);
-  animation: fadeIn 0.15s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 1rem;
-}
-
-/* ========================================
-   ESTADOS DE STOCK
-======================================== */
-.stock-ok { color: #2e7d32; }
-.stock-warning { color: #f57c00; }
-.stock-low { color: #c62828; }
-
-/* ========================================
-   FIX ESPECÍFICO DE BOTONES
-   (PISAN TODO LO ANTERIOR)
-======================================== */
-
-/* Botón AGREGAR de productos (naranja Pixel) */
-#guardarProd {
-  padding: 0.45rem 1.2rem;
-  border-radius: 999px;
-  border: none;
-  background: var(--pixel-naranja);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  min-width: 110px;
-}
-
-/* Botón VENDER dentro de cada tarjeta de producto (VERDE) */
-.producto-card .btn.btn-primary {
-  width: 100%;
-  justify-content: center;
-  background: #4caf50;
-  border-color: #4caf50;
-  color: #fff;
-  font-weight: 600;
-}
-
-/* Botón FINALIZAR VENTA (naranja Pixel) */
-#btnFinalizarVenta {
-  background: var(--pixel-naranja);
-  border-color: var(--pixel-naranja);
-  color: #fff;
-  font-weight: 600;
-}
-
-/* Botón CANCELAR VENTA (violeta outline) */
-#btnCancelarVenta {
-  border-width: 2px;
-  border-color: var(--pixel-lila);
-  color: var(--pixel-lila);
-}
-#btnCancelarVenta:hover {
-  background: var(--pixel-lila);
-  color: #fff;
 }
