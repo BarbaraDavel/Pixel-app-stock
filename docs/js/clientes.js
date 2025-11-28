@@ -77,3 +77,24 @@ window.verCliente = (indexStr) => {
 
     const items = v.items?.map(i =>
       `${i.cantidad}× ${i.nombre} — $${i.subtotal}`
+    ).join("<br>");
+
+    modalBody.innerHTML += `
+      <div style="margin-bottom: 0.6rem;">
+        <strong>${fecha}</strong><br>
+        ${items}
+        <br><strong>Total:</strong> $${v.total}
+      </div>
+    `;
+  });
+
+  modal.classList.remove("hidden");
+};
+
+modalCerrar.onclick = () => modal.classList.add("hidden");
+modal.addEventListener("click", e => {
+  if (e.target === modal) modal.classList.add("hidden");
+});
+
+// cargar
+cargarClientes();

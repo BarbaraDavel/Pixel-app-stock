@@ -370,6 +370,9 @@ modalVenta.addEventListener("click", (e) => {
 // =========================================
 // CONFIRMAR VENTA
 // =========================================
+// =========================================
+// CONFIRMAR VENTA (VERSIÓN ARREGLADA)
+// =========================================
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) return;
 
@@ -391,7 +394,7 @@ btnVentaConfirmar.onclick = async () => {
   const total = items.reduce((sum, it) => sum + it.subtotal, 0);
 
   try {
-    // 1) Guardar venta
+    // 1) Guardar venta completa
     const ventaRef = await addDoc(collection(db, "ventas"), {
       tipo: "VENTA",
       clienteNombre,
@@ -403,18 +406,19 @@ btnVentaConfirmar.onclick = async () => {
       items
     });
 
-    // 2) Registrar movimiento tipo VENTA
+    // 2) Registrar movimiento tipo VENTA (esto alimenta historial + clientes)
     await addDoc(collection(db, "movimientos_stock"), {
       tipo: "VENTA",
-      ventaId: ventaRef.id,
+      ventaId: ventaRef.id,     // para ver detalle desde movimientos
       clienteNombre,
       metodoPago,
-      total,
+      cantidadTotal: items.reduce((acc, it) => acc + it.cantidad, 0),
+      costoTotal: total,
       fecha: fechaIso,
       nota
     });
 
-    // 3) Descontar insumos según recetas
+    // 3) Descontar insumos según recetas (esto sí funciona bien)
     await descontarInsumosPorVenta(items);
 
     popup("Venta registrada 💖");
