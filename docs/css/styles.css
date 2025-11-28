@@ -196,3 +196,45 @@ thead th {
 #guardarInsumo:hover {
   filter: brightness(1.08);
 }
+/* ================================
+   FORM GRID INSUMOS / PIXEL INPUTS
+================================ */
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 400px;
+}
+
+.input-pixel {
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--pixel-borde);
+  background: #fff;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+}
+
+.input-pixel:focus {
+  border-color: var(--pixel-lila);
+  box-shadow: 0 0 0 3px rgba(166, 107, 255, 0.25);
+  outline: none;
+}
+
+/* Botón guardar coherente con Pixel */
+#guardarInsumo {
+  align-self: flex-start;
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  background: var(--pixel-naranja);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#guardarInsumo:hover {
+  filter: brightness(1.1);
+}
