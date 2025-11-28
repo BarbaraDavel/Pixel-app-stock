@@ -17,15 +17,14 @@
     <a href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
     <a href="./movimientos_stock.html">Movimientos</a>
-    <a href="./historial.html">Historial</a>
+    <a class="active" href="./clientes.html">Clientes</a>
   </div>
 </div>
 
 <div class="main">
-
   <div class="card">
     <h1>Clientes</h1>
-    <p class="hint">Resumen de compras por cliente. Se arma automáticamente a partir de las ventas.</p>
+    <p class="hint">Resumen de compras por cliente, generado automáticamente desde las ventas.</p>
 
     <table>
       <thead>
@@ -41,14 +40,19 @@
       <tbody id="clientesLista"></tbody>
     </table>
   </div>
-
 </div>
 
-<!-- Modal detalle de cliente -->
+<!-- Modal detalle del cliente -->
 <div id="clienteModal" class="modal-backdrop hidden">
   <div class="modal">
-    <h3 id="clienteModalTitulo">Detalle de cliente</h3>
-    <div id="clienteModalBody" class="hint" style="max-height: 260px; overflow-y: auto; margin-top:0.5rem;"></div>
+    <h3 id="clienteModalTitulo"></h3>
+
+    <div id="clienteModalBody" style="
+      max-height: 280px; 
+      overflow-y: auto;
+      margin-top: 0.8rem;
+      font-size: 0.9rem;">
+    </div>
 
     <div class="modal-actions">
       <button id="clienteModalCerrar" class="btn btn-primary">Cerrar</button>

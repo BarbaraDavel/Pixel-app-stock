@@ -3,6 +3,7 @@ import {
   collection,
   getDocs,
   updateDoc,
+  addDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
@@ -29,9 +30,9 @@ async function cargarStock() {
     const s = d.data();
     stockCache[d.id] = s;
 
-    let color = "green";
-    if (s.actual <= s.minimo) color = "red";
-    else if (s.actual - s.minimo <= 3) color = "orange";
+    let color = "stock-ok";
+    if (s.actual <= s.minimo) color = "stock-low";
+    else if (s.actual - s.minimo <= 3) color = "stock-warning";
 
     tbody.innerHTML += `
       <tr>
@@ -66,10 +67,32 @@ modal.addEventListener("click", (e) => {
 btnModalGuardar.onclick = async () => {
   if (!seleccionado) return;
 
+  const item = stockCache[seleccionado];
+
+  const nuevoActual = Number(modalStockActual.value);
+  const nuevoMinimo = Number(modalStockMinimo.value);
+
+  // Calcular diferencia de stock para registrar compra automática
+  const diferencia = nuevoActual - item.actual;
+
+  // Actualizar stock en Firestore
   await updateDoc(doc(db, "stock", seleccionado), {
-    actual: Number(modalStockActual.value),
-    minimo: Number(modalStockMinimo.value)
+    actual: nuevoActual,
+    minimo: nuevoMinimo
   });
+
+  // Si aumentó → registrar COMPRA automáticamente en movimientos_stock
+  if (diferencia > 0) {
+    await addDoc(collection(db, "movimientos_stock"), {
+      tipo: "COMPRA",
+      insumoId: seleccionado,
+      cantidad: diferencia,
+      costoUnit: 0,
+      costoTotal: 0,
+      fecha: new Date().toISOString(),
+      nota: "Actualización desde módulo Stock"
+    });
+  }
 
   modal.classList.add("hidden");
   cargarStock();

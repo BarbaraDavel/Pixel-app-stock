@@ -3,210 +3,141 @@ import {
   collection,
   getDocs,
   addDoc,
-  updateDoc,
   doc,
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const insumoSelect = document.getElementById("movInsumoSelect");
-const inputCantidad = document.getElementById("movCantidad");
-const inputCostoUnitario = document.getElementById("movCostoUnitario");
-const selectTipo = document.getElementById("movTipo");
-const inputNota = document.getElementById("movNota");
-const btnGuardar = document.getElementById("btnGuardarMov");
+const lista = document.getElementById("movLista");
+const insumoSel = document.getElementById("movInsumo");
+const cantInput = document.getElementById("movCantidad");
+const costoInput = document.getElementById("movCosto");
+const tipoSel = document.getElementById("movTipo");
+const notaInput = document.getElementById("movNota");
+const btnRegistrar = document.getElementById("btnRegistrar");
+const totalComprasSpan = document.getElementById("totalCompras");
 
-const movLista = document.getElementById("movLista");
-const movTotalCompras = document.getElementById("movTotalCompras");
+// Modal
+const modal = document.getElementById("ventaDetalleModal");
+const modalTitulo = document.getElementById("modalVentaTitulo");
+const modalFecha = document.getElementById("modalFecha");
+const modalTelefono = document.getElementById("modalTelefono");
+const modalPago = document.getElementById("modalPago");
+const modalNota = document.getElementById("modalNota");
+const modalItems = document.getElementById("modalItems");
+const modalTotal = document.getElementById("modalTotal");
+const modalCerrar = document.getElementById("modalCerrar");
 
-// modal venta
-const movVentaModal = document.getElementById("movVentaModal");
-const movVentaTitulo = document.getElementById("movVentaTitulo");
-const movVentaBody = document.getElementById("movVentaBody");
-const movVentaCerrar = document.getElementById("movVentaCerrar");
-
-let insumosCache = {};       // id -> { nombre, costoUnitario }
-let stockCache = {};         // insumoId -> { stockDocId, stockActual }
-
-// ================== CARGA INSUMOS & STOCK ==================
+let insumosCache = {};
+let movimientosCache = [];
 
 async function cargarInsumos() {
-  insumoSelect.innerHTML = `<option value="">Seleccionar insumo…</option>`;
-  insumosCache = {};
-
   const snap = await getDocs(collection(db, "insumos"));
-  snap.forEach(d => {
-    const data = d.data();
-    insumosCache[d.id] = data;
-    insumoSelect.innerHTML += `<option value="${d.id}">${data.nombre}</option>`;
+  insumoSel.innerHTML = "";
+
+  snap.forEach((d) => {
+    insumosCache[d.id] = d.data();
+    insumoSel.innerHTML += `<option value="${d.id}">${d.data().nombre}</option>`;
   });
 }
-
-async function cargarStock() {
-  stockCache = {};
-  const snap = await getDocs(collection(db, "stock"));
-  snap.forEach(d => {
-    const data = d.data();
-    stockCache[data.insumoId] = {
-      stockDocId: d.id,
-      stockActual: data.stockActual ?? 0
-    };
-  });
-}
-
-// ================== LISTADO DE MOVIMIENTOS ==================
 
 async function cargarMovimientos() {
-  movLista.innerHTML = "";
+  movimientosCache = [];
+  const snap = await getDocs(collection(db, "movimientos_stock"));
+  lista.innerHTML = "";
   let totalCompras = 0;
 
-  const snap = await getDocs(collection(db, "movimientos_stock"));
-  snap.forEach(d => {
-    const m = d.data();
-    const fecha = m.fecha ? new Date(m.fecha).toLocaleString("es-AR") : "—";
+  snap.forEach((d) => movimientosCache.push({ id: d.id, ...d.data() }));
 
-    let detalle = "";
-    let cantidad = "";
-    let costoTotal = m.costoTotal ?? "";
+  movimientosCache.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-    if (m.tipo === "VENTA") {
-      // movimiento generado automáticamente por venta
-      detalle = `Venta a ${m.clienteNombre || "—"}`;
-      cantidad = "";
-    } else {
-      // COMPRA / AJUSTE
-      detalle = m.insumoNombre || "—";
-      cantidad = m.cantidad || 0;
-      if (m.tipo === "COMPRA") {
-        totalCompras += Number(costoTotal) || 0;
-      }
+  movimientosCache.forEach((m) => {
+    let detalle = m.tipo === "VENTA" ? `Venta a ${m.clienteNombre}` : insumosCache[m.insumoId]?.nombre || "";
+    let costo = m.costoTotal ? `$${m.costoTotal}` : "—";
+
+    if (m.tipo === "COMPRA" && m.costoTotal) {
+      totalCompras += Number(m.costoTotal);
     }
 
-    movLista.innerHTML += `
+    lista.innerHTML += `
       <tr>
         <td>${m.tipo}</td>
         <td>${detalle}</td>
-        <td>${cantidad}</td>
-        <td>${costoTotal ? "$" + costoTotal : "—"}</td>
-        <td>${fecha}</td>
-        <td>${m.nota || ""}</td>
+        <td>${m.cantidad || "—"}</td>
+        <td>${costo}</td>
+        <td>${new Date(m.fecha).toLocaleString()}</td>
+        <td>${m.nota || "—"}</td>
         <td>
-          ${m.ventaId ? `<button class="btn btn-sm btn-outline" onclick="verVentaMov('${m.ventaId}')">Ver</button>` : ""}
+          ${
+            m.ventaId
+              ? `<button class="btn btn-outline" onclick="verVenta('${m.ventaId}')">Ver</button>`
+              : "—"
+          }
         </td>
       </tr>
     `;
   });
 
-  movTotalCompras.textContent = `$${totalCompras}`;
+  totalComprasSpan.textContent = totalCompras;
 }
 
-// ================== NUEVO MOVIMIENTO MANUAL ==================
+btnRegistrar.onclick = async () => {
+  const insumoId = insumoSel.value;
+  const cantidad = Number(cantInput.value);
+  const costoUnit = Number(costoInput.value) || 0;
+  const tipo = tipoSel.value;
+  const nota = notaInput.value.trim();
 
-btnGuardar.onclick = async () => {
-  const insumoId = insumoSelect.value;
-  const cantidad = Number(inputCantidad.value) || 0;
-  const costoUnitario = Number(inputCostoUnitario.value) || 0;
-  const tipo = selectTipo.value;
-  const nota = inputNota.value.trim();
-
-  if (!insumoId) {
-    alert("Elegí un insumo");
-    return;
-  }
-  if (cantidad <= 0) {
-    alert("La cantidad debe ser mayor a 0");
+  if (!cantidad || cantidad <= 0) {
+    alert("Ingresá una cantidad válida.");
     return;
   }
 
-  const insumo = insumosCache[insumoId];
-  const costoTotal = costoUnitario * cantidad;
+  const costoTotal = costoUnit ? costoUnit * cantidad : 0;
 
-  // registrar movimiento
   await addDoc(collection(db, "movimientos_stock"), {
     tipo,
     insumoId,
-    insumoNombre: insumo?.nombre || "",
     cantidad,
-    costoUnitario,
+    costoUnit,
     costoTotal,
     fecha: new Date().toISOString(),
     nota
   });
 
-  // actualizar stock
-  await cargarStock(); // recargar por seguridad
-  const infoStock = stockCache[insumoId];
-  if (infoStock) {
-    const ref = doc(db, "stock", infoStock.stockDocId);
-    let nuevoStock = infoStock.stockActual;
+  cantInput.value = "";
+  costoInput.value = "";
+  notaInput.value = "";
 
-    if (tipo === "COMPRA") {
-      nuevoStock += cantidad;
-    } else if (tipo === "AJUSTE") {
-      nuevoStock = Math.max(0, infoStock.stockActual - cantidad);
-    }
-
-    await updateDoc(ref, { stockActual: nuevoStock });
-  }
-
-  inputCantidad.value = "";
-  inputCostoUnitario.value = "";
-  inputNota.value = "";
-  insumoSelect.value = "";
-
-  await cargarMovimientos();
-  await cargarStock();
+  cargarMovimientos();
 };
 
-// ================== VER VENTA DESDE MOVIMIENTOS ==================
+window.verVenta = async function (id) {
+  const ref = doc(db, "ventas", id);
+  const d = await getDoc(ref);
 
-window.verVentaMov = async function(ventaId) {
-  const ref = doc(db, "ventas", ventaId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    alert("No se encontró la venta asociada");
-    return;
-  }
+  if (!d.exists()) return alert("Venta no encontrada.");
 
-  const v = snap.data();
-  const fechaTxt = v.fecha ? new Date(v.fecha).toLocaleString("es-AR") : "—";
+  const v = d.data();
 
-  movVentaTitulo.textContent = `Venta a ${v.clienteNombre || "—"}`;
-  movVentaBody.innerHTML = `
-    <p><strong>Fecha:</strong> ${fechaTxt}</p>
-    <p><strong>Teléfono:</strong> ${v.clienteTelefono || "—"}</p>
-    <p><strong>Medio de pago:</strong> ${v.metodoPago || "—"}</p>
-    <p><strong>Nota:</strong> ${v.nota || "—"}</p>
-    <hr style="margin:0.5rem 0; border:none; border-top:1px solid #eee;">
-    <p><strong>Detalle:</strong></p>
-  `;
+  modalTitulo.textContent = `Venta a ${v.clienteNombre}`;
+  modalFecha.textContent = new Date(v.fecha).toLocaleString();
+  modalTelefono.textContent = v.clienteTelefono || "—";
+  modalPago.textContent = v.metodoPago;
+  modalNota.textContent = v.nota || "—";
+  modalTotal.textContent = `$${v.total}`;
 
-  if (v.items && Array.isArray(v.items) && v.items.length > 0) {
-    v.items.forEach(it => {
-      movVentaBody.innerHTML += `
-        <p>${it.cantidad}× ${it.nombre} — $${it.subtotal}</p>
-      `;
-    });
-  } else {
-    movVentaBody.innerHTML += `<p>${v.nombre || "(sin detalle)"}</p>`;
-  }
+  modalItems.innerHTML = "";
+  v.items.forEach((i) => {
+    modalItems.innerHTML += `<p>${i.cantidad}× ${i.nombre} — $${i.subtotal}</p>`;
+  });
 
-  movVentaBody.innerHTML += `
-    <hr style="margin:0.5rem 0; border:none; border-top:1px solid #eee;">
-    <p><strong>Total: $${v.total ?? v.precio ?? 0}</strong></p>
-  `;
-
-  movVentaModal.classList.remove("hidden");
+  modal.classList.remove("hidden");
 };
 
-movVentaCerrar.onclick = () => movVentaModal.classList.add("hidden");
-movVentaModal.addEventListener("click", (e) => {
-  if (e.target === movVentaModal) movVentaModal.classList.add("hidden");
+modalCerrar.onclick = () => modal.classList.add("hidden");
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.classList.add("hidden");
 });
 
-// ================== INIT ==================
-
-(async () => {
-  await cargarInsumos();
-  await cargarStock();
-  await cargarMovimientos();
-})();
+await cargarInsumos();
+await cargarMovimientos();

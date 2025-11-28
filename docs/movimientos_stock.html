@@ -2,12 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Movimientos de Stock - Pixel Stock</title>
+  <title>Movimientos - Pixel Stock</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="topbar">
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel Stock
@@ -16,41 +17,33 @@
     <a href="./insumos.html">Insumos</a>
     <a href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
-    <a class="active" href="./movimientos_stock.html">Movimientos</a>
-    <a href="./historial.html">Historial</a>
-    <a href="./clientes.html">Clientes</a>
+    <a class="active" href="./movimientos.html">Movimientos</a>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- Registrar movimiento manual -->
   <div class="card">
     <h1>Movimientos de Stock</h1>
-    <p class="hint">Registrá compras o ajustes de stock. Las ventas se agregan automáticamente al vender productos.</p>
+    <p class="hint">Registra compras y ajustes. Las ventas se agregan automáticamente al vender productos.</p>
 
-    <h3>Nuevo movimiento (manual)</h3>
-
-    <select id="movInsumoSelect">
-      <option value="">Seleccionar insumo…</option>
-    </select>
-
-    <input id="movCantidad" type="number" min="1" placeholder="Cantidad">
-    <input id="movCostoUnitario" type="number" min="0" step="0.01" placeholder="Costo unitario (opcional)">
-
-    <select id="movTipo">
-      <option value="COMPRA">COMPRA (entra stock)</option>
-      <option value="AJUSTE">AJUSTE (sale stock)</option>
-    </select>
-
-    <input id="movNota" placeholder="Nota (opcional)">
-
-    <button id="btnGuardarMov" class="btn btn-primary">Registrar movimiento</button>
+    <!-- Nueva compra -->
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <select id="movInsumo"></select>
+      <input id="movCantidad" type="number" placeholder="Cantidad">
+      <input id="movCosto" type="number" placeholder="Costo unitario (opcional)">
+      <select id="movTipo">
+        <option value="COMPRA">COMPRA (entra stock)</option>
+        <option value="AJUSTE">AJUSTE</option>
+      </select>
+      <input id="movNota" placeholder="Nota (opcional)">
+      <button id="btnRegistrar" class="btn btn-primary">Registrar movimiento</button>
+    </div>
   </div>
 
   <br>
 
-  <!-- Listado -->
+  <!-- HISTORIAL -->
   <div class="card">
     <h3>Historial de movimientos</h3>
 
@@ -69,26 +62,37 @@
       <tbody id="movLista"></tbody>
     </table>
 
-    <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--pixel-borde);">
-
-    <h3>Total gastado en compras: <span id="movTotalCompras">$0</span></h3>
+    <p style="margin-top:1rem;">
+      <strong>Total gastado en compras: $<span id="totalCompras">0</span></strong>
+    </p>
   </div>
-
 </div>
 
-<!-- Modal ver venta asociada -->
-<div id="movVentaModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h3 id="movVentaTitulo">Detalle de venta</h3>
-    <div id="movVentaBody" class="hint" style="max-height:260px; overflow-y:auto; margin-top:0.5rem;"></div>
 
-    <div class="modal-actions">
-      <button id="movVentaCerrar" class="btn btn-primary">Cerrar</button>
+<!-- MODAL VER VENTA -->
+<div id="ventaDetalleModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="modalVentaTitulo"></h3>
+
+    <p><strong>Fecha:</strong> <span id="modalFecha"></span></p>
+    <p><strong>Teléfono:</strong> <span id="modalTelefono"></span></p>
+    <p><strong>Medio de pago:</strong> <span id="modalPago"></span></p>
+    <p><strong>Nota:</strong> <span id="modalNota"></span></p>
+
+    <hr style="margin:0.8rem 0;">
+
+    <h4>Detalle:</h4>
+    <div id="modalItems"></div>
+
+    <p style="margin-top:1rem;"><strong>Total: </strong><span id="modalTotal"></span></p>
+
+    <div style="text-align:right; margin-top:1rem;">
+      <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
   </div>
 </div>
 
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/movimientos_stock.js"></script>
+<script type="module" src="js/movimientos.js"></script>
 </body>
 </html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Pixel Stock</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a class="active" href="./dashboard.html">Dashboard</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./movimientos_stock.html">Movimientos</a>
+    <a href="./clientes.html">Clientes</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>Dashboard</h1>
+    <p class="hint">Panel general de tu emprendimiento Pixel 🦊</p>
+
+    <div id="dashboardContenido">
+      <!-- Acá JS rellena todo automáticamente -->
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
