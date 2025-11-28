@@ -36,12 +36,13 @@ async function cargarInsumos() {
         <td>${nombre}</td>
         <td>$${costo}</td>
         <td>${paquete}</td>
-        <td style="display:flex; gap:6px;">
-          <button class="boton-accion" onclick="editar('${d.id}')">Editar</button>
-          <button class="boton-eliminar" onclick="eliminar('${d.id}')">✕</button>
+        <td class="td-actions">
+          <button class="btn-edit" onclick="editar('${d.id}')">Editar</button>
+          <button class="btn-delete" onclick="eliminar('${d.id}')">Eliminar</button>
         </td>
       </tr>
     `;
+
   });
 }
 
