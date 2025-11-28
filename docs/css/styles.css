@@ -713,3 +713,69 @@ thead th {
   visibility: visible;
   opacity: 1;
 }
+/* ===========================================================
+   TABLA ESTILO PIXEL (igual a Stock)
+=========================================================== */
+
+.tabla-stock {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.2rem;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tabla-stock thead {
+  background: linear-gradient(90deg, #ffe8d6, #fde2ff);
+}
+
+.tabla-stock th {
+  padding: 14px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  color: #444;
+}
+
+.tabla-stock td {
+  padding: 14px 12px;
+  font-size: 0.95rem;
+  color: #444;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.tabla-stock tbody tr:nth-child(even) {
+  background: #faf9fb;
+}
+
+.tabla-stock tbody tr:hover {
+  background: #fff4e6;
+}
+
+/* Botones */
+.btn-insumo {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid #c78bfa;
+  background: #f9f0ff;
+  color: #7a2ea8;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.btn-insumo:hover {
+  background: #e7d0ff;
+}
+
+.btn-insumo-danger {
+  border: 1px solid #ff8a8a;
+  background: #ffe9e9;
+  color: #d9534f;
+}
+
+.btn-insumo-danger:hover {
+  background: #ffd4d4;
+}
