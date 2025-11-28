@@ -44,10 +44,15 @@ const btnGuardarEdicion = document.getElementById("guardarEdicion");
 
 let productoEditandoId = null;
 
-// Popup Pixel
+// Popup Pixel (es el globito violeta abajo a la derecha)
 function popup(msg) {
   const box = document.getElementById("popupPixel");
   const txt = document.getElementById("popupText");
+
+  if (!box || !txt) {
+    alert(msg);
+    return;
+  }
 
   txt.textContent = msg;
   box.classList.remove("hidden");
@@ -90,32 +95,31 @@ async function cargarProductos() {
 }
 
 // =============================================================
-// FUNCIONES: Cargar Receta + Cargar Costos de Producción
+// Cargar Receta + Costo de producción para el modal de producto
 // =============================================================
 async function cargarRecetaYCostos(productoId) {
+  if (!recetaDetalle || !costoBox) return;
+
   recetaDetalle.innerHTML = "Cargando...";
   costoBox.innerHTML = "Calculando...";
 
   const recetasSnap = await getDocs(
     query(collection(db, "recetas"), where("productoId", "==", productoId))
   );
-
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
-  // Map insumos
   const insumosMap = {};
   insumosSnap.forEach((i) => (insumosMap[i.id] = i.data()));
 
-  let recetaLista = [];
+  const recetaLista = [];
   recetasSnap.forEach((r) => recetaLista.push(r.data()));
 
   if (recetaLista.length === 0) {
     recetaDetalle.innerHTML = `<p class="hint">Este producto no tiene recetas asignadas.</p>`;
-    costoBox.innerHTML = `<p class="hint">No se puede calcular costo.</p>`;
+    costoBox.innerHTML = `<p class="hint">No se puede calcular el costo de producción.</p>`;
     return;
   }
 
-  // Mostrar receta
   let htmlReceta = "";
   let costoTotal = 0;
 
@@ -133,10 +137,59 @@ async function cargarRecetaYCostos(productoId) {
   });
 
   recetaDetalle.innerHTML = htmlReceta;
+  costoBox.innerHTML = `<strong>Total producir 1 unidad:</strong> $${costoTotal}`;
+}
 
-  costoBox.innerHTML = `
-    <strong>Total producir 1 unidad:</strong> $${costoTotal}
-  `;
+// =============================================================
+// Descontar insumos según recetas al confirmar una venta
+// =============================================================
+async function descontarInsumosPorVenta(items) {
+  if (!items || items.length === 0) return;
+
+  // Traigo TODO el stock una vez para no pegarle mil veces
+  const stockSnap = await getDocs(collection(db, "stock"));
+  const stockMap = {};
+  stockSnap.forEach((s) => {
+    const data = s.data();
+    stockMap[data.insumoId] = { id: s.id, ...data };
+  });
+
+  for (const item of items) {
+    const q = query(
+      collection(db, "recetas"),
+      where("productoId", "==", item.productoId)
+    );
+    const recSnap = await getDocs(q);
+
+    for (const r of recSnap.docs) {
+      const receta = r.data();
+      const insumoId = receta.insumoId;
+      const porUnidad = Number(receta.cantidadUsada) || 0;
+      const cantidadConsumida = porUnidad * item.cantidad;
+
+      const stockInfo = stockMap[insumoId];
+      if (!stockInfo) continue;
+
+      const nuevoStock =
+        (Number(stockInfo.stockActual) || 0) - cantidadConsumida;
+
+      await updateDoc(doc(db, "stock", stockInfo.id), {
+        stockActual: nuevoStock
+      });
+
+      await addDoc(collection(db, "movimientos_stock"), {
+        tipo: "CONSUMO",
+        insumoId,
+        cantidad: cantidadConsumida,
+        producto: item.nombre,
+        fecha: new Date().toISOString(),
+        nota: "Consumo automático por venta"
+      });
+
+      // Actualizo cache local
+      stockInfo.stockActual = nuevoStock;
+    }
+  }
 }
 
 // =========================================
@@ -144,16 +197,13 @@ async function cargarRecetaYCostos(productoId) {
 // =========================================
 window.editarProducto = function (id) {
   const p = productosCache[id];
-  if (!p) return;
+  if (!p || !modalEditar) return;
 
   productoEditandoId = id;
-
   editNombre.value = p.nombre;
   editPrecio.value = p.precio;
 
   modalEditar.classList.remove("hidden");
-
-  // cargar recetas + costos
   cargarRecetaYCostos(id);
 };
 
@@ -171,7 +221,6 @@ btnGuardarEdicion.onclick = async () => {
   });
 
   popup("Producto actualizado ✨");
-
   modalEditar.classList.add("hidden");
   productoEditandoId = null;
 
@@ -185,25 +234,25 @@ window.eliminarProducto = async function (id) {
   if (!confirm("¿Eliminar este producto?")) return;
 
   await deleteDoc(doc(db, "productos", id));
-
   popup("Producto eliminado 🗑️");
-
   cargarProductos();
 };
 
 // =========================================
-// AGREGAR PRODUCTO
+// AGREGAR PRODUCTO NUEVO
 // =========================================
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
   const precio = Number(inputPrecio.value);
 
-  if (!nombre) return alert("Ingresá un nombre");
+  if (!nombre) {
+    alert("Ingresá un nombre");
+    return;
+  }
 
   await addDoc(collection(db, "productos"), { nombre, precio });
 
   popup("Producto agregado 💖");
-
   inputNombre.value = "";
   inputPrecio.value = "";
 
@@ -219,20 +268,22 @@ window.agregarAVenta = function (id) {
 
   const existe = ventaItems.find((i) => i.productoId === id);
 
-  if (existe) existe.cantidad++;
-  else
+  if (existe) {
+    existe.cantidad += 1;
+  } else {
     ventaItems.push({
       productoId: id,
       nombre: p.nombre,
       precio: p.precio,
       cantidad: 1
     });
+  }
 
   renderVenta();
 };
 
 // =========================================
-// RENDER VENTA
+ // RENDER VENTA
 // =========================================
 function renderVenta() {
   if (ventaItems.length === 0) {
@@ -272,19 +323,23 @@ function renderVenta() {
   ventaTotalSpan.textContent = `$${total}`;
 }
 
-window.cambiarCantidad = function (i, d) {
-  ventaItems[i].cantidad += d;
-  if (ventaItems[i].cantidad <= 0) ventaItems.splice(i, 1);
+window.cambiarCantidad = function (idx, delta) {
+  const item = ventaItems[idx];
+  if (!item) return;
+
+  item.cantidad += delta;
+  if (item.cantidad <= 0) ventaItems.splice(idx, 1);
+
   renderVenta();
 };
 
-window.quitarItem = function (i) {
-  ventaItems.splice(i, 1);
+window.quitarItem = function (idx) {
+  ventaItems.splice(idx, 1);
   renderVenta();
 };
 
 // =========================================
-// FINALIZAR VENTA
+// FINALIZAR / CANCELAR VENTA
 // =========================================
 btnCancelarVenta.onclick = () => {
   if (!confirm("¿Cancelar venta actual?")) return;
@@ -293,13 +348,17 @@ btnCancelarVenta.onclick = () => {
 };
 
 btnFinalizarVenta.onclick = () => {
-  if (ventaItems.length === 0) return alert("No hay productos.");
-  modalVenta.classList.remove("hidden");
+  if (ventaItems.length === 0) {
+    alert("No hay productos en la venta.");
+    return;
+  }
 
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   selectMetodoPago.value = "Efectivo";
   inputNotaVenta.value = "";
+
+  modalVenta.classList.remove("hidden");
 };
 
 btnVentaCancelar.onclick = () => modalVenta.classList.add("hidden");
@@ -309,34 +368,64 @@ modalVenta.addEventListener("click", (e) => {
 });
 
 // =========================================
-// GUARDAR VENTA
+// CONFIRMAR VENTA
 // =========================================
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) return;
 
-  const cliente = inputClienteNombre.value.trim() || "Sin nombre";
-  const tel = inputClienteTelefono.value.trim();
-  const metodo = selectMetodoPago.value;
+  const clienteNombre = inputClienteNombre.value.trim() || "Sin nombre";
+  const clienteTelefono = inputClienteTelefono.value.trim();
+  const metodoPago = selectMetodoPago.value;
   const nota = inputNotaVenta.value.trim();
+  const fechaIso = new Date().toISOString();
 
-  let total = ventaItems.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
+  // preparo items con subtotal
+  const items = ventaItems.map((i) => ({
+    productoId: i.productoId,
+    nombre: i.nombre,
+    precioUnitario: i.precio,
+    cantidad: i.cantidad,
+    subtotal: i.precio * i.cantidad
+  }));
 
-  const ventaRef = await addDoc(collection(db, "ventas"), {
-    tipo: "VENTA",
-    clienteNombre: cliente,
-    clienteTelefono: tel,
-    metodoPago: metodo,
-    nota,
-    fecha: new Date().toISOString(),
-    total,
-    items: ventaItems
-  });
+  const total = items.reduce((sum, it) => sum + it.subtotal, 0);
 
-  popup("Venta registrada 💖");
+  try {
+    // 1) Guardar venta
+    const ventaRef = await addDoc(collection(db, "ventas"), {
+      tipo: "VENTA",
+      clienteNombre,
+      clienteTelefono,
+      metodoPago,
+      nota,
+      fecha: fechaIso,
+      total,
+      items
+    });
 
-  ventaItems = [];
-  renderVenta();
-  modalVenta.classList.add("hidden");
+    // 2) Registrar movimiento tipo VENTA
+    await addDoc(collection(db, "movimientos_stock"), {
+      tipo: "VENTA",
+      ventaId: ventaRef.id,
+      clienteNombre,
+      metodoPago,
+      total,
+      fecha: fechaIso,
+      nota
+    });
+
+    // 3) Descontar insumos según recetas
+    await descontarInsumosPorVenta(items);
+
+    popup("Venta registrada 💖");
+
+    ventaItems = [];
+    renderVenta();
+    modalVenta.classList.add("hidden");
+  } catch (err) {
+    console.error(err);
+    alert("Ocurrió un error al registrar la venta. Revisá la consola.");
+  }
 };
 
 // ==================================================
