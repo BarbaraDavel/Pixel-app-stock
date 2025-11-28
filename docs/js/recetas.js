@@ -7,31 +7,27 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// UI refs
 const selProducto = document.getElementById("recetaProducto");
 const selInsumo = document.getElementById("recetaInsumo");
 const inputCantidad = document.getElementById("recetaCantidad");
 const btnGuardar = document.getElementById("guardarReceta");
 const lista = document.getElementById("listaRecetas");
 
-// para popup
 function popup(msg) {
   const box = document.getElementById("popupPixel");
   const txt = document.getElementById("popupText");
-
   txt.textContent = msg;
   box.classList.remove("hidden");
-
-  setTimeout(() => box.classList.add("hidden"), 2000);
+  setTimeout(() => box.classList.add("hidden"), 1600);
 }
 
 let productos = {};
 let insumos = {};
 let recetas = [];
 
-// =============================
-// Cargar productos e insumos
-// =============================
+// ============================
+// Cargar selects
+// ============================
 async function cargarSelects() {
   selProducto.innerHTML = "";
   selInsumo.innerHTML = "";
@@ -49,25 +45,27 @@ async function cargarSelects() {
   });
 }
 
-// =============================
+// ============================
 // Cargar recetas
-// =============================
+// ============================
 async function cargarRecetas() {
   lista.innerHTML = "";
-  recetas = [];
 
   const snap = await getDocs(collection(db, "recetas"));
+
   snap.forEach(r => {
     const data = r.data();
-    recetas.push({ id: r.id, ...data });
+
+    const prod = productos[data.productoId]?.nombre || "-";
+    const ins = insumos[data.insumoId]?.nombre || "-";
 
     lista.innerHTML += `
       <tr>
-        <td>${productos[data.productoId]?.nombre || "-"}</td>
-        <td>${insumos[data.insumoId]?.nombre || "-"}</td>
+        <td>${prod}</td>
+        <td>${ins}</td>
         <td>${data.cantidadUsada}</td>
         <td>
-          <button class="btn btn-danger btn-sm" onclick="eliminarReceta('${r.id}')">✕</button>
+          <button class="boton-eliminar" onclick="eliminarReceta('${r.id}')">Eliminar</button>
         </td>
       </tr>
     `;
@@ -80,9 +78,9 @@ window.eliminarReceta = async function(id) {
   cargarRecetas();
 };
 
-// =============================
+// ============================
 // Guardar receta
-// =============================
+// ============================
 btnGuardar.onclick = async () => {
   const prodId = selProducto.value;
   const insId = selInsumo.value;
@@ -105,6 +103,5 @@ btnGuardar.onclick = async () => {
   cargarRecetas();
 };
 
-// =============================
 cargarSelects();
 cargarRecetas();
