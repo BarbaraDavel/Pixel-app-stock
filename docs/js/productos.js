@@ -5,7 +5,9 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const grid = document.getElementById("productosLista");
@@ -13,7 +15,7 @@ const btnGuardar = document.getElementById("guardarProd");
 const inputNombre = document.getElementById("prodNombre");
 const inputPrecio = document.getElementById("prodPrecio");
 
-// Venta UI
+// Venta actual UI
 const ventaVacia = document.getElementById("ventaVacia");
 const ventaTabla = document.getElementById("ventaTabla");
 const ventaItemsBody = document.getElementById("ventaItems");
@@ -23,7 +25,7 @@ const btnCancelarVenta = document.getElementById("btnCancelarVenta");
 const btnFinalizarVenta = document.getElementById("btnFinalizarVenta");
 
 // Modal venta
-const modal = document.getElementById("ventaModal");
+const modalVenta = document.getElementById("ventaModal");
 const inputClienteNombre = document.getElementById("clienteNombre");
 const inputClienteTelefono = document.getElementById("clienteTelefono");
 const selectMetodoPago = document.getElementById("metodoPago");
@@ -31,28 +33,35 @@ const inputNotaVenta = document.getElementById("notaVenta");
 const btnVentaCancelar = document.getElementById("ventaCancelar");
 const btnVentaConfirmar = document.getElementById("ventaConfirmar");
 
+// Modal editar producto
+const modalEditar = document.getElementById("editarProductoModal");
+const editNombre = document.getElementById("editNombre");
+const editPrecio = document.getElementById("editPrecio");
+const recetaDetalle = document.getElementById("recetaProductoDetalle");
+const costoBox = document.getElementById("costoProduccionBox");
+const btnCancelarEdicion = document.getElementById("cancelarEdicion");
+const btnGuardarEdicion = document.getElementById("guardarEdicion");
+
+let productoEditandoId = null;
+
+// Popup Pixel
+function popup(msg) {
+  const box = document.getElementById("popupPixel");
+  const txt = document.getElementById("popupText");
+
+  txt.textContent = msg;
+  box.classList.remove("hidden");
+
+  setTimeout(() => box.classList.add("hidden"), 2000);
+}
+
 // Cache
 let productosCache = {};
 let ventaItems = [];
 
-// =================================
-//  POPUP PIXEL (global)
-// =================================
-function mostrarPopup(msg = "Listo ✔️") {
-  const popup = document.getElementById("popupPixel");
-  const texto = document.getElementById("popupText");
-
-  texto.textContent = msg;
-  popup.classList.remove("hidden");
-
-  setTimeout(() => {
-    popup.classList.add("hidden");
-  }, 1500);
-}
-
-// =================================
-//  Cargar productos
-// =================================
+// ==============================
+// Cargar productos
+// ==============================
 async function cargarProductos() {
   grid.innerHTML = "";
   productosCache = {};
@@ -64,101 +73,173 @@ async function cargarProductos() {
     productosCache[d.id] = p;
 
     grid.innerHTML += `
-      <div class="producto-card" id="prod-${d.id}">
-        
-        <!-- Vista normal -->
-        <div class="producto-view">
+      <div class="producto-card">
+        <div>
           <div class="producto-nombre">${p.nombre}</div>
           <div class="producto-precio">$${p.precio}</div>
-          <div class="producto-botones">
-            <button class="btn btn-outline" onclick="editarProducto('${d.id}')">✏️ Editar</button>
-            <button class="btn btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
-          </div>
         </div>
 
-        <!-- Vista de edición -->
-        <div class="producto-edit hidden">
-          <input id="edit-nombre-${d.id}" class="input-pixel" value="${p.nombre}">
-          <input id="edit-precio-${d.id}" class="input-pixel" type="number" value="${p.precio}">
-          <div class="producto-edit-botones">
-            <button class="btn btn-primary" onclick="guardarEdicion('${d.id}')">💾 Guardar</button>
-            <button class="btn btn-outline" onclick="cancelarEdicion('${d.id}')">Cancelar</button>
-          </div>
+        <div class="producto-actions">
+          <button class="btn btn-outline" onclick="editarProducto('${d.id}')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarProducto('${d.id}')">✕</button>
+          <button class="btn btn-primary" onclick="agregarAVenta('${d.id}')">💸 Vender</button>
         </div>
-
-        <!-- Botón vender -->
-        <button class="btn btn-primary vender-btn" onclick="agregarAVenta('${d.id}')">
-          💸 Vender
-        </button>
-
       </div>
     `;
   });
 }
 
-// =================================
-//  EDITAR PRODUCTO
-// =================================
-window.editarProducto = function (id) {
-  const card = document.getElementById(`prod-${id}`);
-  card.querySelector(".producto-view").classList.add("hidden");
-  card.querySelector(".producto-edit").classList.remove("hidden");
-  card.querySelector(".vender-btn").classList.add("hidden");
-};
+// =============================================================
+// FUNCIONES: Cargar Receta + Cargar Costos de Producción
+// =============================================================
+async function cargarRecetaYCostos(productoId) {
+  recetaDetalle.innerHTML = "Cargando...";
+  costoBox.innerHTML = "Calculando...";
 
-window.cancelarEdicion = function (id) {
-  const card = document.getElementById(`prod-${id}`);
-  card.querySelector(".producto-view").classList.remove("hidden");
-  card.querySelector(".producto-edit").classList.add("hidden");
-  card.querySelector(".vender-btn").classList.remove("hidden");
-};
+  const recetasSnap = await getDocs(
+    query(collection(db, "recetas"), where("productoId", "==", productoId))
+  );
 
-window.guardarEdicion = async function (id) {
-  const nombre = document.getElementById(`edit-nombre-${id}`).value.trim();
-  const precio = Number(document.getElementById(`edit-precio-${id}`).value);
+  const insumosSnap = await getDocs(collection(db, "insumos"));
 
-  if (!nombre) {
-    mostrarPopup("Nombre inválido ❌");
+  // Map insumos
+  const insumosMap = {};
+  insumosSnap.forEach((i) => (insumosMap[i.id] = i.data()));
+
+  let recetaLista = [];
+  recetasSnap.forEach((r) => recetaLista.push(r.data()));
+
+  if (recetaLista.length === 0) {
+    recetaDetalle.innerHTML = `<p class="hint">Este producto no tiene recetas asignadas.</p>`;
+    costoBox.innerHTML = `<p class="hint">No se puede calcular costo.</p>`;
     return;
   }
 
-  await updateDoc(doc(db, "productos", id), { nombre, precio });
+  // Mostrar receta
+  let htmlReceta = "";
+  let costoTotal = 0;
 
-  mostrarPopup("Producto actualizado ✔️");
+  recetaLista.forEach((r) => {
+    const ins = insumosMap[r.insumoId];
+    if (!ins) return;
+
+    const costoUnitario = Number(ins.costoUnitario) || 0;
+    const usado = Number(r.cantidadUsada) || 0;
+    const subtotal = costoUnitario * usado;
+
+    costoTotal += subtotal;
+
+    htmlReceta += `<p>• ${usado}× ${ins.nombre} — $${subtotal}</p>`;
+  });
+
+  recetaDetalle.innerHTML = htmlReceta;
+
+  costoBox.innerHTML = `
+    <strong>Total producir 1 unidad:</strong> $${costoTotal}
+  `;
+}
+
+// =========================================
+// EDITAR PRODUCTO
+// =========================================
+window.editarProducto = function (id) {
+  const p = productosCache[id];
+  if (!p) return;
+
+  productoEditandoId = id;
+
+  editNombre.value = p.nombre;
+  editPrecio.value = p.precio;
+
+  modalEditar.classList.remove("hidden");
+
+  // cargar recetas + costos
+  cargarRecetaYCostos(id);
+};
+
+btnCancelarEdicion.onclick = () => {
+  modalEditar.classList.add("hidden");
+  productoEditandoId = null;
+};
+
+btnGuardarEdicion.onclick = async () => {
+  if (!productoEditandoId) return;
+
+  await updateDoc(doc(db, "productos", productoEditandoId), {
+    nombre: editNombre.value.trim(),
+    precio: Number(editPrecio.value)
+  });
+
+  popup("Producto actualizado ✨");
+
+  modalEditar.classList.add("hidden");
+  productoEditandoId = null;
+
   cargarProductos();
 };
 
+// =========================================
+// ELIMINAR PRODUCTO
+// =========================================
 window.eliminarProducto = async function (id) {
   if (!confirm("¿Eliminar este producto?")) return;
 
   await deleteDoc(doc(db, "productos", id));
-  mostrarPopup("Producto eliminado 🗑️");
+
+  popup("Producto eliminado 🗑️");
 
   cargarProductos();
 };
 
-// =================================
-//  AGREGAR A VENTA
-// =================================
-window.agregarAVenta = function (id) {
-  const prod = productosCache[id];
-  if (!prod) return;
+// =========================================
+// AGREGAR PRODUCTO
+// =========================================
+btnGuardar.onclick = async () => {
+  const nombre = inputNombre.value.trim();
+  const precio = Number(inputPrecio.value);
 
-  const existente = ventaItems.find((i) => i.productoId === id);
-  if (existente) existente.cantidad += 1;
-  else ventaItems.push({ productoId: id, nombre: prod.nombre, precio: prod.precio, cantidad: 1 });
+  if (!nombre) return alert("Ingresá un nombre");
+
+  await addDoc(collection(db, "productos"), { nombre, precio });
+
+  popup("Producto agregado 💖");
+
+  inputNombre.value = "";
+  inputPrecio.value = "";
+
+  cargarProductos();
+};
+
+// =========================================
+// AGREGAR A VENTA
+// =========================================
+window.agregarAVenta = function (id) {
+  const p = productosCache[id];
+  if (!p) return;
+
+  const existe = ventaItems.find((i) => i.productoId === id);
+
+  if (existe) existe.cantidad++;
+  else
+    ventaItems.push({
+      productoId: id,
+      nombre: p.nombre,
+      precio: p.precio,
+      cantidad: 1
+    });
 
   renderVenta();
 };
 
-// =================================
-//  Render venta
-// =================================
+// =========================================
+// RENDER VENTA
+// =========================================
 function renderVenta() {
   if (ventaItems.length === 0) {
     ventaVacia.classList.remove("hidden");
     ventaTabla.classList.add("hidden");
     ventaResumen.classList.add("hidden");
+    ventaTotalSpan.textContent = "$0";
     return;
   }
 
@@ -169,21 +250,21 @@ function renderVenta() {
   ventaItemsBody.innerHTML = "";
   let total = 0;
 
-  ventaItems.forEach((item, index) => {
-    const subtotal = item.cantidad * item.precio;
-    total += subtotal;
+  ventaItems.forEach((i, index) => {
+    const sub = i.precio * i.cantidad;
+    total += sub;
 
     ventaItemsBody.innerHTML += `
       <tr>
-        <td>${item.nombre}</td>
+        <td>${i.nombre}</td>
         <td>
           <button class="btn btn-sm" onclick="cambiarCantidad(${index}, -1)">-</button>
-          ${item.cantidad}
+          ${i.cantidad}
           <button class="btn btn-sm" onclick="cambiarCantidad(${index}, 1)">+</button>
         </td>
-        <td>$${item.precio}</td>
-        <td>$${subtotal}</td>
-        <td><button class="btn btn-sm btn-danger" onclick="quitarItem(${index})">✕</button></td>
+        <td>$${i.precio}</td>
+        <td>$${sub}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="quitarItem(${index})">✕</button></td>
       </tr>
     `;
   });
@@ -191,24 +272,20 @@ function renderVenta() {
   ventaTotalSpan.textContent = `$${total}`;
 }
 
-window.cambiarCantidad = function (index, delta) {
-  const item = ventaItems[index];
-  if (!item) return;
-
-  item.cantidad += delta;
-  if (item.cantidad <= 0) ventaItems.splice(index, 1);
-
+window.cambiarCantidad = function (i, d) {
+  ventaItems[i].cantidad += d;
+  if (ventaItems[i].cantidad <= 0) ventaItems.splice(i, 1);
   renderVenta();
 };
 
-window.quitarItem = function (index) {
-  ventaItems.splice(index, 1);
+window.quitarItem = function (i) {
+  ventaItems.splice(i, 1);
   renderVenta();
 };
 
-// =================================
-//  Finalizar venta
-// =================================
+// =========================================
+// FINALIZAR VENTA
+// =========================================
 btnCancelarVenta.onclick = () => {
   if (!confirm("¿Cancelar venta actual?")) return;
   ventaItems = [];
@@ -216,95 +293,52 @@ btnCancelarVenta.onclick = () => {
 };
 
 btnFinalizarVenta.onclick = () => {
-  if (ventaItems.length === 0) {
-    mostrarPopup("Venta vacía ❌");
-    return;
-  }
+  if (ventaItems.length === 0) return alert("No hay productos.");
+  modalVenta.classList.remove("hidden");
+
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   selectMetodoPago.value = "Efectivo";
   inputNotaVenta.value = "";
-  modal.classList.remove("hidden");
 };
 
-btnVentaCancelar.onclick = () => modal.classList.add("hidden");
+btnVentaCancelar.onclick = () => modalVenta.classList.add("hidden");
 
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
+modalVenta.addEventListener("click", (e) => {
+  if (e.target === modalVenta) modalVenta.classList.add("hidden");
 });
 
-// =================================
-//  Confirmar venta
-// =================================
+// =========================================
+// GUARDAR VENTA
+// =========================================
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) return;
 
-  const clienteNombre = inputClienteNombre.value.trim() || "Sin nombre";
-  const clienteTelefono = inputClienteTelefono.value.trim() || "";
-  const metodoPago = selectMetodoPago.value;
+  const cliente = inputClienteNombre.value.trim() || "Sin nombre";
+  const tel = inputClienteTelefono.value.trim();
+  const metodo = selectMetodoPago.value;
   const nota = inputNotaVenta.value.trim();
 
-  let total = 0;
-  const items = ventaItems.map((i) => {
-    const subtotal = i.cantidad * i.precio;
-    total += subtotal;
-    return {
-      productoId: i.productoId,
-      nombre: i.nombre,
-      precioUnitario: i.precio,
-      cantidad: i.cantidad,
-      subtotal
-    };
-  });
+  let total = ventaItems.reduce((sum, i) => sum + i.precio * i.cantidad, 0);
 
   const ventaRef = await addDoc(collection(db, "ventas"), {
     tipo: "VENTA",
-    clienteNombre,
-    clienteTelefono,
-    metodoPago,
+    clienteNombre: cliente,
+    clienteTelefono: tel,
+    metodoPago: metodo,
     nota,
     fecha: new Date().toISOString(),
     total,
-    items
+    items: ventaItems
   });
 
-  await addDoc(collection(db, "movimientos_stock"), {
-    tipo: "VENTA",
-    ventaId: ventaRef.id,
-    clienteNombre,
-    total,
-    metodoPago,
-    fecha: new Date().toISOString(),
-    nota: nota || "Venta desde Productos"
-  });
+  popup("Venta registrada 💖");
 
   ventaItems = [];
   renderVenta();
-  modal.classList.add("hidden");
-  mostrarPopup("Venta registrada ✔️");
+  modalVenta.classList.add("hidden");
 };
 
-// =================================
-//  Agregar nuevo producto
-// =================================
-btnGuardar.onclick = async () => {
-  const nombre = inputNombre.value.trim();
-  const precio = Number(inputPrecio.value);
-
-  if (!nombre || precio <= 0) {
-    mostrarPopup("Datos inválidos ❌");
-    return;
-  }
-
-  await addDoc(collection(db, "productos"), { nombre, precio });
-
-  inputNombre.value = "";
-  inputPrecio.value = "";
-
-  mostrarPopup("Producto agregado ✔️");
-
-  cargarProductos();
-};
-
+// ==================================================
 cargarProductos();
 renderVenta();

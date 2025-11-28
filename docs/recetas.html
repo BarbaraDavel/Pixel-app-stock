@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recetas - Pixel Stock</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./movimientos_stock.html">Movimientos</a>
+    <a class="active" href="./recetas.html">Recetas</a>
+    <a href="./dashboard.html">Dashboard</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>Recetas</h1>
+    <p class="hint">Configurá cuántos insumos usa cada producto.</p>
+
+    <h3>Agregar receta</h3>
+
+    <div class="form-grid">
+      <select id="recetaProducto" class="input-pixel"></select>
+      <select id="recetaInsumo" class="input-pixel"></select>
+      <input id="recetaCantidad" type="number" class="input-pixel" placeholder="Cantidad usada">
+      <button id="guardarReceta" class="btn btn-primary">Agregar</button>
+    </div>
+  </div>
+
+  <br>
+
+  <div class="card">
+    <h3>Recetas existentes</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Insumo</th>
+          <th>Cantidad usada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="listaRecetas"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<div id="popupPixel" class="popupPixel hidden">
+  <span id="popupText"></span>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/recetas.js"></script>
+
+</body>
+</html>

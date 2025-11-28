@@ -31,14 +31,14 @@
 
     <h3>Agregar Producto</h3>
 
-    <input id="prodNombre" placeholder="Nombre del producto" class="input-pixel">
-    <input id="prodPrecio" type="number" placeholder="Precio de venta" class="input-pixel">
+    <input id="prodNombre" placeholder="Nombre del producto">
+    <input id="prodPrecio" type="number" placeholder="Precio de venta">
     <button id="guardarProd" class="btn btn-primary">Agregar</button>
   </div>
 
   <br>
 
-  <!-- Listado de productos -->
+  <!-- Listado -->
   <div class="card">
     <h3>Listado de Productos</h3>
     <div id="productosLista" class="productos-grid"></div>
@@ -64,8 +64,7 @@
       <tbody id="ventaItems"></tbody>
     </table>
 
-    <div id="ventaResumen" class="hidden" 
-         style="margin-top:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+    <div id="ventaResumen" class="hidden" style="margin-top:0.8rem; display:flex; justify-content:space-between; align-items:center;">
       <span>Total: <strong id="ventaTotal">$0</strong></span>
       <div style="display:flex; gap:0.5rem;">
         <button id="btnCancelarVenta" class="btn btn-outline">Cancelar</button>
@@ -76,42 +75,41 @@
 
 </div>
 
-<!-- MODAL: datos del cliente y pago -->
-<div id="ventaModal" class="modal-backdrop hidden">
+<!-- Modal EDITAR PRODUCTO -->
+<div id="editarProductoModal" class="modal-backdrop hidden">
   <div class="modal">
-    <h3>Confirmar venta</h3>
+    <h3>Editar Producto</h3>
 
-    <label for="clienteNombre">Nombre del cliente</label>
-    <input id="clienteNombre" placeholder="Ej: Ana, Juan, etc.">
+    <label>Nombre</label>
+    <input id="editNombre">
 
-    <label for="clienteTelefono">Teléfono</label>
-    <input id="clienteTelefono" placeholder="Ej: 3764...">
+    <label>Precio</label>
+    <input id="editPrecio" type="number">
 
-    <label for="metodoPago">Medio de pago</label>
-    <select id="metodoPago">
-      <option value="Efectivo">Efectivo</option>
-      <option value="Transferencia">Transferencia</option>
-      <option value="Débito">Débito</option>
-      <option value="Crédito">Crédito</option>
-      <option value="Mercado Pago">Mercado Pago</option>
-      <option value="Otro">Otro</option>
-    </select>
+    <hr style="margin:1rem 0;">
 
-    <label for="notaVenta">Notas (opcional)</label>
-    <input id="notaVenta" placeholder="Ej: Retira mañana, encargo, etc.">
+    <h3>Receta de este producto</h3>
+    <div id="recetaProductoDetalle" class="hint" style="margin-bottom:1rem;">
+      (Cargando...)
+    </div>
+
+    <h3>Costo de producción</h3>
+    <div id="costoProduccionBox" class="hint" style="margin-bottom:1rem;">
+      (Calculando...)
+    </div>
+
+    <a href="./recetas.html" class="btn btn-outline">Editar recetas</a>
 
     <div class="modal-actions">
-      <button id="ventaCancelar" class="btn btn-outline">Cancelar</button>
-      <button id="ventaConfirmar" class="btn btn-primary">Confirmar venta</button>
+      <button id="cancelarEdicion" class="btn btn-outline">Cancelar</button>
+      <button id="guardarEdicion" class="btn btn-primary">Guardar</button>
     </div>
   </div>
 </div>
 
 <!-- POPUP PIXEL -->
-<div id="popupPixel" class="hidden">
-  <div class="popup-box">
-    <span id="popupText"></span>
-  </div>
+<div id="popupPixel" class="popup hidden">
+  <span id="popupText"></span>
 </div>
 
 <script type="module" src="js/firebase.js"></script>
