@@ -2,7 +2,10 @@ import { db } from "./firebase.js";
 import {
   collection,
   addDoc,
-  getDocs
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const grid = document.getElementById("productosLista");
@@ -10,7 +13,7 @@ const btnGuardar = document.getElementById("guardarProd");
 const inputNombre = document.getElementById("prodNombre");
 const inputPrecio = document.getElementById("prodPrecio");
 
-// Venta actual UI
+// Venta UI
 const ventaVacia = document.getElementById("ventaVacia");
 const ventaTabla = document.getElementById("ventaTabla");
 const ventaItemsBody = document.getElementById("ventaItems");
@@ -28,11 +31,28 @@ const inputNotaVenta = document.getElementById("notaVenta");
 const btnVentaCancelar = document.getElementById("ventaCancelar");
 const btnVentaConfirmar = document.getElementById("ventaConfirmar");
 
-// Cache de productos
+// Cache
 let productosCache = {};
-// Venta actual: array de { productoId, nombre, precio, cantidad }
 let ventaItems = [];
 
+// =================================
+//  POPUP PIXEL (global)
+// =================================
+function mostrarPopup(msg = "Listo ✔️") {
+  const popup = document.getElementById("popupPixel");
+  const texto = document.getElementById("popupText");
+
+  texto.textContent = msg;
+  popup.classList.remove("hidden");
+
+  setTimeout(() => {
+    popup.classList.add("hidden");
+  }, 1500);
+}
+
+// =================================
+//  Cargar productos
+// =================================
 async function cargarProductos() {
   grid.innerHTML = "";
   productosCache = {};
@@ -44,45 +64,101 @@ async function cargarProductos() {
     productosCache[d.id] = p;
 
     grid.innerHTML += `
-      <div class="producto-card">
-        <div>
+      <div class="producto-card" id="prod-${d.id}">
+        
+        <!-- Vista normal -->
+        <div class="producto-view">
           <div class="producto-nombre">${p.nombre}</div>
           <div class="producto-precio">$${p.precio}</div>
+          <div class="producto-botones">
+            <button class="btn btn-outline" onclick="editarProducto('${d.id}')">✏️ Editar</button>
+            <button class="btn btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
+          </div>
         </div>
 
-        <button class="btn btn-primary" onclick="agregarAVenta('${d.id}')">
+        <!-- Vista de edición -->
+        <div class="producto-edit hidden">
+          <input id="edit-nombre-${d.id}" class="input-pixel" value="${p.nombre}">
+          <input id="edit-precio-${d.id}" class="input-pixel" type="number" value="${p.precio}">
+          <div class="producto-edit-botones">
+            <button class="btn btn-primary" onclick="guardarEdicion('${d.id}')">💾 Guardar</button>
+            <button class="btn btn-outline" onclick="cancelarEdicion('${d.id}')">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Botón vender -->
+        <button class="btn btn-primary vender-btn" onclick="agregarAVenta('${d.id}')">
           💸 Vender
         </button>
+
       </div>
     `;
   });
 }
 
+// =================================
+//  EDITAR PRODUCTO
+// =================================
+window.editarProducto = function (id) {
+  const card = document.getElementById(`prod-${id}`);
+  card.querySelector(".producto-view").classList.add("hidden");
+  card.querySelector(".producto-edit").classList.remove("hidden");
+  card.querySelector(".vender-btn").classList.add("hidden");
+};
+
+window.cancelarEdicion = function (id) {
+  const card = document.getElementById(`prod-${id}`);
+  card.querySelector(".producto-view").classList.remove("hidden");
+  card.querySelector(".producto-edit").classList.add("hidden");
+  card.querySelector(".vender-btn").classList.remove("hidden");
+};
+
+window.guardarEdicion = async function (id) {
+  const nombre = document.getElementById(`edit-nombre-${id}`).value.trim();
+  const precio = Number(document.getElementById(`edit-precio-${id}`).value);
+
+  if (!nombre) {
+    mostrarPopup("Nombre inválido ❌");
+    return;
+  }
+
+  await updateDoc(doc(db, "productos", id), { nombre, precio });
+
+  mostrarPopup("Producto actualizado ✔️");
+  cargarProductos();
+};
+
+window.eliminarProducto = async function (id) {
+  if (!confirm("¿Eliminar este producto?")) return;
+
+  await deleteDoc(doc(db, "productos", id));
+  mostrarPopup("Producto eliminado 🗑️");
+
+  cargarProductos();
+};
+
+// =================================
+//  AGREGAR A VENTA
+// =================================
 window.agregarAVenta = function (id) {
   const prod = productosCache[id];
   if (!prod) return;
 
   const existente = ventaItems.find((i) => i.productoId === id);
-  if (existente) {
-    existente.cantidad += 1;
-  } else {
-    ventaItems.push({
-      productoId: id,
-      nombre: prod.nombre,
-      precio: prod.precio,
-      cantidad: 1
-    });
-  }
+  if (existente) existente.cantidad += 1;
+  else ventaItems.push({ productoId: id, nombre: prod.nombre, precio: prod.precio, cantidad: 1 });
 
   renderVenta();
 };
 
+// =================================
+//  Render venta
+// =================================
 function renderVenta() {
   if (ventaItems.length === 0) {
     ventaVacia.classList.remove("hidden");
     ventaTabla.classList.add("hidden");
     ventaResumen.classList.add("hidden");
-    ventaTotalSpan.textContent = "$0";
     return;
   }
 
@@ -120,9 +196,7 @@ window.cambiarCantidad = function (index, delta) {
   if (!item) return;
 
   item.cantidad += delta;
-  if (item.cantidad <= 0) {
-    ventaItems.splice(index, 1);
-  }
+  if (item.cantidad <= 0) ventaItems.splice(index, 1);
 
   renderVenta();
 };
@@ -132,6 +206,9 @@ window.quitarItem = function (index) {
   renderVenta();
 };
 
+// =================================
+//  Finalizar venta
+// =================================
 btnCancelarVenta.onclick = () => {
   if (!confirm("¿Cancelar venta actual?")) return;
   ventaItems = [];
@@ -140,10 +217,9 @@ btnCancelarVenta.onclick = () => {
 
 btnFinalizarVenta.onclick = () => {
   if (ventaItems.length === 0) {
-    alert("No hay productos en la venta.");
+    mostrarPopup("Venta vacía ❌");
     return;
   }
-  // abrir modal
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   selectMetodoPago.value = "Efectivo";
@@ -151,19 +227,17 @@ btnFinalizarVenta.onclick = () => {
   modal.classList.remove("hidden");
 };
 
-btnVentaCancelar.onclick = () => {
-  modal.classList.add("hidden");
-};
+btnVentaCancelar.onclick = () => modal.classList.add("hidden");
 
 modal.addEventListener("click", (e) => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
+// =================================
+//  Confirmar venta
+// =================================
 btnVentaConfirmar.onclick = async () => {
-  if (ventaItems.length === 0) {
-    alert("La venta está vacía.");
-    return;
-  }
+  if (ventaItems.length === 0) return;
 
   const clienteNombre = inputClienteNombre.value.trim() || "Sin nombre";
   const clienteTelefono = inputClienteTelefono.value.trim() || "";
@@ -183,7 +257,6 @@ btnVentaConfirmar.onclick = async () => {
     };
   });
 
-  // 1) Guardar la venta
   const ventaRef = await addDoc(collection(db, "ventas"), {
     tipo: "VENTA",
     clienteNombre,
@@ -195,7 +268,6 @@ btnVentaConfirmar.onclick = async () => {
     items
   });
 
-  // 2) Crear movimiento de tipo VENTA con link a esta venta
   await addDoc(collection(db, "movimientos_stock"), {
     tipo: "VENTA",
     ventaId: ventaRef.id,
@@ -203,22 +275,24 @@ btnVentaConfirmar.onclick = async () => {
     total,
     metodoPago,
     fecha: new Date().toISOString(),
-    nota: nota || "Venta registrada desde Productos"
+    nota: nota || "Venta desde Productos"
   });
 
-  // limpiar venta actual
   ventaItems = [];
   renderVenta();
   modal.classList.add("hidden");
-  alert("Venta registrada 💖");
+  mostrarPopup("Venta registrada ✔️");
 };
 
+// =================================
+//  Agregar nuevo producto
+// =================================
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
-  const precio = Number(inputPrecio.value) || 0;
+  const precio = Number(inputPrecio.value);
 
-  if (!nombre) {
-    alert("Ingresá un nombre");
+  if (!nombre || precio <= 0) {
+    mostrarPopup("Datos inválidos ❌");
     return;
   }
 
@@ -226,6 +300,8 @@ btnGuardar.onclick = async () => {
 
   inputNombre.value = "";
   inputPrecio.value = "";
+
+  mostrarPopup("Producto agregado ✔️");
 
   cargarProductos();
 };

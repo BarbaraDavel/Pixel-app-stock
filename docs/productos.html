@@ -18,6 +18,7 @@
     <a class="active" href="./productos.html">Productos</a>
     <a href="./stock.html">Stock</a>
     <a href="./movimientos_stock.html">Historial</a>
+    <a href="./clientes.html">Clientes</a>
     <a href="./dashboard.html">Dashboard</a>
   </div>
 </div>
@@ -30,8 +31,8 @@
 
     <h3>Agregar Producto</h3>
 
-    <input id="prodNombre" placeholder="Nombre del producto">
-    <input id="prodPrecio" type="number" placeholder="Precio de venta">
+    <input id="prodNombre" placeholder="Nombre del producto" class="input-pixel">
+    <input id="prodPrecio" type="number" placeholder="Precio de venta" class="input-pixel">
     <button id="guardarProd" class="btn btn-primary">Agregar</button>
   </div>
 
@@ -63,7 +64,8 @@
       <tbody id="ventaItems"></tbody>
     </table>
 
-    <div id="ventaResumen" class="hidden" style="margin-top:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+    <div id="ventaResumen" class="hidden" 
+         style="margin-top:0.8rem; display:flex; justify-content:space-between; align-items:center;">
       <span>Total: <strong id="ventaTotal">$0</strong></span>
       <div style="display:flex; gap:0.5rem;">
         <button id="btnCancelarVenta" class="btn btn-outline">Cancelar</button>
@@ -105,7 +107,15 @@
   </div>
 </div>
 
+<!-- POPUP PIXEL -->
+<div id="popupPixel" class="hidden">
+  <div class="popup-box">
+    <span id="popupText"></span>
+  </div>
+</div>
+
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/productos.js"></script>
+
 </body>
 </html>
