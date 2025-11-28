@@ -770,3 +770,47 @@ input, select {
 .btn-insumo-danger:hover {
   background: #ffd4d4;
 }
+/* ==========================================
+   BOTONES PIXEL PREMIUM – EDITAR / ELIMINAR
+========================================== */
+
+.btn-pp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.25s ease;
+}
+
+/* ✏ EDITAR */
+.btn-edit-pp {
+  background: #f4eaff;
+  border-color: #c59bff;
+  color: #7a2ea8;
+}
+
+.btn-edit-pp:hover {
+  background: #e8d5ff;
+}
+
+/* ❌ ELIMINAR */
+.btn-delete-pp {
+  background: #ffe8e8;
+  border-color: #ff9b9b;
+  color: #d32f2f;
+}
+
+.btn-delete-pp:hover {
+  background: #ffd6d6;
+}
+
+/* ICONOS */
+.btn-pp .icon {
+  font-size: 1rem;
+  display: inline-block;
+}
