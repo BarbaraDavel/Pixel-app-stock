@@ -46,20 +46,44 @@ async function cargarStock() {
     const actual = s.stockActual ?? 0;
     const minimo = s.stockMinimo ?? 0;
 
-    let color = "stock-ok";
-    if (actual <= minimo) color = "stock-low";
-    else if (actual - minimo <= 3) color = "stock-warning";
+    let badgeClass = "badge-ok";
+    let icon = "🟢";
+    let tooltip = "Stock suficiente";
+
+    if (actual <= minimo) {
+      badgeClass = "badge-low";
+      icon = "🔴";
+      tooltip = "Bajo stock: reponer urgente";
+    } 
+    else if (actual - minimo <= 3) {
+      badgeClass = "badge-warning";
+      icon = "🟠";
+      tooltip = "Cerca del mínimo";
+    }
 
     tbody.innerHTML += `
       <tr>
         <td>${nombre}</td>
-        <td class="${color}">${actual}</td>
+
+        <td>
+          <span class="tooltip">
+            <span class="badge-stock ${badgeClass}">
+              <span class="icon">${icon}</span>
+              ${actual}
+            </span>
+            <span class="tooltip-text">${tooltip}</span>
+          </span>
+        </td>
+
         <td>${minimo}</td>
+
         <td>
           <button onclick="abrirModal('${d.id}')" class="btn btn-sm">Editar</button>
         </td>
       </tr>
     `;
+
+
 
   });
 }
