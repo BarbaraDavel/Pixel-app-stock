@@ -2,18 +2,11 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc,
   doc,
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const lista = document.getElementById("movLista");
-const insumoSel = document.getElementById("movInsumo");
-const cantInput = document.getElementById("movCantidad");
-const costoInput = document.getElementById("movCosto");
-const tipoSel = document.getElementById("movTipo");
-const notaInput = document.getElementById("movNota");
-const btnRegistrar = document.getElementById("btnRegistrar");
 const totalComprasSpan = document.getElementById("totalCompras");
 
 // Modal
@@ -35,11 +28,9 @@ let movimientosCache = [];
 // =============================
 async function cargarInsumos() {
   const snap = await getDocs(collection(db, "insumos"));
-  insumoSel.innerHTML = "";
 
   snap.forEach((d) => {
     insumosCache[d.id] = d.data();
-    insumoSel.innerHTML += `<option value="${d.id}">${d.data().nombre}</option>`;
   });
 }
 
@@ -82,7 +73,7 @@ async function cargarMovimientos() {
         <td>
           ${
             m.ventaId
-              ? `<button class="btn btn-outline" onclick="verVenta('${m.ventaId}')">Ver</button>`
+              ? `<button class="btn-insumo" onclick="verVenta('${m.ventaId}')">Ver</button>`
               : "—"
           }
         </td>
@@ -92,40 +83,6 @@ async function cargarMovimientos() {
 
   totalComprasSpan.textContent = totalCompras;
 }
-
-// =============================
-// REGISTRAR MOVIMIENTO
-// =============================
-btnRegistrar.onclick = async () => {
-  const insumoId = insumoSel.value;
-  const cantidad = Number(cantInput.value);
-  const costoUnit = Number(costoInput.value) || 0;
-  const tipo = tipoSel.value;
-  const nota = notaInput.value.trim();
-
-  if (!cantidad || cantidad <= 0) {
-    alert("Ingresá una cantidad válida.");
-    return;
-  }
-
-  const costoTotal = costoUnit ? costoUnit * cantidad : 0;
-
-  await addDoc(collection(db, "movimientos_stock"), {
-    tipo,
-    insumoId,
-    cantidad,
-    costoUnit,
-    costoTotal,
-    fecha: new Date().toISOString(),
-    nota
-  });
-
-  cantInput.value = "";
-  costoInput.value = "";
-  notaInput.value = "";
-
-  cargarMovimientos();
-};
 
 // =============================
 // VER VENTA
@@ -159,11 +116,9 @@ modal.addEventListener("click", (e) => {
 });
 
 // =============================
-// ORDEN CORRECTO DE CARGA
+// INICIO
 // =============================
 (async () => {
   await cargarInsumos();
-  setTimeout(async () => {
-    await cargarMovimientos();
-  }, 150);
+  await cargarMovimientos();
 })();

@@ -21,7 +21,6 @@
     <a href="./recetas.html">Recetas</a>
     <a href="./productos.html">Productos</a>
     <a href="./clientes.html">Clientes</a>
-<!--     <a href="./dashboard.html">Dashboard</a> -->
   </div>
 </div>
 
@@ -29,29 +28,19 @@
 
   <div class="card">
     <h1>Movimientos de Stock</h1>
-    <p class="hint">Registra compras y ajustes. Las ventas se agregan automáticamente al vender productos.</p>
-
-    <!-- Nueva compra -->
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
-      <select id="movInsumo"></select>
-      <input id="movCantidad" type="number" placeholder="Cantidad">
-      <input id="movCosto" type="number" placeholder="Costo unitario (opcional)">
-      <select id="movTipo">
-        <option value="COMPRA">COMPRA (entra stock)</option>
-        <option value="AJUSTE">AJUSTE</option>
-      </select>
-      <input id="movNota" placeholder="Nota (opcional)">
-      <button id="btnRegistrar" class="btn btn-primary">Registrar movimiento</button>
-    </div>
+    <p class="hint">
+      Historial automático generado por compras, ajustes y ventas ✨  
+      <br>No se cargan movimientos manualmente.
+    </p>
   </div>
 
   <br>
 
   <!-- HISTORIAL -->
   <div class="card">
-    <h3>Historial de movimientos</h3>
+    <h3>Historial</h3>
 
-    <table>
+    <table class="tabla-stock">
       <thead>
         <tr>
           <th>Tipo</th>
@@ -71,7 +60,6 @@
     </p>
   </div>
 </div>
-
 
 <!-- MODAL VER VENTA -->
 <div id="ventaDetalleModal" class="modal-backdrop hidden">
