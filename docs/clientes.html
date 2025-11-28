@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clientes - Pixel Stock</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./movimientos_stock.html">Movimientos</a>
+    <a href="./historial.html">Historial</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>Clientes</h1>
+    <p class="hint">Resumen de compras por cliente. Se arma automáticamente a partir de las ventas.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Compras</th>
+          <th>Total gastado</th>
+          <th>Última compra</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="clientesLista"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Modal detalle de cliente -->
+<div id="clienteModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="clienteModalTitulo">Detalle de cliente</h3>
+    <div id="clienteModalBody" class="hint" style="max-height: 260px; overflow-y: auto; margin-top:0.5rem;"></div>
+
+    <div class="modal-actions">
+      <button id="clienteModalCerrar" class="btn btn-primary">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/clientes.js"></script>
+</body>
+</html>

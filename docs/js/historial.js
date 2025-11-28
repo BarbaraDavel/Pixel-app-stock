@@ -16,7 +16,6 @@ async function cargarVentas() {
   snap.forEach((d) => {
     const v = d.data();
 
-    // Compatibilidad con ventas viejas simples
     let total = 0;
     let detalle = "";
 
@@ -26,7 +25,6 @@ async function cargarVentas() {
         .map((it) => `${it.cantidad}× ${it.nombre}`)
         .join(", ");
     } else {
-      // forma vieja: nombre + precio
       total = Number(v.precio) || 0;
       detalle = v.nombre || "(sin detalle)";
     }
@@ -41,6 +39,7 @@ async function cargarVentas() {
 
     lista.innerHTML += `
       <tr>
+        <td>VENTA</td>
         <td>${cliente}</td>
         <td>${detalle}</td>
         <td>$${total}</td>

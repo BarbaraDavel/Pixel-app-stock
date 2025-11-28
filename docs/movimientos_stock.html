@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Movimientos de Stock - Pixel Stock</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel Stock
+  </div>
+  <div class="nav-links">
+    <a href="./insumos.html">Insumos</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./stock.html">Stock</a>
+    <a class="active" href="./movimientos_stock.html">Movimientos</a>
+    <a href="./historial.html">Historial</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Registrar movimiento -->
+  <div class="card">
+    <h1>Movimientos de Stock</h1>
+    <p class="hint">Registrá compras o ajustes de stock. Esto actualiza automáticamente el stock del insumo.</p>
+
+    <h3>Nuevo movimiento</h3>
+
+    <select id="movInsumoSelect">
+      <option value="">Seleccionar insumo…</option>
+    </select>
+
+    <input id="movCantidad" type="number" min="1" placeholder="Cantidad">
+    <input id="movCostoUnitario" type="number" min="0" step="0.01" placeholder="Costo unitario (opcional)">
+
+    <select id="movTipo">
+      <option value="COMPRA">COMPRA (entra stock)</option>
+      <option value="AJUSTE">AJUSTE (corrección manual)</option>
+    </select>
+
+    <input id="movNota" placeholder="Nota (opcional)">
+
+    <button id="btnGuardarMov" class="btn btn-primary">Registrar movimiento</button>
+  </div>
+
+  <br>
+
+  <!-- Listado -->
+  <div class="card">
+    <h3>Historial de movimientos</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Insumo</th>
+          <th>Cant.</th>
+          <th>Costo total</th>
+          <th>Fecha</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody id="movLista"></tbody>
+    </table>
+
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--pixel-borde);">
+
+    <h3>Total gastado en compras: <span id="movTotalCompras">$0</span></h3>
+  </div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/movimientos_stock.js"></script>
+</body>
+</html>
