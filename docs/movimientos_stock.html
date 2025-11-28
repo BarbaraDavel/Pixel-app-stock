@@ -18,17 +18,18 @@
     <a href="./stock.html">Stock</a>
     <a class="active" href="./movimientos_stock.html">Movimientos</a>
     <a href="./historial.html">Historial</a>
+    <a href="./clientes.html">Clientes</a>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- Registrar movimiento -->
+  <!-- Registrar movimiento manual -->
   <div class="card">
     <h1>Movimientos de Stock</h1>
-    <p class="hint">Registrá compras o ajustes de stock. Esto actualiza automáticamente el stock del insumo.</p>
+    <p class="hint">Registrá compras o ajustes de stock. Las ventas se agregan automáticamente al vender productos.</p>
 
-    <h3>Nuevo movimiento</h3>
+    <h3>Nuevo movimiento (manual)</h3>
 
     <select id="movInsumoSelect">
       <option value="">Seleccionar insumo…</option>
@@ -39,7 +40,7 @@
 
     <select id="movTipo">
       <option value="COMPRA">COMPRA (entra stock)</option>
-      <option value="AJUSTE">AJUSTE (corrección manual)</option>
+      <option value="AJUSTE">AJUSTE (sale stock)</option>
     </select>
 
     <input id="movNota" placeholder="Nota (opcional)">
@@ -57,11 +58,12 @@
       <thead>
         <tr>
           <th>Tipo</th>
-          <th>Insumo</th>
+          <th>Detalle</th>
           <th>Cant.</th>
           <th>Costo total</th>
           <th>Fecha</th>
           <th>Nota</th>
+          <th>Venta</th>
         </tr>
       </thead>
       <tbody id="movLista"></tbody>
@@ -72,6 +74,18 @@
     <h3>Total gastado en compras: <span id="movTotalCompras">$0</span></h3>
   </div>
 
+</div>
+
+<!-- Modal ver venta asociada -->
+<div id="movVentaModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="movVentaTitulo">Detalle de venta</h3>
+    <div id="movVentaBody" class="hint" style="max-height:260px; overflow-y:auto; margin-top:0.5rem;"></div>
+
+    <div class="modal-actions">
+      <button id="movVentaCerrar" class="btn btn-primary">Cerrar</button>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="js/firebase.js"></script>

@@ -157,7 +157,7 @@ btnVentaCancelar.onclick = () => {
 
 modal.addEventListener("click", (e) => {
   if (e.target === modal) modal.classList.add("hidden");
-});
+};
 
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) {
@@ -183,7 +183,9 @@ btnVentaConfirmar.onclick = async () => {
     };
   });
 
-  await addDoc(collection(db, "ventas"), {
+  // 1) Guardar la venta
+  const ventaRef = await addDoc(collection(db, "ventas"), {
+    tipo: "VENTA",
     clienteNombre,
     clienteTelefono,
     metodoPago,
@@ -193,6 +195,18 @@ btnVentaConfirmar.onclick = async () => {
     items
   });
 
+  // 2) Crear movimiento de tipo VENTA con link a esta venta
+  await addDoc(collection(db, "movimientos_stock"), {
+    tipo: "VENTA",
+    ventaId: ventaRef.id,
+    clienteNombre,
+    total,
+    metodoPago,
+    fecha: new Date().toISOString(),
+    nota: nota || "Venta registrada desde Productos"
+  });
+
+  // limpiar venta actual
   ventaItems = [];
   renderVenta();
   modal.classList.add("hidden");
