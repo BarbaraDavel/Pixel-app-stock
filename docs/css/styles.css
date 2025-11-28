@@ -254,3 +254,49 @@ tbody tr:nth-child(even) {
 .stock-ok { color: #2e7d32; }
 .stock-warning { color: #f57c00; }
 .stock-low { color: #c62828; }
+
+/* ========================================
+   FIX ESPECÍFICO DE BOTONES
+   (PISAN TODO LO ANTERIOR)
+======================================== */
+
+/* Botón AGREGAR de productos (naranja Pixel) */
+#guardarProd {
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--pixel-naranja);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 110px;
+}
+
+/* Botón VENDER dentro de cada tarjeta de producto (VERDE) */
+.producto-card .btn.btn-primary {
+  width: 100%;
+  justify-content: center;
+  background: #4caf50;
+  border-color: #4caf50;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Botón FINALIZAR VENTA (naranja Pixel) */
+#btnFinalizarVenta {
+  background: var(--pixel-naranja);
+  border-color: var(--pixel-naranja);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Botón CANCELAR VENTA (violeta outline) */
+#btnCancelarVenta {
+  border-width: 2px;
+  border-color: var(--pixel-lila);
+  color: var(--pixel-lila);
+}
+#btnCancelarVenta:hover {
+  background: var(--pixel-lila);
+  color: #fff;
+}
