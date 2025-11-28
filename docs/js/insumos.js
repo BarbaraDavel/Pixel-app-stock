@@ -36,8 +36,8 @@ async function cargarInsumos() {
         <td>${nombre}</td>
         <td>$${costo}</td>
         <td>${paquete}</td>
-        <td>
-        <td>
+
+        <td class="td-actions">
           <button class="btn-pp btn-edit-pp" onclick="editar('${d.id}')">
             <span class="icon">✏️</span> Editar
           </button>
@@ -46,10 +46,9 @@ async function cargarInsumos() {
             <span class="icon">🗑️</span> Eliminar
           </button>
         </td>
-
-        </td>
       </tr>
     `;
+
 
   });
 }
