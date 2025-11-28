@@ -740,3 +740,33 @@ input, select {
 .tabla-stock tbody tr:hover {
   background: #fff4e6;
 }
+/* ==========================================
+   BOTONES DE ACCIÓN PIXEL (INSUMOS)
+========================================== */
+
+.btn-insumo {
+  padding: 6px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  border: 1px solid #c78bfa;
+  background: #f6edff;
+  color: #7a2ea8;
+}
+
+.btn-insumo:hover {
+  background: #e9d4ff;
+}
+
+/* Eliminar */
+.btn-insumo-danger {
+  border: 1px solid #ff9b9b;
+  background: #ffe8e8;
+  color: #d92626;
+}
+
+.btn-insumo-danger:hover {
+  background: #ffd4d4;
+}

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard - Pixel Stock</title>
+  <title>Dashboard - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -10,7 +10,7 @@
 
 <div class="topbar">
   <div class="brand">
-    <span class="logo-fox">🦊</span> Pixel Stock
+    <span class="logo-fox">🦊</span> Pixel
   </div>
   <div class="nav-links">
     <a class="active" href="./dashboard.html">Dashboard</a>
