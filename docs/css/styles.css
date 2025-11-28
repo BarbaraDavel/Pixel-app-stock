@@ -353,3 +353,59 @@ tbody tr:nth-child(even) {
   border-radius: 1rem;
   box-shadow: 0 6px 25px rgba(0,0,0,0.15);
 }
+#guardarProd {
+  padding: 0.45rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--pixel-naranja);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#guardarProd:hover {
+  filter: brightness(1.1);
+}
+#guardarProd {
+  padding: 0.45rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--pixel-naranja);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#guardarProd:hover {
+  filter: brightness(1.1);
+}
+.producto-card input {
+  width: 100%;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+  outline: none;
+  transition: 0.2s;
+}
+
+.producto-card input:focus {
+  border-color: var(--pixel-lila);
+  box-shadow: 0 0 0 2px rgba(166,107,255,0.2);
+}
+.btn-outline {
+  background: none;
+  border: 2px solid var(--pixel-lila);
+  color: var(--pixel-lila);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-outline:hover {
+  background: var(--pixel-lila);
+  color: white;
+}

@@ -6,98 +6,73 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const tabla = document.getElementById("stockLista");
+const tbody = document.getElementById("stockLista");
 
-// modal
+// Modal
 const modal = document.getElementById("stockModal");
 const modalNombre = document.getElementById("modalNombre");
 const modalStockActual = document.getElementById("modalStockActual");
 const modalStockMinimo = document.getElementById("modalStockMinimo");
-const btnModalGuardar = document.getElementById("modalGuardar");
 const btnModalCancelar = document.getElementById("modalCancelar");
+const btnModalGuardar = document.getElementById("modalGuardar");
 
-let modalStockId = null;
 let stockCache = {};
+let seleccionado = null;
 
 async function cargarStock() {
-  tabla.innerHTML = "";
+  tbody.innerHTML = "";
   stockCache = {};
 
-  const insSnap = await getDocs(collection(db, "insumos"));
-  const stockSnap = await getDocs(collection(db, "stock"));
+  const snap = await getDocs(collection(db, "stock"));
 
-  const insumos = {};
-  insSnap.forEach((d) => insumos[d.id] = d.data());
+  snap.forEach((d) => {
+    const s = d.data();
+    stockCache[d.id] = s;
 
-  stockSnap.forEach((d) => {
-    const st = d.data();
-    const ins = insumos[st.insumoId];
-    if (!ins) return;
+    let color = "green";
+    if (s.actual <= s.minimo) color = "red";
+    else if (s.actual - s.minimo <= 3) color = "orange";
 
-    const actual = st.stockActual ?? 0;
-    const minimo = st.stockMinimo ?? 5;
-
-    let clase = "stock-ok";
-    if (actual < minimo) clase = "stock-low";
-    else if (actual <= minimo + 3) clase = "stock-warning";
-
-    stockCache[d.id] = {
-      nombre: ins.nombre,
-      stockActual: actual,
-      stockMinimo: minimo
-    };
-
-    tabla.innerHTML += `
-      <tr class="${clase}">
-        <td>${ins.nombre}</td>
-        <td>${actual}</td>
-        <td>${minimo}</td>
+    tbody.innerHTML += `
+      <tr>
+        <td>${s.nombre}</td>
+        <td class="${color}">${s.actual}</td>
+        <td>${s.minimo}</td>
         <td>
-          <button class="btn btn-sm" onclick="sumar('${d.id}', ${actual})">+1</button>
-          <button class="btn btn-sm" onclick="restar('${d.id}', ${actual})">-1</button>
-          <button class="btn btn-sm btn-outline" onclick="abrirModal('${d.id}')">Editar</button>
+          <button onclick="abrirModal('${d.id}')" class="btn btn-sm">Editar</button>
         </td>
       </tr>
     `;
   });
 }
 
-window.sumar = async (id, actual) => {
-  await updateDoc(doc(db, "stock", id), { stockActual: actual + 1 });
-  cargarStock();
-};
+window.abrirModal = function (id) {
+  seleccionado = id;
+  const item = stockCache[id];
 
-window.restar = async (id, actual) => {
-  if (actual === 0) return;
-  await updateDoc(doc(db, "stock", id), { stockActual: actual - 1 });
-  cargarStock();
-};
-
-window.abrirModal = (id) => {
-  const data = stockCache[id];
-  modalStockId = id;
-
-  modalNombre.textContent = data.nombre;
-  modalStockActual.value = data.stockActual;
-  modalStockMinimo.value = data.stockMinimo;
+  modalNombre.textContent = item.nombre;
+  modalStockActual.value = item.actual;
+  modalStockMinimo.value = item.minimo;
 
   modal.classList.remove("hidden");
 };
 
 btnModalCancelar.onclick = () => modal.classList.add("hidden");
 
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.classList.add("hidden");
+});
+
 btnModalGuardar.onclick = async () => {
-  await updateDoc(doc(db, "stock", modalStockId), {
-    stockActual: Number(modalStockActual.value),
-    stockMinimo: Number(modalStockMinimo.value)
+  if (!seleccionado) return;
+
+  await updateDoc(doc(db, "stock", seleccionado), {
+    actual: Number(modalStockActual.value),
+    minimo: Number(modalStockMinimo.value)
   });
 
   modal.classList.add("hidden");
   cargarStock();
 };
-
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
-});
 
 cargarStock();
