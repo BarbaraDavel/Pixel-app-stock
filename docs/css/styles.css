@@ -302,3 +302,38 @@ thead th {
 .toast.error {
   background: #ff4d4d;
 }
+/* ============================
+   POPUP PIXEL (CENTRADO)
+============================ */
+
+.popup-pixel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.popup-box {
+  background: white;
+  padding: 1.2rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+  border: 1px solid var(--pixel-borde);
+  font-size: 1.1rem;
+  font-weight: 600;
+  animation: popScale 0.25s ease-out;
+}
+
+@keyframes popScale {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.hidden {
+  display: none !important;
+}

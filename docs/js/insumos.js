@@ -90,36 +90,35 @@ btnGuardar.onclick = async () => {
   const paquete = Number(inputPaquete.value) || 0;
 
   if (!nombre) {
-    mostrarToast("El insumo necesita nombre", true);
+    alert("El insumo necesita nombre");
     return;
   }
 
   if (!editId) {
-    // NUEVO INSUMO
     const ref = await addDoc(collection(db, "insumos"), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
 
-    // stock inicial
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
       stockActual: paquete,
       stockMinimo: 5
     });
 
-    mostrarToast("Insumo agregado 💖");
+    mostrarPopup("Insumo agregado ✔️");
+
   } else {
-    // EDITAR INSUMO
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
 
+    mostrarPopup("Insumo actualizado ✔️");
+
     editId = null;
-    mostrarToast("Insumo actualizado ✨");
   }
 
   inputNombre.value = "";
@@ -149,3 +148,15 @@ function mostrarToast(msg, error = false) {
 }
 
 cargarInsumos();
+
+function mostrarPopup(msg = "Guardado") {
+  const popup = document.getElementById("popupPixel");
+  const texto = document.getElementById("popupText");
+
+  texto.textContent = msg;
+  popup.classList.remove("hidden");
+
+  setTimeout(() => {
+    popup.classList.add("hidden");
+  }, 1700);
+}
