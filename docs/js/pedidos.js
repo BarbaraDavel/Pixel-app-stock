@@ -61,6 +61,9 @@ const editPagado = document.getElementById("editPagado");
 const editGuardar = document.getElementById("editGuardar");
 const editCerrar = document.getElementById("editCerrar");
 
+const modalWhatsApp = document.getElementById("modalWhatsApp");
+let pedidoActualEnModal = null;
+
 /* ============================================================
    ESTADO
 ============================================================ */
@@ -425,6 +428,38 @@ window.duplicarPedido = async id => {
 /* ============================================================
    INICIO
 ============================================================ */
+// ============================
+// ENVIAR POR WHATSAPP
+// ============================
+if (modalWhatsApp) {
+  modalWhatsApp.addEventListener("click", () => {
+    if (!pedidoActualEnModal) return;
+
+    const p = pedidoActualEnModal;
+    if (!p.clienteTelefono) {
+      alert("Este pedido no tiene teléfono cargado 😢");
+      return;
+    }
+
+    // limpio teléfono a solo números
+    const phone = String(p.clienteTelefono).replace(/[^0-9]/g, "");
+
+    const itemsTexto = (p.items || [])
+      .map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
+      .join("\n");
+
+    const texto = `Hola ${p.clienteNombre}!\n\n` +
+      `Este es el detalle de tu pedido en Pixel:\n\n` +
+      `${itemsTexto || "Sin items"}\n\n` +
+      `Total: $${p.total}\n` +
+      (p.estado ? `Estado: ${p.estado}\n` : "") +
+      (p.pagado ? "Pagado ✅\n" : "A pagar 💸\n") +
+      (p.nota ? `\nNota: ${p.nota}\n` : "");
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
+    window.open(url, "_blank");
+  });
+}
 
 (async function init() {
   await cargarClientes();

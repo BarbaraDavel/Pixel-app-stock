@@ -591,3 +591,161 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* FIN TOTAL DEL CSS */
+/* ============================
+   BOTTOM NAV – PIXEL APP
+============================ */
+
+.bottom-nav {
+  display: none; /* se muestra solo en mobile */
+}
+
+.bottom-nav .bn-item {
+  text-decoration: none;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+/* Mobile: muestro bottom nav */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 60px; /* espacio para la bottom nav */
+  }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--pixel-borde);
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.4rem 0;
+    z-index: 999;
+  }
+
+  .bn-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+
+  .bn-icon {
+    font-size: 1.2rem;
+  }
+
+  .bn-label {
+    font-size: 0.75rem;
+  }
+
+  .bn-item.active {
+    color: var(--pixel-naranja);
+    font-weight: 600;
+  }
+}
+
+/* ============================
+   TABLAS -> TARJETAS EN MOBILE
+============================ */
+
+@media (max-width: 600px) {
+  .tabla-stock,
+  .tabla-insumos {
+    border: none;
+    box-shadow: none;
+  }
+
+  .tabla-stock thead,
+  .tabla-insumos thead {
+    display: none;
+  }
+
+  .tabla-stock tbody tr,
+  .tabla-insumos tbody tr {
+    display: block;
+    background: white;
+    margin-bottom: 0.8rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    padding: 0.6rem 0.8rem;
+  }
+
+  .tabla-stock td,
+  .tabla-insumos td {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: none;
+  }
+
+  .tabla-stock td::before,
+  .tabla-insumos td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    margin-right: 8px;
+    color: #666;
+  }
+}
+/* ============================
+   DARK MODE (según sistema)
+============================ */
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: radial-gradient(circle at top, #2b1b39, #120e1f);
+    color: #f5f5f5;
+  }
+
+  .card,
+  .modal,
+  .bottom-nav {
+    background: #1f1b2b;
+    color: #f5f5f5;
+  }
+
+  .topbar {
+    background: rgba(18, 14, 31, 0.85);
+    border-bottom-color: #3b3455;
+  }
+
+  .nav-links a {
+    color: #ddd;
+  }
+
+  .nav-links a.active,
+  .nav-links a:hover {
+    background: var(--pixel-naranja);
+    color: #111;
+  }
+
+  .tabla-stock,
+  .tabla-insumos {
+    background: #221c32;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  }
+
+  .tabla-stock tbody tr:nth-child(even),
+  .tabla-insumos tbody tr:nth-child(even) {
+    background: #261f3b;
+  }
+
+  .tabla-stock tbody tr:hover,
+  .tabla-insumos tbody tr:hover {
+    background: #332552;
+  }
+
+  input, select, textarea {
+    background: #181421;
+    color: #f5f5f5;
+    border-color: #3f345d;
+  }
+
+  .bottom-nav {
+    background: rgba(20, 16, 34, 0.95);
+    border-top-color: #3b3455;
+  }
+}

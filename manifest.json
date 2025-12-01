@@ -1,0 +1,20 @@
+{
+  "name": "Pixel Stock",
+  "short_name": "Pixel",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ff9f43",
+  "theme_color": "#ff9f43",
+  "icons": [
+    {
+      "src": "icons/pixel-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/pixel-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

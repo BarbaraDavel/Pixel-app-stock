@@ -15,6 +15,11 @@
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel
   </div>
+
+  <button class="hamburger" aria-label="Menú">
+    ☰
+  </button>
+
   <div class="nav-links">
     <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
@@ -26,6 +31,7 @@
     <a class="active" href="./pedidos.html">Pedidos</a>
   </div>
 </div>
+
 
 <div class="main">
 
@@ -211,6 +217,10 @@
       <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
   </div>
+    <div style="text-align:right;margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem; flex-wrap:wrap;">
+    <button id="modalWhatsApp" class="btn btn-outline">Enviar por WhatsApp</button>
+    <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
+  </div>
 </div>
 
 
@@ -255,6 +265,25 @@
 </body>
 </html>
 
+<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
+<nav class="bottom-nav">
+  <a href="index.html" class="bn-item">
+    <span class="bn-icon">🏠</span>
+    <span class="bn-label">Inicio</span>
+  </a>
+  <a href="productos.html" class="bn-item">
+    <span class="bn-icon">🏷️</span>
+    <span class="bn-label">Productos</span>
+  </a>
+  <a href="pedidos.html" class="bn-item">
+    <span class="bn-icon">📝</span>
+    <span class="bn-label">Pedidos</span>
+  </a>
+  <a href="clientes.html" class="bn-item">
+    <span class="bn-icon">👥</span>
+    <span class="bn-label">Clientes</span>
+  </a>
+</nav>
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/pedidos.js"></script>
@@ -264,6 +293,7 @@
   }
 </script>
 <script src="js/ui.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
