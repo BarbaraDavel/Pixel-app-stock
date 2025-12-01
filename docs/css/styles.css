@@ -749,3 +749,62 @@ input:focus, select:focus, textarea:focus {
     border-top-color: #3b3455;
   }
 }
+/* ===========================================
+   FIX: TARJETAS PIXEL SOBRE FONDO OSCURO
+=========================================== */
+
+.card,
+.producto-card,
+.home-brand-card,
+.home-card {
+  background: rgba(255, 255, 255, 0.14) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #fff !important;
+}
+
+/* textos internos */
+.card h1,
+.card h2,
+.card h3,
+.home-card p,
+.producto-nombre,
+.producto-precio {
+  color: #fff !important;
+}
+
+/* inputs */
+input, select, textarea {
+  background: rgba(30, 19, 49, 0.55) !important;
+  color: #fff !important;
+  border: 1px solid #a66bff !important;
+}
+
+/* botones */
+.btn,
+.btn-primary,
+.btn-outline,
+.vender-btn,
+.boton-accion {
+  color: #fff !important;
+  border-color: #a66bff !important;
+  background: rgba(166, 107, 255, 0.25) !important;
+}
+
+.btn-primary {
+  background: #ff9f43 !important;
+  border-color: #ff9f43 !important;
+  color: #000 !important;
+}
+
+.btn-outline:hover {
+  background: #a66bff !important;
+  color: #fff !important;
+}
+
+/* tarjetas Hogar */
+.home-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+  border-color: #a66bff !important;
+}
