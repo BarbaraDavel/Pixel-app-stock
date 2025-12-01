@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Pedidos - Pixel</title>
+  <title>Clientes - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -19,87 +19,50 @@
     <a href="./movimientos_stock.html">Movimientos</a>
     <a href="./recetas.html">Recetas</a>
     <a href="./productos.html">Productos</a>
-    <a href="./clientes.html">Clientes</a>
-    <a class="active" href="./pedidos.html">Pedidos</a>
+    <a class="active" href="./clientes.html">Clientes</a>
+    <a href="./pedidos.html">Pedidos</a>
   </div>
 </div>
 
 <div class="main">
 
   <div class="card">
-    <h1>Pedidos</h1>
-    <p class="hint">
-      Armá pedidos usando los productos cargados y calculamos el total para saber cuánto cobrar 💸.
-    </p>
+    <h1>Clientes</h1>
+    <p class="hint">Base de datos de clientes. Estos datos se usan para los pedidos.</p>
 
-    <!-- DATOS DEL CLIENTE -->
-    <h3>Datos del cliente</h3>
     <div class="form-grid">
-      <div class="form-group">
-        <label for="clienteNombre">Nombre</label>
-        <input id="clienteNombre" placeholder="Ej: Juan Pérez">
-      </div>
-
-      <div class="form-group">
-        <label for="clienteTelefono">Teléfono</label>
-        <input id="clienteTelefono" placeholder="Ej: 3764...">
-      </div>
+      <input id="clienteNombre" placeholder="Nombre del cliente">
+      <input id="clienteTelefono" placeholder="Teléfono">
+      <input id="clienteRed" placeholder="Instagram / WhatsApp">
+      <input id="clienteNota" placeholder="Nota (opcional)">
+      <button id="clienteGuardar" class="btn btn-primary">Guardar</button>
     </div>
+    <p class="hint" id="clienteModo"></p>
+  </div>
 
-    <!-- AGREGAR PRODUCTOS -->
-    <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="productoSelect">Producto</label>
-        <select id="productoSelect">
-          <option value="">Cargando productos...</option>
-        </select>
-      </div>
+  <br>
 
-      <div class="form-group">
-        <label for="cantidadInput">Cantidad</label>
-        <input id="cantidadInput" type="number" min="1" value="1">
-      </div>
+  <div class="card">
+    <h3>Lista de clientes</h3>
 
-      <div class="form-group" style="align-self:flex-end;">
-        <button id="agregarItemBtn" class="btn btn-primary">
-          ➕ Agregar al pedido
-        </button>
-      </div>
-    </div>
-
-    <!-- TABLA DE ITEMS -->
-    <table class="tabla-stock" style="margin-top:1rem;">
+    <table class="tabla-stock">
       <thead>
         <tr>
-          <th>Producto</th>
-          <th>Precio unitario</th>
-          <th>Cantidad</th>
-          <th>Subtotal</th>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Red</th>
+          <th>Nota</th>
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="pedidoItems"></tbody>
+      <tbody id="clientesLista"></tbody>
     </table>
-
-    <!-- TOTAL -->
-    <p style="text-align:right; margin-top:1rem; font-size:1.1rem;">
-      <strong>Total del pedido:</strong>
-      $<span id="totalPedido">0</span>
-    </p>
-
-    <!-- BOTONES -->
-    <div style="text-align:right; margin-top:1.2rem;">
-      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
-      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
-    </div>
-
   </div>
 
 </div>
 
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js"></script>
+<script type="module" src="js/clientes.js"></script>
 
 </body>
 </html>

@@ -19,47 +19,114 @@
     <a href="./stock.html">Stock</a>
     <a href="./movimientos_stock.html">Movimientos</a>
     <a href="./recetas.html">Recetas</a>
-    <a class="active" href="./productos.html">Productos</a>
+    <a href="./productos.html">Productos</a>
     <a href="./clientes.html">Clientes</a>
-    <a href="./pedidos.html">Pedidos</a>
+    <a class="active" href="./pedidos.html">Pedidos</a>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- AGREGAR PEDIDO -->
+  <!-- CABECERA -->
   <div class="card">
     <h1>Pedidos</h1>
-    <p class="hint">Gestioná tus pedidos pendientes, en proceso y entregados.</p>
+    <p class="hint">
+      Armá pedidos con uno o varios productos, calculamos el total y podés ver el detalle en un modal para mandar captura 💸.
+    </p>
+  </div>
 
+  <!-- DATOS DEL CLIENTE + PEDIDO -->
+  <div class="card">
+    <h3>Datos del cliente</h3>
     <div class="form-grid">
-      <input id="pedidoCliente" class="input-pixel" placeholder="Cliente">
-      <input id="pedidoDetalle" class="input-pixel" placeholder="Detalle del pedido (ej: 10 stickers de gatos)">
-      <input id="pedidoFecha" type="date" class="input-pixel">
-      <select id="pedidoEstado" class="input-pixel">
-        <option value="PENDIENTE">🟥 Pendiente</option>
-        <option value="PROCESO">🟨 En proceso</option>
-        <option value="LISTO">🟪 Listo</option>
-        <option value="ENTREGADO">🟩 Entregado</option>
-      </select>
-      <input id="pedidoNota" class="input-pixel" placeholder="Nota (opcional)">
-      <button id="pedidoGuardar" class="btn btn-primary">Guardar pedido</button>
+      <div class="form-group">
+        <label for="clienteNombre">Cliente</label>
+        <input id="clienteNombre" placeholder="Escribí o elegí un cliente" list="clientesDatalist">
+        <datalist id="clientesDatalist"></datalist>
+      </div>
+      <div class="form-group">
+        <label for="clienteTelefono">Teléfono</label>
+        <input id="clienteTelefono" placeholder="Teléfono">
+      </div>
+      <div class="form-group">
+        <label for="clienteRed">Red / Contacto</label>
+        <input id="clienteRed" placeholder="Instagram / WhatsApp">
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="productoSelect">Producto</label>
+        <select id="productoSelect">
+          <option value="">Cargando productos...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="cantidadInput">Cantidad</label>
+        <input id="cantidadInput" type="number" min="1" value="1">
+      </div>
+      <div class="form-group" style="align-self:flex-end;">
+        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar al pedido</button>
+      </div>
+    </div>
+
+    <table class="tabla-stock" style="margin-top:1rem;">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio unitario</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="pedidoItems"></tbody>
+    </table>
+
+    <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
+      <strong>Total del pedido:</strong>
+      $<span id="totalPedido">0</span>
+    </p>
+
+    <div class="form-grid" style="margin-top:1rem;">
+      <div class="form-group">
+        <label for="pedidoFecha">Fecha</label>
+        <input id="pedidoFecha" type="date">
+      </div>
+      <div class="form-group">
+        <label for="pedidoEstado">Estado</label>
+        <select id="pedidoEstado">
+          <option value="PENDIENTE">🟥 Pendiente</option>
+          <option value="PROCESO">🟨 En proceso</option>
+          <option value="LISTO">🟪 Listo</option>
+          <option value="ENTREGADO">🟩 Entregado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="pedidoNota">Nota</label>
+        <input id="pedidoNota" placeholder="Detalles extra (opcional)">
+      </div>
+    </div>
+
+    <div style="text-align:right; margin-top:1.2rem;">
+      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
+      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
     </div>
   </div>
 
   <br>
 
-  <!-- LISTADO -->
+  <!-- LISTA DE PEDIDOS -->
   <div class="card">
     <h3>Lista de pedidos</h3>
-
     <table class="tabla-stock">
       <thead>
         <tr>
           <th>Cliente</th>
-          <th>Detalle</th>
           <th>Fecha</th>
           <th>Estado</th>
+          <th>Total</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -69,34 +136,21 @@
 
 </div>
 
-<!-- MODAL -->
+<!-- MODAL DETALLE PEDIDO -->
 <div id="pedidoModal" class="modal-backdrop hidden">
   <div class="modal">
-    <h3>Editar Pedido</h3>
+    <h3 id="modalTitulo"></h3>
+    <p id="modalCliente"></p>
+    <p id="modalEstado"></p>
+    <p id="modalFecha"></p>
 
-    <label>Cliente</label>
-    <input id="modalCliente" class="input-pixel">
+    <div id="modalItems" style="margin-top:0.8rem;"></div>
 
-    <label>Detalle</label>
-    <input id="modalDetalle" class="input-pixel">
-
-    <label>Fecha</label>
-    <input id="modalFecha" class="input-pixel" type="date">
-
-    <label>Estado</label>
-    <select id="modalEstado" class="input-pixel">
-      <option value="PENDIENTE">🟥 Pendiente</option>
-      <option value="PROCESO">🟨 En proceso</option>
-      <option value="LISTO">🟪 Listo</option>
-      <option value="ENTREGADO">🟩 Entregado</option>
-    </select>
-
-    <label>Nota</label>
-    <input id="modalNota" class="input-pixel">
+    <p id="modalNota" style="margin-top:0.8rem;"></p>
+    <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
 
     <div style="text-align:right;margin-top:1rem;">
-      <button id="modalGuardar" class="btn btn-primary">Guardar</button>
-      <button id="modalCerrar" class="btn btn-outline">Cerrar</button>
+      <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
   </div>
 </div>

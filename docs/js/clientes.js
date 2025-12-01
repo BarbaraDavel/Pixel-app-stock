@@ -1,104 +1,126 @@
 import { db } from "./firebase.js";
 import {
   collection,
+  addDoc,
   getDocs,
-  doc,
-  getDoc
+  deleteDoc,
+  updateDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const lista = document.getElementById("clientesLista");
 
-// Modal
-const modal = document.getElementById("clienteModal");
-const modalTitulo = document.getElementById("clienteModalTitulo");
-const modalMovs = document.getElementById("clienteMovimientos");
-const modalTotal = document.getElementById("clienteModalTotal");
-const modalCerrar = document.getElementById("clienteModalCerrar");
+const inputNombre = document.getElementById("clienteNombre");
+const inputTelefono = document.getElementById("clienteTelefono");
+const inputRed = document.getElementById("clienteRed");
+const inputNota = document.getElementById("clienteNota");
+const btnGuardar = document.getElementById("clienteGuardar");
+const lblModo = document.getElementById("clienteModo");
 
-let ventasCache = [];
+let clientes = {};
+let editandoId = null;
 
 // =========================
 // CARGAR CLIENTES
 // =========================
 async function cargarClientes() {
   lista.innerHTML = "";
-  ventasCache = [];
+  clientes = {};
 
-  const snap = await getDocs(collection(db, "ventas"));
+  const snap = await getDocs(collection(db, "clientes"));
 
-  snap.forEach(d => ventasCache.push({ id: d.id, ...d.data() }));
-
-  // Agrupar por cliente
-  const clientesMap = {};
-
-  ventasCache.forEach(v => {
-    if (!clientesMap[v.clienteNombre]) {
-      clientesMap[v.clienteNombre] = {
-        telefono: v.clienteTelefono || "—",
-        total: 0,
-        ultima: null,
-        movimientos: []
-      };
-    }
-
-    const c = clientesMap[v.clienteNombre];
-
-    c.total += v.total;
-    c.movimientos.push(v);
-
-    if (!c.ultima || new Date(v.fecha) > new Date(c.ultima)) {
-      c.ultima = v.fecha;
-    }
+  snap.forEach(d => {
+    clientes[d.id] = d.data();
   });
 
-  // Mostrar tabla
-  Object.entries(clientesMap).forEach(([nombre, data]) => {
+  Object.entries(clientes).forEach(([id, c]) => {
     lista.innerHTML += `
       <tr>
-        <td>${nombre}</td>
-        <td>${data.telefono}</td>
-        <td>$${data.total}</td>
-        <td>${data.ultima ? new Date(data.ultima).toLocaleString() : "—"}</td>
+        <td>${c.nombre}</td>
+        <td>${c.telefono || "—"}</td>
+        <td>${c.red || "—"}</td>
+        <td>${c.nota || "—"}</td>
         <td>
-          <button class="btn-pp btn-edit-pp" onclick="verDetalleCliente('${nombre}')">
-            👁️ Ver
-          </button>
+          <button class="btn-pp" onclick="editarCliente('${id}')">✏️</button>
+          <button class="btn-pp btn-danger" onclick="borrarCliente('${id}')">🗑️</button>
         </td>
       </tr>
     `;
   });
+
+  lblModo.textContent = editandoId ? "Editando cliente..." : "";
 }
 
 // =========================
-// MODAL DETALLE CLIENTE
+// GUARDAR / ACTUALIZAR
 // =========================
-window.verDetalleCliente = function(nombre) {
-  const datos = ventasCache.filter(v => v.clienteNombre === nombre);
+btnGuardar.onclick = async () => {
+  const nombre = inputNombre.value.trim();
+  const telefono = inputTelefono.value.trim();
+  const red = inputRed.value.trim();
+  const nota = inputNota.value.trim();
 
-  modalTitulo.textContent = `Compras de ${nombre}`;
-  modalMovs.innerHTML = "";
-  let total = 0;
+  if (!nombre) {
+    alert("Falta el nombre del cliente.");
+    return;
+  }
 
-  datos.forEach(v => {
-    modalMovs.innerHTML += `
-      <div style="margin-bottom:0.8rem;">
-        <strong>${new Date(v.fecha).toLocaleString()}</strong><br>
-        ${v.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}
-        <br><strong>Total:</strong> $${v.total}
-      </div>
-    `;
-    total += v.total;
-  });
+  const payload = { nombre, telefono, red, nota };
 
-  modalTotal.textContent = `Total gastado: $${total}`;
+  try {
+    if (editandoId) {
+      await updateDoc(doc(db, "clientes", editandoId), payload);
+    } else {
+      await addDoc(collection(db, "clientes"), payload);
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Error guardando cliente. Ver consola.");
+    return;
+  }
 
-  modal.classList.remove("hidden");
+  // limpiar
+  inputNombre.value = "";
+  inputTelefono.value = "";
+  inputRed.value = "";
+  inputNota.value = "";
+  editandoId = null;
+  lblModo.textContent = "";
+
+  cargarClientes();
 };
 
-modalCerrar.onclick = () => modal.classList.add("hidden");
-modal.addEventListener("click", e => {
-  if (e.target === modal) modal.classList.add("hidden");
-});
+// =========================
+// EDITAR
+// =========================
+window.editarCliente = (id) => {
+  const c = clientes[id];
+  if (!c) return;
+
+  editandoId = id;
+  inputNombre.value = c.nombre || "";
+  inputTelefono.value = c.telefono || "";
+  inputRed.value = c.red || "";
+  inputNota.value = c.nota || "";
+  lblModo.textContent = "Editando cliente...";
+};
+
+// =========================
+// BORRAR
+// =========================
+window.borrarCliente = async (id) => {
+  if (!confirm("¿Eliminar cliente?")) return;
+  await deleteDoc(doc(db, "clientes", id));
+  if (editandoId === id) {
+    editandoId = null;
+    inputNombre.value = "";
+    inputTelefono.value = "";
+    inputRed.value = "";
+    inputNota.value = "";
+    lblModo.textContent = "";
+  }
+  cargarClientes();
+};
 
 // =========================
 cargarClientes();
