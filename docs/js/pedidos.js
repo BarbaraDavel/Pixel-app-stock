@@ -51,6 +51,8 @@ const modalItems = document.getElementById("modalItems");
 const modalNota = document.getElementById("modalNota");
 const modalTotal = document.getElementById("modalTotal");
 const modalCerrar = document.getElementById("modalCerrar");
+const modalWhatsApp = document.getElementById("modalWhatsApp");
+const modalPdf = document.getElementById("modalPdf");
 
 // Modal Editar
 const modalEdit = document.getElementById("editarPedidoModal");
@@ -61,9 +63,6 @@ const editPagado = document.getElementById("editPagado");
 const editGuardar = document.getElementById("editGuardar");
 const editCerrar = document.getElementById("editCerrar");
 
-const modalWhatsApp = document.getElementById("modalWhatsApp");
-let pedidoActualEnModal = null;
-
 /* ============================================================
    ESTADO
 ============================================================ */
@@ -73,6 +72,7 @@ let productos = [];
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
+let pedidoActualModal = null;
 
 /* ============================================================
    CARGAR CLIENTES
@@ -110,7 +110,7 @@ inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
 inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 
 /* ============================================================
-   CARGAR PRODUCTOS DESDE PRODUCTOS
+   CARGAR PRODUCTOS
 ============================================================ */
 
 async function cargarProductos() {
@@ -129,7 +129,7 @@ async function cargarProductos() {
 }
 
 /* ============================================================
-   RENDERIZAR ITEMS DEL PEDIDO
+   RENDER ITEMS DEL PEDIDO
 ============================================================ */
 
 function renderPedido() {
@@ -145,7 +145,9 @@ function renderPedido() {
         <td>${item.cantidad}</td>
         <td>$${item.subtotal}</td>
         <td>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">
+            ✖
+          </button>
         </td>
       </tr>
     `;
@@ -171,7 +173,9 @@ btnAgregar.addEventListener("click", () => {
   if (!cant || cant <= 0) return alert("Cantidad inválida.");
 
   const prod = productos.find(p => p.id === id);
-  const precio = Number(prod.precio);
+  if (!prod) return;
+
+  const precio = Number(prod.precio || 0);
 
   itemsPedido.push({
     productoId: id,
@@ -204,7 +208,7 @@ btnLimpiar.addEventListener("click", () => {
 });
 
 /* ============================================================
-   GUARDAR PEDIDO EN FIRESTORE
+   GUARDAR PEDIDO
 ============================================================ */
 
 btnGuardar.addEventListener("click", async () => {
@@ -244,10 +248,9 @@ btnGuardar.addEventListener("click", async () => {
 
   try {
     await addDoc(collection(db, "pedidos"), pedidoDoc);
-
     alert("Pedido guardado ✔");
 
-    btnLimpiar.click(); // limpiar todo
+    btnLimpiar.click();
     cargarPedidos();
   } catch (err) {
     console.error(err);
@@ -256,7 +259,7 @@ btnGuardar.addEventListener("click", async () => {
 });
 
 /* ============================================================
-   CARGAR LISTA DE PEDIDOS
+   CARGAR LISTA
 ============================================================ */
 
 async function cargarPedidos() {
@@ -272,7 +275,7 @@ async function cargarPedidos() {
 }
 
 /* ============================================================
-   RENDER LISTA CON FILTROS
+   RENDER LISTA
 ============================================================ */
 
 function renderLista() {
@@ -296,17 +299,11 @@ function renderLista() {
         <tr>
           <td>${p.clienteNombre}</td>
           <td>${fechaTxt}</td>
-
-          <td class="estado ${p.estado}">
-            ${p.estado}
-          </td>
-
+          <td class="estado ${p.estado}">${p.estado}</td>
           <td class="${p.pagado ? "pagado-si" : "pagado-no"}">
             ${p.pagado ? "✔ Pagado" : "✖ No pagado"}
           </td>
-
           <td>$${p.total}</td>
-
           <td>
             <button class="btn-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️ Editar</button>
@@ -328,18 +325,22 @@ window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
+  pedidoActualModal = p;
+
+  const fechaTxt = p.fecha
+    ? new Date(p.fecha).toLocaleString("es-AR")
+    : "—";
+
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre} — Tel: ${
-    p.clienteTelefono || "—"
-  }`;
-  modalEstado.textContent = `Estado: ${p.estado}`;
-  modalFecha.textContent = `Fecha: ${
-    p.fecha ? new Date(p.fecha).toLocaleString() : "—"
-  }`;
+  modalCliente.textContent = `Cliente: ${p.clienteNombre} — Tel: ${p.clienteTelefono || "—"}`;
+  modalEstado.textContent = `Estado: ${p.estado} — ${p.pagado ? "Pagado ✔️" : "A pagar 💸"}`;
+  modalFecha.textContent = `Fecha: ${fechaTxt}`;
 
   modalItems.innerHTML =
     p.items && p.items.length
-      ? p.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")
+      ? p.items
+          .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
+          .join("<br>")
       : "<em>Sin items</em>";
 
   modalNota.textContent = p.nota ? `Nota: ${p.nota}` : "";
@@ -354,7 +355,129 @@ modal.addEventListener("click", e => {
 });
 
 /* ============================================================
-   MODAL EDITAR PEDIDO
+   BOTÓN WHATSAPP
+============================================================ */
+
+modalWhatsApp.addEventListener("click", () => {
+  const p = pedidoActualModal;
+  if (!p) return;
+
+  const itemsTexto = (p.items || [])
+    .map(i => `✨ ${i.cantidad}× *${i.nombre}* — $${i.subtotal}`)
+    .join("\n");
+
+  const fechaTxt = p.fecha
+    ? new Date(p.fecha).toLocaleDateString("es-AR")
+    : "—";
+
+  const msg =
+    `¡Hola ${p.clienteNombre}! 😊\n\n` +
+    `🦊 *Detalle de tu pedido en Pixel:*\n\n` +
+    `${itemsTexto || "Sin items"}\n\n` +
+    `💰 *Total:* $${p.total}\n` +
+    `📅 *Fecha:* ${fechaTxt}\n` +
+    `📌 *Estado:* ${p.estado}\n` +
+    `💵 *Pagado:* ${p.pagado ? "Sí ✔️" : "No ❌"}\n` +
+    (p.nota ? `📝 *Nota:* ${p.nota}\n\n` : "\n") +
+    `💛 Gracias por tu compra!\n` +
+    `📸 Instagram: https://instagram.com/pixel.stickerss`;
+
+  const telefono = p.clienteTelefono
+    ? p.clienteTelefono.replace(/\D/g, "")
+    : "";
+
+  const url = telefono
+    ? `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  window.open(url, "_blank");
+});
+
+/* ============================================================
+   BOTÓN PDF (html2pdf)
+============================================================ */
+
+modalPdf.addEventListener("click", () => {
+  const p = pedidoActualModal;
+  if (!p) return;
+
+  if (typeof html2pdf === "undefined") {
+    alert("No se pudo cargar el generador de PDF (html2pdf.js).");
+    return;
+  }
+
+  const fechaTxt = p.fecha
+    ? new Date(p.fecha).toLocaleDateString("es-AR")
+    : "—";
+
+  const itemsHtml = (p.items || [])
+    .map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
+    .join("<br>");
+
+  const notaHtml = p.nota
+    ? `<p><strong>Nota:</strong> ${p.nota}</p>`
+    : "";
+
+  const html = `
+    <div id="pedido-pdf" style="font-family: Arial, sans-serif; padding:16px; font-size:12px;">
+      <h2 style="text-align:center; margin-bottom:16px;">Pixel - Pedido</h2>
+
+      <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
+      <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
+      <p><strong>Estado:</strong> ${p.estado}</p>
+      <p><strong>Pagado:</strong> ${p.pagado ? "Sí" : "No"}</p>
+      <p><strong>Fecha:</strong> ${fechaTxt}</p>
+
+      <hr style="margin:12px 0;">
+
+      <p><strong>Items:</strong></p>
+      <p>${itemsHtml || "Sin items"}</p>
+
+      <p style="margin-top:8px;"><strong>Total:</strong> $${p.total}</p>
+      ${notaHtml}
+
+      <hr style="margin:12px 0;">
+
+      <p style="font-size:11px; text-align:center;">
+        Gracias por tu compra 💛 @pixel.stickerss
+      </p>
+    </div>
+  `;
+
+  const contenedor = document.createElement("div");
+  contenedor.innerHTML = html;
+  document.body.appendChild(contenedor);
+
+  const element = contenedor.firstElementChild;
+
+  const filenameBase = (p.clienteNombre || "cliente")
+    .toString()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^\w\-]/g, "");
+
+  const opt = {
+    margin:       10,
+    filename:     `pedido-${filenameBase || "pixel"}.pdf`,
+    image:        { type: "jpeg", quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+
+  html2pdf()
+    .from(element)
+    .set(opt)
+    .save()
+    .then(() => {
+      document.body.removeChild(contenedor);
+    })
+    .catch(() => {
+      document.body.removeChild(contenedor);
+    });
+});
+
+/* ============================================================
+   EDITAR PEDIDO
 ============================================================ */
 
 window.editarPedido = id => {
@@ -362,9 +485,12 @@ window.editarPedido = id => {
   if (!p) return;
 
   pedidoEditandoId = id;
+
   editEstado.value = p.estado || "PENDIENTE";
   editNota.value = p.nota || "";
-  editFecha.value = p.fecha ? new Date(p.fecha).toISOString().slice(0, 10) : "";
+  editFecha.value = p.fecha
+    ? new Date(p.fecha).toISOString().slice(0, 10)
+    : "";
   editPagado.checked = !!p.pagado;
 
   modalEdit.classList.remove("hidden");
@@ -428,38 +554,6 @@ window.duplicarPedido = async id => {
 /* ============================================================
    INICIO
 ============================================================ */
-// ============================
-// ENVIAR POR WHATSAPP
-// ============================
-if (modalWhatsApp) {
-  modalWhatsApp.addEventListener("click", () => {
-    if (!pedidoActualEnModal) return;
-
-    const p = pedidoActualEnModal;
-    if (!p.clienteTelefono) {
-      alert("Este pedido no tiene teléfono cargado 😢");
-      return;
-    }
-
-    // limpio teléfono a solo números
-    const phone = String(p.clienteTelefono).replace(/[^0-9]/g, "");
-
-    const itemsTexto = (p.items || [])
-      .map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-      .join("\n");
-
-    const texto = `Hola ${p.clienteNombre}!\n\n` +
-      `Este es el detalle de tu pedido en Pixel:\n\n` +
-      `${itemsTexto || "Sin items"}\n\n` +
-      `Total: $${p.total}\n` +
-      (p.estado ? `Estado: ${p.estado}\n` : "") +
-      (p.pagado ? "Pagado ✅\n" : "A pagar 💸\n") +
-      (p.nota ? `\nNota: ${p.nota}\n` : "");
-
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(texto)}`;
-    window.open(url, "_blank");
-  });
-}
 
 (async function init() {
   await cargarClientes();

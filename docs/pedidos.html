@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>Pedidos - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- html2pdf.js desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -41,7 +44,7 @@
   <div class="card">
     <h1>Pedidos</h1>
     <p class="hint">
-      Armá pedidos con uno o varios productos, calculamos el total y generamos un detalle para enviar por captura 💸.
+      Armá pedidos con uno o varios productos, calculamos el total y generamos un detalle para enviar por captura o WhatsApp 💸.
     </p>
   </div>
 
@@ -202,6 +205,7 @@
 ================================ -->
 <div id="pedidoModal" class="modal-backdrop hidden">
   <div class="modal">
+
     <h3 id="modalTitulo"></h3>
 
     <p id="modalCliente"></p>
@@ -213,13 +217,19 @@
     <p id="modalNota" style="margin-top:0.8rem;"></p>
     <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
 
-    <div style="text-align:right;margin-top:1rem;">
+    <div style="
+      text-align:right;
+      margin-top:1rem;
+      display:flex;
+      justify-content:flex-end;
+      gap:0.5rem;
+      flex-wrap:wrap;
+    ">
+      <button id="modalPdf" class="btn btn-outline">PDF</button>
+      <button id="modalWhatsApp" class="btn btn-outline">WhatsApp</button>
       <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
-  </div>
-    <div style="text-align:right;margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem; flex-wrap:wrap;">
-    <button id="modalWhatsApp" class="btn btn-outline">Enviar por WhatsApp</button>
-    <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
+
   </div>
 </div>
 
@@ -258,13 +268,6 @@
 </div>
 
 
-<!-- SCRIPTS -->
-<script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js"></script>
-
-</body>
-</html>
-
 <!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
@@ -285,13 +288,17 @@
   </a>
 </nav>
 
+
+<!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/pedidos.js"></script>
+
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
 </script>
+
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 
