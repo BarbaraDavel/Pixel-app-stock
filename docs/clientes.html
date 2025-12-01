@@ -19,7 +19,6 @@
   </button>
 
   <div class="nav-links">
-    <!-- tus <a> de siempre -->
     <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./stock.html">Stock</a>
@@ -31,15 +30,15 @@
   </div>
 </div>
 
-
 <div class="main">
 
   <div class="card">
     <h1>Clientes</h1>
-    <p class="hint">Base de datos de clientes. Estos datos se usan para los pedidos.</p>
+    <p class="hint">Base de datos de clientes. Estos datos se usan para los pedidos y el mensaje de WhatsApp 💬.</p>
 
     <div class="form-grid">
       <input id="clienteNombre" placeholder="Nombre del cliente">
+      <input id="clienteApodo" placeholder="Apodo (opcional, ej: Marie)">
       <input id="clienteTelefono" placeholder="Whatsapp">
       <input id="clienteRed" placeholder="Instagram">
       <input id="clienteNota" placeholder="Nota (opcional)">
@@ -57,6 +56,7 @@
       <thead>
         <tr>
           <th>Nombre</th>
+          <th>Apodo</th>
           <th>Whatsapp</th>
           <th>Instagram</th>
           <th>Nota</th>
@@ -68,6 +68,7 @@
   </div>
 
 </div>
+
 <!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
@@ -90,11 +91,13 @@
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/clientes.js"></script>
+
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
 </script>
+
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 

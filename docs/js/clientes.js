@@ -10,12 +10,13 @@ import {
 
 const lista = document.getElementById("clientesLista");
 
-const inputNombre = document.getElementById("clienteNombre");
+const inputNombre   = document.getElementById("clienteNombre");
+const inputApodo    = document.getElementById("clienteApodo");
 const inputTelefono = document.getElementById("clienteTelefono");
-const inputRed = document.getElementById("clienteRed");
-const inputNota = document.getElementById("clienteNota");
-const btnGuardar = document.getElementById("clienteGuardar");
-const lblModo = document.getElementById("clienteModo");
+const inputRed      = document.getElementById("clienteRed");
+const inputNota     = document.getElementById("clienteNota");
+const btnGuardar    = document.getElementById("clienteGuardar");
+const lblModo       = document.getElementById("clienteModo");
 
 let clientes = {};
 let editandoId = null;
@@ -36,7 +37,8 @@ async function cargarClientes() {
   Object.entries(clientes).forEach(([id, c]) => {
     lista.innerHTML += `
       <tr>
-        <td>${c.nombre}</td>
+        <td>${c.nombre || "—"}</td>
+        <td>${c.apodo || "—"}</td>
         <td>${c.telefono || "—"}</td>
         <td>${c.red || "—"}</td>
         <td>${c.nota || "—"}</td>
@@ -55,17 +57,18 @@ async function cargarClientes() {
 // GUARDAR / ACTUALIZAR
 // =========================
 btnGuardar.onclick = async () => {
-  const nombre = inputNombre.value.trim();
+  const nombre   = inputNombre.value.trim();
+  const apodo    = inputApodo.value.trim();
   const telefono = inputTelefono.value.trim();
-  const red = inputRed.value.trim();
-  const nota = inputNota.value.trim();
+  const red      = inputRed.value.trim();
+  const nota     = inputNota.value.trim();
 
   if (!nombre) {
     alert("Falta el nombre del cliente.");
     return;
   }
 
-  const payload = { nombre, telefono, red, nota };
+  const payload = { nombre, apodo, telefono, red, nota };
 
   try {
     if (editandoId) {
@@ -80,10 +83,11 @@ btnGuardar.onclick = async () => {
   }
 
   // limpiar
-  inputNombre.value = "";
+  inputNombre.value   = "";
+  inputApodo.value    = "";
   inputTelefono.value = "";
-  inputRed.value = "";
-  inputNota.value = "";
+  inputRed.value      = "";
+  inputNota.value     = "";
   editandoId = null;
   lblModo.textContent = "";
 
@@ -98,10 +102,11 @@ window.editarCliente = (id) => {
   if (!c) return;
 
   editandoId = id;
-  inputNombre.value = c.nombre || "";
+  inputNombre.value   = c.nombre   || "";
+  inputApodo.value    = c.apodo    || "";
   inputTelefono.value = c.telefono || "";
-  inputRed.value = c.red || "";
-  inputNota.value = c.nota || "";
+  inputRed.value      = c.red      || "";
+  inputNota.value     = c.nota     || "";
   lblModo.textContent = "Editando cliente...";
 };
 
@@ -110,15 +115,19 @@ window.editarCliente = (id) => {
 // =========================
 window.borrarCliente = async (id) => {
   if (!confirm("¿Eliminar cliente?")) return;
+
   await deleteDoc(doc(db, "clientes", id));
+
   if (editandoId === id) {
     editandoId = null;
-    inputNombre.value = "";
+    inputNombre.value   = "";
+    inputApodo.value    = "";
     inputTelefono.value = "";
-    inputRed.value = "";
-    inputNota.value = "";
+    inputRed.value      = "";
+    inputNota.value     = "";
     lblModo.textContent = "";
   }
+
   cargarClientes();
 };
 
