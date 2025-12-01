@@ -8,9 +8,9 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// =========================
-// DOM
-// =========================
+/* ============================================================
+   DOM
+============================================================ */
 
 // Cliente
 const inputClienteNombre = document.getElementById("clienteNombre");
@@ -18,7 +18,7 @@ const inputClienteTelefono = document.getElementById("clienteTelefono");
 const inputClienteRed = document.getElementById("clienteRed");
 const datalistClientes = document.getElementById("clientesDatalist");
 
-// Productos / items
+// Productos
 const selProducto = document.getElementById("productoSelect");
 const inputCantidad = document.getElementById("cantidadInput");
 const tbodyItems = document.getElementById("pedidoItems");
@@ -28,27 +28,31 @@ const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
 const btnLimpiar = document.getElementById("limpiarPedidoBtn");
 
-// Datos generales del pedido
+// Datos del pedido
 const inputFecha = document.getElementById("pedidoFecha");
 const selectEstado = document.getElementById("pedidoEstado");
 const inputNota = document.getElementById("pedidoNota");
 const inputPagado = document.getElementById("pedidoPagado");
 
-// Lista pedidos
+// Lista
 const listaPedidosBody = document.getElementById("listaPedidos");
 
 // Filtros
 const filtroEstado = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
 
-// Modal ver pedido
+// Modal Ver
 const modal = document.getElementById("pedidoModal");
 const modalTitulo = document.getElementById("modalTitulo");
+const modalCliente = document.getElementById("modalCliente");
+const modalEstado = document.getElementById("modalEstado");
+const modalFecha = document.getElementById("modalFecha");
 const modalItems = document.getElementById("modalItems");
+const modalNota = document.getElementById("modalNota");
 const modalTotal = document.getElementById("modalTotal");
 const modalCerrar = document.getElementById("modalCerrar");
 
-// Modal editar pedido
+// Modal Editar
 const modalEdit = document.getElementById("editarPedidoModal");
 const editEstado = document.getElementById("editEstado");
 const editNota = document.getElementById("editNota");
@@ -57,18 +61,20 @@ const editPagado = document.getElementById("editPagado");
 const editGuardar = document.getElementById("editGuardar");
 const editCerrar = document.getElementById("editCerrar");
 
-// =========================
-// ESTADO
-// =========================
+/* ============================================================
+   ESTADO
+============================================================ */
+
 let clientesPorNombre = {};
 let productos = [];
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
 
-// =========================
-// CARGAR CLIENTES
-// =========================
+/* ============================================================
+   CARGAR CLIENTES
+============================================================ */
+
 async function cargarClientes() {
   datalistClientes.innerHTML = "";
   clientesPorNombre = {};
@@ -100,26 +106,29 @@ function syncClienteDesdeNombre() {
 inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
 inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 
-// =========================
-// CARGAR PRODUCTOS
-// =========================
+/* ============================================================
+   CARGAR PRODUCTOS DESDE PRODUCTOS
+============================================================ */
+
 async function cargarProductos() {
   selProducto.innerHTML = `<option value="">Cargando...</option>`;
   productos = [];
 
   const snap = await getDocs(collection(db, "productos"));
-
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
   selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
   productos.forEach(p => {
-    selProducto.innerHTML += `<option value="${p.id}">${p.nombre} — $${p.precio}</option>`;
+    selProducto.innerHTML += `
+      <option value="${p.id}">${p.nombre} — $${p.precio}</option>
+    `;
   });
 }
 
-// =========================
-// RENDER ITEMS
-// =========================
+/* ============================================================
+   RENDERIZAR ITEMS DEL PEDIDO
+============================================================ */
+
 function renderPedido() {
   tbodyItems.innerHTML = "";
   let total = 0;
@@ -147,9 +156,10 @@ window.eliminarItem = idx => {
   renderPedido();
 };
 
-// =========================
-// AGREGAR ITEM
-// =========================
+/* ============================================================
+   AGREGAR ÍTEM
+============================================================ */
+
 btnAgregar.addEventListener("click", () => {
   const id = selProducto.value;
   const cant = Number(inputCantidad.value);
@@ -171,12 +181,14 @@ btnAgregar.addEventListener("click", () => {
   renderPedido();
 });
 
-// =========================
-// LIMPIAR
-// =========================
+/* ============================================================
+   LIMPIAR FORMULARIO
+============================================================ */
+
 btnLimpiar.addEventListener("click", () => {
   itemsPedido = [];
   renderPedido();
+
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   inputClienteRed.value = "";
@@ -188,9 +200,10 @@ btnLimpiar.addEventListener("click", () => {
   selectEstado.value = "PENDIENTE";
 });
 
-// =========================
-// GUARDAR PEDIDO
-// =========================
+/* ============================================================
+   GUARDAR PEDIDO EN FIRESTORE
+============================================================ */
+
 btnGuardar.addEventListener("click", async () => {
   const nombre = inputClienteNombre.value.trim();
   const telefono = inputClienteTelefono.value.trim();
@@ -229,21 +242,9 @@ btnGuardar.addEventListener("click", async () => {
   try {
     await addDoc(collection(db, "pedidos"), pedidoDoc);
 
-    alert("Pedido guardado.");
+    alert("Pedido guardado ✔");
 
-    // limpiar
-    itemsPedido = [];
-    renderPedido();
-    inputClienteNombre.value = "";
-    inputClienteTelefono.value = "";
-    inputClienteRed.value = "";
-    inputNota.value = "";
-    inputPagado.checked = false;
-    inputCantidad.value = 1;
-    selProducto.value = "";
-    inputFecha.value = "";
-    selectEstado.value = "PENDIENTE";
-
+    btnLimpiar.click(); // limpiar todo
     cargarPedidos();
   } catch (err) {
     console.error(err);
@@ -251,15 +252,15 @@ btnGuardar.addEventListener("click", async () => {
   }
 });
 
-// =========================
-// CARGAR PEDIDOS
-// =========================
+/* ============================================================
+   CARGAR LISTA DE PEDIDOS
+============================================================ */
+
 async function cargarPedidos() {
   pedidosCache = [];
   listaPedidosBody.innerHTML = "";
 
   const snap = await getDocs(collection(db, "pedidos"));
-
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
   pedidosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -267,12 +268,13 @@ async function cargarPedidos() {
   renderLista();
 }
 
-// =========================
-// RENDER LISTA + FILTROS
-// =========================
+/* ============================================================
+   RENDER LISTA CON FILTROS
+============================================================ */
+
 function renderLista() {
-  const est = filtroEstado.value;
-  const txt = filtroBusqueda.value.toLowerCase();
+  const est = filtroEstado ? filtroEstado.value : "";
+  const txt = filtroBusqueda ? filtroBusqueda.value.toLowerCase() : "";
 
   listaPedidosBody.innerHTML = "";
 
@@ -312,25 +314,32 @@ function renderLista() {
     });
 }
 
-filtroEstado.addEventListener("change", renderLista);
-filtroBusqueda.addEventListener("input", renderLista);
+if (filtroEstado) filtroEstado.addEventListener("change", renderLista);
+if (filtroBusqueda) filtroBusqueda.addEventListener("input", renderLista);
 
-// =========================
-// MODAL VER
-// =========================
+/* ============================================================
+   MODAL VER PEDIDO
+============================================================ */
+
 window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
+  modalCliente.textContent = `Cliente: ${p.clienteNombre} — Tel: ${
+    p.clienteTelefono || "—"
+  }`;
+  modalEstado.textContent = `Estado: ${p.estado}`;
+  modalFecha.textContent = `Fecha: ${
+    p.fecha ? new Date(p.fecha).toLocaleString() : "—"
+  }`;
 
   modalItems.innerHTML =
     p.items && p.items.length
-      ? p.items
-          .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-          .join("<br>")
+      ? p.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")
       : "<em>Sin items</em>";
 
+  modalNota.textContent = p.nota ? `Nota: ${p.nota}` : "";
   modalTotal.textContent = `Total: $${p.total}`;
 
   modal.classList.remove("hidden");
@@ -341,20 +350,18 @@ modal.addEventListener("click", e => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
-// =========================
-// MODAL EDITAR
-// =========================
+/* ============================================================
+   MODAL EDITAR PEDIDO
+============================================================ */
+
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
   pedidoEditandoId = id;
-
   editEstado.value = p.estado || "PENDIENTE";
   editNota.value = p.nota || "";
-  editFecha.value = p.fecha
-    ? new Date(p.fecha).toISOString().slice(0, 10)
-    : "";
+  editFecha.value = p.fecha ? new Date(p.fecha).toISOString().slice(0, 10) : "";
   editPagado.checked = !!p.pagado;
 
   modalEdit.classList.remove("hidden");
@@ -383,7 +390,7 @@ editGuardar.addEventListener("click", async () => {
       pagado: nuevoPagado
     });
 
-    alert("Cambios guardados.");
+    alert("Cambios guardados ✔");
     modalEdit.classList.add("hidden");
     pedidoEditandoId = null;
     cargarPedidos();
@@ -393,9 +400,10 @@ editGuardar.addEventListener("click", async () => {
   }
 });
 
-// =========================
-// DUPLICAR
-// =========================
+/* ============================================================
+   DUPLICAR PEDIDO
+============================================================ */
+
 window.duplicarPedido = async id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
@@ -414,9 +422,10 @@ window.duplicarPedido = async id => {
   cargarPedidos();
 };
 
-// =========================
-// INICIO
-// =========================
+/* ============================================================
+   INICIO
+============================================================ */
+
 (async function init() {
   await cargarClientes();
   await cargarProductos();
