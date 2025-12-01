@@ -212,9 +212,11 @@
     <label>Fecha</label>
     <input id="editFecha" type="date" class="input-pixel">
 
-    <label>
-      <input type="checkbox" id="editPagado"> Pagado
-    </label>
+    <div class="form-group" style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
+      <input type="checkbox" id="editPagado" style="transform:scale(1.3);">
+      <label for="editPagado" style="margin:0;">Pagado</label>
+    </div>
+
 
     <div style="text-align:right;margin-top:1rem;">
       <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
