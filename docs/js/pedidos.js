@@ -374,7 +374,7 @@ ${lineas}
 💰 *Total:* $${pedidoActual.total}
 📅 *Fecha:* ${new Date(pedidoActual.fecha).toLocaleDateString()}
 
-💛 Gracias por tu compra!
+💜 Gracias por tu compra!
 📸 Instagram: https://instagram.com/pixel.stickerss`
   );
 
@@ -464,3 +464,4 @@ window.eliminarPedido = async id => {
   await cargarPedidos();
   renderPedido();
 })();
+
