@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Productos - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -13,17 +14,24 @@
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel
   </div>
+
+  <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+    ☰
+  </button>
+
   <div class="nav-links">
+    <!-- tus <a> de siempre -->
     <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./stock.html">Stock</a>
     <a href="./movimientos_stock.html">Movimientos</a>
     <a href="./recetas.html">Recetas</a>
-    <a class="active" href="./productos.html">Productos</a>
+    <a href="./productos.html">Productos</a>
     <a href="./clientes.html">Clientes</a>
-<!--     <a href="./dashboard.html">Dashboard</a> -->
+    <a class="active" href="./pedidos.html">Pedidos</a>
   </div>
 </div>
+
 
 <div class="main">
 
@@ -139,6 +147,12 @@
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/productos.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+<script src="js/ui.js"></script>
 
 </body>
 </html>
