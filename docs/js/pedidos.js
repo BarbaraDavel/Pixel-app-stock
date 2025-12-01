@@ -313,53 +313,111 @@ modalWhatsApp.onclick = () => {
    PDF (con QR y firma)
 ============================================================ */
 
-modalPdf.onclick = async () => {
+modalPdf.onclick = () => {
   const p = pedidoActualModal;
   if (!p) return;
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=https://instagram.com/pixel.stickerss`;
+  const fecha = new Date(p.fecha).toLocaleDateString("es-AR");
+  const qrUrl =
+    "https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://instagram.com/pixel.stickerss";
 
   const html = `
-    <div id="pdf" style="font-family:Arial; padding:16px;">
-      <h2 style="text-align:center;">🦊 Pixel - Pedido</h2>
+    <div id="pdf-compacto" style="
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      font-size: 12.5px;
+      color: #222;
+      line-height: 1.4;
+    ">
+      
+      <h2 style="text-align:center; margin-bottom:8px; font-size:18px;">
+        Pixel Stickers 🦊
+      </h2>
+
+      <p style="text-align:center; margin-top:0; font-size:12px;">
+        Resumen de pedido
+      </p>
+
+      <hr style="margin:12px 0;">
 
       <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
       <p><strong>Apodo:</strong> ${p.clienteApodo || "—"}</p>
       <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
+      <p><strong>Fecha:</strong> ${fecha}</p>
       <p><strong>Estado:</strong> ${p.estado}</p>
       <p><strong>Pagado:</strong> ${p.pagado ? "Sí" : "No"}</p>
 
-      <hr>
-
-      <p><strong>Items:</strong></p>
-      <p>${p.items.map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}</p>
-
-      <p style="margin-top:10px;"><strong>Total:</strong> $${p.total}</p>
       ${p.nota ? `<p><strong>Nota:</strong> ${p.nota}</p>` : ""}
 
-      <hr>
+      <hr style="margin:12px 0;">
 
-      <div style="text-align:center; margin-top:10px;">
-        <p>Seguinos en Instagram 💜</p>
-        <img src="${qrUrl}" style="width:120px;">
+      <p style="margin-bottom:6px;"><strong>Items:</strong></p>
 
-        <p style="margin-top:20px; font-family: 'Pacifico', cursive; font-size:20px;">
-          Firma: <span style="font-size:24px;">Barbi</span>
-        </p>
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; border-bottom:1px solid #ccc; padding:4px;">Producto</th>
+            <th style="border-bottom:1px solid #ccc; padding:4px;">Cant</th>
+            <th style="border-bottom:1px solid #ccc; padding:4px;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${p.items
+            .map(
+              (i) => `
+              <tr>
+                <td style="padding:4px;">${i.nombre}</td>
+                <td style="text-align:center; padding:4px;">${i.cantidad}</td>
+                <td style="text-align:right; padding:4px;">$${i.subtotal}</td>
+              </tr>
+            `
+            )
+            .join("")}
+        </tbody>
+      </table>
+
+      <hr style="margin:12px 0;">
+
+      <p style="font-size:14px; text-align:right;">
+        <strong>Total: $${p.total}</strong>
+      </p>
+
+      <div style="
+        text-align:center;
+        margin-top:20px;
+      ">
+        <img src="${qrUrl}" style="width:110px; height:110px;">
+        <p style="margin-top:4px; font-size:11px;">Seguinos en Instagram</p>
       </div>
+
+      <div style="margin-top:25px; text-align:center;">
+        <p style="
+          font-family: 'Pacifico', cursive;
+          font-size:18px;
+          margin:0;
+        ">
+          Barbi
+        </p>
+        <p style="font-size:10px; margin-top:2px;">Pixel Stickers</p>
+      </div>
+
     </div>
   `;
 
-  const cont = document.createElement("div");
-  cont.innerHTML = html;
-  document.body.appendChild(cont);
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  document.body.appendChild(temp);
 
-  html2pdf().from(cont).set({
-    margin: 10,
-    filename: `pedido-${p.clienteNombre.replace(/\s+/g, "_")}.pdf`,
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  }).save().then(() => cont.remove());
+  html2pdf()
+    .from(temp)
+    .set({
+      margin: 8,
+      filename: `pedido-${p.clienteNombre.replace(/\s+/g, "_")}.pdf`,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    })
+    .save()
+    .then(() => temp.remove());
 };
 
 /* ============================================================
@@ -405,9 +463,15 @@ editCerrar.onclick = () => modalEdit.classList.add("hidden");
 window.eliminarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
 
-  await deleteDoc(doc(db, "pedidos", id));
-  cargarPedidos();
+  try {
+    await deleteDoc(doc(db, "pedidos", id));
+    cargarPedidos();
+  } catch (e) {
+    console.error("Error eliminando pedido:", e);
+    alert("No se pudo eliminar.");
+  }
 };
+
 
 /* ============================================================
    DUPLICAR
