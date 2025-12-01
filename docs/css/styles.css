@@ -808,3 +808,55 @@ input, select, textarea {
   box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
   border-color: #a66bff !important;
 }
+/* ============================================
+   FIX VISIBILIDAD TABLA PEDIDOS (Dark Mode)
+============================================ */
+
+@media (prefers-color-scheme: dark) {
+
+  /* Texto general de las tablas */
+  .tabla-stock td,
+  .tabla-stock th {
+    color: #f4f1ff !important;  /* blanco suave Pixel */
+  }
+
+  /* Columna Cliente más fuerte */
+  .tabla-stock td:first-child {
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+
+  /* Estado */
+  .estado {
+    font-weight: 700 !important;
+    letter-spacing: 0.3px;
+  }
+
+  /* Pagado / No pagado */
+  .pagado-si {
+    color: #46ff9b !important;
+    font-weight: 700;
+  }
+  .pagado-no {
+    color: #ff6b6b !important;
+    font-weight: 600;
+  }
+
+  /* Ajustar fondo rosa/lila del header */
+  .tabla-stock thead {
+    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
+  }
+
+  /* Celdas */
+  .tabla-stock tbody tr {
+    background: rgba(255,255,255,0.04) !important;
+  }
+  .tabla-stock tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.07) !important;
+  }
+
+  /* Hover */
+  .tabla-stock tbody tr:hover {
+    background: rgba(255,255,255,0.13) !important;
+  }
+}
