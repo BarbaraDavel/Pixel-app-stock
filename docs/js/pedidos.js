@@ -372,7 +372,7 @@ modalWhatsApp.addEventListener("click", () => {
 
   const msg =
     `¡Hola ${p.clienteNombre}! 😊\n\n` +
-    `🦊 *Detalle de tu pedido en Pixel:*\n\n` +
+    `🦊 *Pixel - Detalle de tu pedido*\n\n` +
     `${itemsTexto || "Sin items"}\n\n` +
     `💰 *Total:* $${p.total}\n` +
     `📅 *Fecha:* ${fechaTxt}\n` +
@@ -390,90 +390,193 @@ modalWhatsApp.addEventListener("click", () => {
     ? `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`
     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
-  window.open(url, "_blank");
+  // ✔ En celular y PC funciona perfecto
+  window.location.href = url;
 });
+
 
 /* ============================================================
    BOTÓN PDF (html2pdf)
 ============================================================ */
 
-modalPdf.addEventListener("click", () => {
+modalPdf.addEventListener("click", async () => {
   const p = pedidoActualModal;
   if (!p) return;
 
   if (typeof html2pdf === "undefined") {
-    alert("No se pudo cargar el generador de PDF (html2pdf.js).");
+    alert("No se pudo cargar el generador de PDF.");
     return;
   }
+
+  /* GENERAR QR DEL INSTAGRAM */
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+    "https://instagram.com/pixel.stickerss"
+  )}`;
 
   const fechaTxt = p.fecha
     ? new Date(p.fecha).toLocaleDateString("es-AR")
     : "—";
 
   const itemsHtml = (p.items || [])
-    .map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-    .join("<br>");
+    .map(i => `
+      <tr>
+        <td>${i.cantidad}×</td>
+        <td>${i.nombre}</td>
+        <td>$${i.subtotal}</td>
+      </tr>
+    `)
+    .join("");
 
   const notaHtml = p.nota
-    ? `<p><strong>Nota:</strong> ${p.nota}</p>`
+    ? `<p class="nota"><strong>Nota:</strong> ${p.nota}</p>`
     : "";
 
+  /* ============================================================
+       HTML DEL PDF
+  ============================================================= */
+
   const html = `
-    <div id="pedido-pdf" style="font-family: Arial, sans-serif; padding:16px; font-size:12px;">
-      <h2 style="text-align:center; margin-bottom:16px;">Pixel - Pedido</h2>
+    <div id="pdf-container" style="
+      font-family: 'Poppins', sans-serif;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      color: #333;
+    ">
 
-      <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
-      <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
-      <p><strong>Estado:</strong> ${p.estado}</p>
-      <p><strong>Pagado:</strong> ${p.pagado ? "Sí" : "No"}</p>
-      <p><strong>Fecha:</strong> ${fechaTxt}</p>
+      <!-- CONTENEDOR PRINCIPAL -->
+      <div style="
+        margin: 20px auto;
+        padding: 22px;
+        border-radius: 18px;
+        border: 2px solid #d8c6ff;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+        max-width: 700px;
+        background: white;
+      ">
 
-      <hr style="margin:12px 0;">
+        <!-- ENCABEZADO CON LOGO -->
+        <div style="
+          text-align:center;
+          background: linear-gradient(90deg, #ffcf9c, #ffc48a);
+          padding: 18px;
+          border-radius: 14px;
+          margin-bottom: 18px;
+        ">
+          <img src="https://i.imgur.com/Di4AEsQ.png"
+               alt="Pixel Logo"
+               style="width:95px; opacity:0.95; margin-bottom:6px;">
+          <h2 style="margin: 0; font-size: 22px; color:#5b2e91;">Pixel – Pedido</h2>
+          <p style="margin:0; font-size:13px; color:#4a2e6f;">
+            Gracias por elegirnos 🦊✨
+          </p>
+        </div>
 
-      <p><strong>Items:</strong></p>
-      <p>${itemsHtml || "Sin items"}</p>
+        <!-- INFO DEL CLIENTE -->
+        <div style="margin-bottom:14px;">
+          <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
+          <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
+          <p><strong>Estado:</strong> ${p.estado}</p>
+          <p><strong>Pagado:</strong> ${p.pagado ? "Sí ✔️" : "No ❌"}</p>
+          <p><strong>Fecha:</strong> ${fechaTxt}</p>
+        </div>
 
-      <p style="margin-top:8px;"><strong>Total:</strong> $${p.total}</p>
-      ${notaHtml}
+        <!-- TABLA DE ITEMS -->
+        <table style="
+          width:100%;
+          border-collapse:collapse;
+          margin-top:10px;
+          font-size:13px;
+        ">
+          <thead>
+            <tr style="background:#fde2ff; color:#5b2e91;">
+              <th style="padding:8px; text-align:left;">Cant</th>
+              <th style="padding:8px; text-align:left;">Producto</th>
+              <th style="padding:8px; text-align:left;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml || "<tr><td colspan='3'>Sin items</td></tr>"}
+          </tbody>
+        </table>
 
-      <hr style="margin:12px 0;">
+        <!-- TOTAL -->
+        <p style="margin-top:16px; font-size:15px;">
+          <strong>Total:</strong>
+          <span style="color:#5b2e91; font-weight:700;">$${p.total}</span>
+        </p>
 
-      <p style="font-size:11px; text-align:center;">
-        Gracias por tu compra 💛 @pixel.stickerss
-      </p>
+        ${notaHtml}
+
+        <!-- QR + FIRMA -->
+        <div style="
+          margin-top:20px;
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:20px;
+        ">
+          <!-- QR DEL INSTAGRAM -->
+          <div style="text-align:center; flex:1;">
+            <img src="${qrUrl}" alt="QR Instagram Pixel"
+                 style="width:140px; height:140px; margin-bottom:6px;">
+            <p style="font-size:11px; color:#6a4ea8;">Instagram</p>
+          </div>
+
+          <!-- FIRMA -->
+          <div style="
+            flex:1;
+            text-align:right;
+            padding-right:12px;
+          ">
+            <p style="font-size:13px; margin:0; color:#5b2e91;">
+              <strong>Barbi</strong>
+            </p>
+            <p style="font-size:12px; margin:0; color:#7c5bb8;">
+              Pixel Stickers 🦊✨
+            </p>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="
+          margin-top:16px;
+          padding-top:12px;
+          border-top:1px solid #e9ddff;
+          text-align:center;
+          font-size:12px;
+          color:#6a4ea8;
+        ">
+          <p>¡Esperamos que disfrutes tu compra! 💛</p>
+        </div>
+
+      </div>
     </div>
   `;
 
+  /* Crear contenedor temporal */
   const contenedor = document.createElement("div");
   contenedor.innerHTML = html;
   document.body.appendChild(contenedor);
 
   const element = contenedor.firstElementChild;
 
-  const filenameBase = (p.clienteNombre || "cliente")
-    .toString()
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^\w\-]/g, "");
+  const filename = `pedido_${p.clienteNombre.replace(/\s+/g, "_")}.pdf`;
 
-  const opt = {
-    margin:       10,
-    filename:     `pedido-${filenameBase || "pixel"}.pdf`,
-    image:        { type: "jpeg", quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
-  };
+  // Esperar imágenes
+  await new Promise(r => setTimeout(r, 300));
 
+  /* Generar PDF */
   html2pdf()
     .from(element)
-    .set(opt)
-    .save()
-    .then(() => {
-      document.body.removeChild(contenedor);
+    .set({
+      margin: 5,
+      filename,
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
     })
-    .catch(() => {
-      document.body.removeChild(contenedor);
-    });
+    .save()
+    .then(() => contenedor.remove());
 });
 
 /* ============================================================
