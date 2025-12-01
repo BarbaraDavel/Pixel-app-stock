@@ -4,6 +4,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   doc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -75,7 +76,7 @@ let pedidoEditandoId = null;
 let pedidoActualModal = null;
 
 /* ============================================================
-   CARGAR CLIENTES
+   CARGAR CLIENTES (con apodo)
 ============================================================ */
 
 async function cargarClientes() {
@@ -90,24 +91,12 @@ async function cargarClientes() {
       id: d.id,
       telefono: c.telefono || "",
       red: c.red || "",
-      nota: c.nota || ""
+      nota: c.nota || "",
+      apodo: c.apodo || ""       // <<< NUEVO
     };
     datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
   });
 }
-
-function syncClienteDesdeNombre() {
-  const nombre = inputClienteNombre.value.trim();
-  const c = clientesPorNombre[nombre];
-
-  if (c) {
-    if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-    if (!inputClienteRed.value) inputClienteRed.value = c.red;
-  }
-}
-
-inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
-inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 
 /* ============================================================
    CARGAR PRODUCTOS
@@ -129,7 +118,7 @@ async function cargarProductos() {
 }
 
 /* ============================================================
-   RENDER ITEMS DEL PEDIDO
+   RENDER DE ITEMS
 ============================================================ */
 
 function renderPedido() {
@@ -138,17 +127,14 @@ function renderPedido() {
 
   itemsPedido.forEach((item, idx) => {
     total += item.subtotal;
+
     tbodyItems.innerHTML += `
       <tr>
         <td>${item.nombre}</td>
         <td>$${item.precio}</td>
         <td>${item.cantidad}</td>
         <td>$${item.subtotal}</td>
-        <td>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">
-            ✖
-          </button>
-        </td>
+        <td><button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button></td>
       </tr>
     `;
   });
@@ -162,100 +148,58 @@ window.eliminarItem = idx => {
 };
 
 /* ============================================================
-   AGREGAR ÍTEM
+   AGREGAR ITEM
 ============================================================ */
 
 btnAgregar.addEventListener("click", () => {
   const id = selProducto.value;
   const cant = Number(inputCantidad.value);
+  if (!id || cant <= 0) return;
 
-  if (!id) return alert("Elegí un producto.");
-  if (!cant || cant <= 0) return alert("Cantidad inválida.");
-
-  const prod = productos.find(p => p.id === id);
-  if (!prod) return;
-
-  const precio = Number(prod.precio || 0);
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
 
   itemsPedido.push({
     productoId: id,
-    nombre: prod.nombre,
-    precio,
+    nombre: p.nombre,
+    precio: Number(p.precio),
     cantidad: cant,
-    subtotal: precio * cant
+    subtotal: Number(p.precio) * cant
   });
 
   renderPedido();
 });
 
 /* ============================================================
-   LIMPIAR FORMULARIO
-============================================================ */
-
-btnLimpiar.addEventListener("click", () => {
-  itemsPedido = [];
-  renderPedido();
-
-  inputClienteNombre.value = "";
-  inputClienteTelefono.value = "";
-  inputClienteRed.value = "";
-  inputNota.value = "";
-  inputCantidad.value = 1;
-  selProducto.value = "";
-  inputFecha.value = "";
-  inputPagado.checked = false;
-  selectEstado.value = "PENDIENTE";
-});
-
-/* ============================================================
-   GUARDAR PEDIDO
+   GUARDAR
 ============================================================ */
 
 btnGuardar.addEventListener("click", async () => {
   const nombre = inputClienteNombre.value.trim();
-  const telefono = inputClienteTelefono.value.trim();
-  const red = inputClienteRed.value.trim();
-  const nota = inputNota.value.trim();
-  const estado = selectEstado.value;
-  const fechaInput = inputFecha.value;
-  const pagado = inputPagado.checked;
-
-  if (!nombre) return alert("Poné el nombre del cliente.");
-  if (!itemsPedido.length) return alert("Agregá productos.");
-
-  const total = itemsPedido.reduce((acc, i) => acc + i.subtotal, 0);
-
-  const clienteInfo = clientesPorNombre[nombre] || null;
-
-  const fechaIso =
-    fechaInput === ""
-      ? new Date().toISOString()
-      : new Date(fechaInput + "T00:00:00").toISOString();
+  const info = clientesPorNombre[nombre] || {};
 
   const pedidoDoc = {
-    clienteId: clienteInfo ? clienteInfo.id : null,
+    clienteId: info.id || null,
     clienteNombre: nombre,
-    clienteTelefono: telefono || (clienteInfo ? clienteInfo.telefono : ""),
-    clienteRed: red || (clienteInfo ? clienteInfo.red : ""),
-    fecha: fechaIso,
+    clienteApodo: info.apodo || "", // <<< NUEVO
+    clienteTelefono: inputClienteTelefono.value.trim() || info.telefono || "",
+    clienteRed: inputClienteRed.value.trim() || info.red || "",
+    fecha: inputFecha.value
+      ? new Date(inputFecha.value + "T00:00").toISOString()
+      : new Date().toISOString(),
     fechaServer: serverTimestamp(),
-    estado,
-    nota,
-    pagado,
-    total,
+    estado: selectEstado.value,
+    nota: inputNota.value.trim(),
+    pagado: inputPagado.checked,
+    total: itemsPedido.reduce((a, b) => a + b.subtotal, 0),
     items: itemsPedido
   };
 
-  try {
-    await addDoc(collection(db, "pedidos"), pedidoDoc);
-    alert("Pedido guardado ✔");
+  await addDoc(collection(db, "pedidos"), pedidoDoc);
 
-    btnLimpiar.click();
-    cargarPedidos();
-  } catch (err) {
-    console.error(err);
-    alert("Error al guardar.");
-  }
+  alert("Pedido guardado ✔");
+  btnLimpiar.click();
+  cargarPedidos();
 });
 
 /* ============================================================
@@ -270,55 +214,46 @@ async function cargarPedidos() {
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
   pedidosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
   renderLista();
 }
 
 /* ============================================================
-   RENDER LISTA
+   LISTA
 ============================================================ */
 
 function renderLista() {
-  const est = filtroEstado ? filtroEstado.value : "";
-  const txt = filtroBusqueda ? filtroBusqueda.value.toLowerCase() : "";
+  const est = filtroEstado.value;
+  const txt = filtroBusqueda.value.toLowerCase();
 
   listaPedidosBody.innerHTML = "";
 
   pedidosCache
-    .filter(p => {
-      if (est && p.estado !== est) return false;
-      if (txt && !p.clienteNombre.toLowerCase().includes(txt)) return false;
-      return true;
-    })
+    .filter(p =>
+      (!est || p.estado === est) &&
+      (!txt || p.clienteNombre.toLowerCase().includes(txt))
+    )
     .forEach(p => {
-      const fechaTxt = p.fecha
-        ? new Date(p.fecha).toLocaleDateString()
-        : "—";
-
       listaPedidosBody.innerHTML += `
         <tr>
           <td>${p.clienteNombre}</td>
-          <td>${fechaTxt}</td>
+          <td>${new Date(p.fecha).toLocaleDateString("es-AR")}</td>
           <td class="estado ${p.estado}">${p.estado}</td>
-          <td class="${p.pagado ? "pagado-si" : "pagado-no"}">
-            ${p.pagado ? "✔ Pagado" : "✖ No pagado"}
-          </td>
+          <td>${p.pagado ? "✔ Pagado" : "✖ No pagado"}</td>
           <td>$${p.total}</td>
-          <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️ Editar</button>
+
+          <td style="display:flex; gap:6px;">
+            <button class="btn-pp" onclick="verPedido('${p.id}')">👁 Ver</button>
+            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏ Editar</button>
             <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕ Duplicar</button>
+            <button class="btn-pp btn-delete-pp" onclick="eliminarPedido('${p.id}')">🗑 Eliminar</button>
           </td>
         </tr>
       `;
     });
 }
 
-if (filtroEstado) filtroEstado.addEventListener("change", renderLista);
-if (filtroBusqueda) filtroBusqueda.addEventListener("input", renderLista);
-
 /* ============================================================
-   MODAL VER PEDIDO
+   VER PEDIDO
 ============================================================ */
 
 window.verPedido = id => {
@@ -327,204 +262,108 @@ window.verPedido = id => {
 
   pedidoActualModal = p;
 
-  const fechaTxt = p.fecha
-    ? new Date(p.fecha).toLocaleString("es-AR")
-    : "—";
-
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre} — Tel: ${p.clienteTelefono || "—"}`;
-  modalEstado.textContent = `Estado: ${p.estado} — ${p.pagado ? "Pagado ✔️" : "A pagar 💸"}`;
-  modalFecha.textContent = `Fecha: ${fechaTxt}`;
-
-  modalItems.innerHTML =
-    p.items && p.items.length
-      ? p.items
-          .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-          .join("<br>")
-      : "<em>Sin items</em>";
-
+  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
+  modalEstado.textContent = `Estado: ${p.estado}`;
+  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString("es-AR")}`;
+  modalItems.innerHTML = p.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>");
   modalNota.textContent = p.nota ? `Nota: ${p.nota}` : "";
   modalTotal.textContent = `Total: $${p.total}`;
 
   modal.classList.remove("hidden");
 };
 
-modalCerrar.addEventListener("click", () => modal.classList.add("hidden"));
-modal.addEventListener("click", e => {
-  if (e.target === modal) modal.classList.add("hidden");
-});
+modalCerrar.onclick = () => modal.classList.add("hidden");
 
 /* ============================================================
-   BOTÓN WHATSAPP
+   WHATSAPP
 ============================================================ */
 
-modalWhatsApp.addEventListener("click", () => {
+modalWhatsApp.onclick = () => {
   const p = pedidoActualModal;
   if (!p) return;
 
-  // Tomar apodo si existe dentro de la colección “clientes”
-  const apodo =
-    clientesPorNombre[p.clienteNombre]?.apodo?.trim() ||
-    p.apodo?.trim() ||
-    p.clienteNombre;
+  const nombreMostrado = p.clienteApodo?.trim() || p.clienteNombre;
 
-  const itemsTexto = p.items
+  const items = p.items
     .map(i => `✨ ${i.cantidad}× *${i.nombre}* — $${i.subtotal}`)
     .join("\n");
 
-  const fechaTxt = p.fecha
-    ? new Date(p.fecha).toLocaleDateString("es-AR")
-    : "—";
-
   const msg =
-    `¡Hola *${apodo}*! 😊\n\n` +
+    `¡Hola ${nombreMostrado}! 😊\n\n` +
     `🦊 *Detalle de tu pedido en Pixel:*\n\n` +
-    `${itemsTexto}\n\n` +
+    `${items}\n\n` +
     `💰 *Total:* $${p.total}\n` +
-    `📅 *Fecha:* ${fechaTxt}\n` +
+    `📅 *Fecha:* ${new Date(p.fecha).toLocaleDateString("es-AR")}\n` +
     `📌 *Estado:* ${p.estado}\n` +
-    `💵 *Pagado:* ${p.pagado ? "Sí ✔️" : "No ❌"}\n\n` +
-    `💜 ¡Gracias por tu compra!\n` +
+    `💵 *Pagado:* ${p.pagado ? "Sí ✔️" : "No ❌"}\n` +
+    (p.nota ? `📝 *Nota:* ${p.nota}\n\n` : "\n") +
+    `💜 Gracias por tu compra!\n` +   // 💜 corazón lila
     `📸 Instagram: https://instagram.com/pixel.stickerss`;
 
-  const telefono = p.clienteTelefono
-    ? p.clienteTelefono.replace(/\D/g, "")
-    : "";
-
-  const url = telefono
-    ? `https://wa.me/${telefono}?text=${encodeURIComponent(msg)}`
+  const tel = p.clienteTelefono?.replace(/\D/g, "");
+  const url = tel
+    ? `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`
     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   window.open(url, "_blank");
-});
+};
 
 /* ============================================================
-   BOTÓN PDF (html2pdf)
+   PDF (con QR y firma)
 ============================================================ */
 
-modalPdf.addEventListener("click", async () => {
+modalPdf.onclick = async () => {
   const p = pedidoActualModal;
   if (!p) return;
 
-  if (typeof html2pdf === "undefined") {
-    alert("No se cargó html2pdf.js");
-    return;
-  }
-
-  // QR Instagram
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-    "https://instagram.com/pixel.stickerss"
-  )}`;
-
-  // Firma manuscrita (puedo generarte un PNG personalizado si querés)
-  const firmaUrl = "https://i.postimg.cc/G3N4f32m/firma-barbi-pixel.png";
-
-  // esperar carga real
-  const loadImage = src =>
-    new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      img.src = src;
-    });
-
-  await loadImage(qrUrl);
-  await loadImage(firmaUrl);
-
-  const fechaTxt = p.fecha
-    ? new Date(p.fecha).toLocaleDateString("es-AR")
-    : "—";
-
-  const itemsHtml = p.items
-    .map(i => `
-      <tr>
-        <td>${i.cantidad}</td>
-        <td>${i.nombre}</td>
-        <td>$${i.subtotal}</td>
-      </tr>
-    `)
-    .join("");
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=https://instagram.com/pixel.stickerss`;
 
   const html = `
-    <div style="font-family: Poppins, sans-serif; padding:22px;">
-
-      <div style="
-        background: linear-gradient(90deg,#ffcd9c,#ffc48a);
-        padding: 16px;
-        border-radius: 14px;
-        text-align:center;
-      ">
-        <h2 style="margin:0; color:#5b2e91;">Pixel – Pedido</h2>
-        <p style="margin:0; color:#5b2e91; font-size:13px;">Gracias por elegirnos</p>
-      </div>
+    <div id="pdf" style="font-family:Arial; padding:16px;">
+      <h2 style="text-align:center;">🦊 Pixel - Pedido</h2>
 
       <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
+      <p><strong>Apodo:</strong> ${p.clienteApodo || "—"}</p>
       <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
       <p><strong>Estado:</strong> ${p.estado}</p>
       <p><strong>Pagado:</strong> ${p.pagado ? "Sí" : "No"}</p>
-      <p><strong>Fecha:</strong> ${fechaTxt}</p>
 
-      <table style="width:100%; border-collapse:collapse; margin-top:12px;">
-        <thead>
-          <tr style="background:#fde2ff; color:#6a3bb0;">
-            <th style="padding:8px;">Cant</th>
-            <th style="padding:8px;">Producto</th>
-            <th style="padding:8px;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>${itemsHtml}</tbody>
-      </table>
+      <hr>
 
-      <p style="margin-top:14px; font-size:15px;">
-        <strong>Total:</strong> $${p.total}
-      </p>
+      <p><strong>Items:</strong></p>
+      <p>${p.items.map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}</p>
 
-      <div style="
-        margin-top:22px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:20px;
-      ">
-        <div style="text-align:center;">
-          <img src="${qrUrl}" style="width:130px; height:130px;">
-          <p style="font-size:11px; color:#6a3bb0;">Instagram</p>
-        </div>
+      <p style="margin-top:10px;"><strong>Total:</strong> $${p.total}</p>
+      ${p.nota ? `<p><strong>Nota:</strong> ${p.nota}</p>` : ""}
 
-        <div style="text-align:right;">
-          <img src="${firmaUrl}" style="width:150px;">
-          <p style="font-size:12px; margin:0; color:#5b2e91;">Pixel Stickers</p>
-        </div>
+      <hr>
+
+      <div style="text-align:center; margin-top:10px;">
+        <p>Seguinos en Instagram 💜</p>
+        <img src="${qrUrl}" style="width:120px;">
+
+        <p style="margin-top:20px; font-family: 'Pacifico', cursive; font-size:20px;">
+          Firma: <span style="font-size:24px;">Barbi</span>
+        </p>
       </div>
-
-      <p style="text-align:center; margin-top:15px; font-size:12px; color:#7a4bb8;">
-        ¡Esperamos que disfrutes tu compra 💜!
-      </p>
-
     </div>
   `;
 
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = html;
-  document.body.appendChild(wrapper);
+  const cont = document.createElement("div");
+  cont.innerHTML = html;
+  document.body.appendChild(cont);
 
-  const element = wrapper;
-
-  await html2pdf()
-    .from(element)
-    .set({
-      margin: 10,
-      filename: `pedido_${p.clienteNombre.replace(/\s+/g, "_")}.pdf`,
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4" }
-    })
-    .save();
-
-  wrapper.remove();
-});
+  html2pdf().from(cont).set({
+    margin: 10,
+    filename: `pedido-${p.clienteNombre.replace(/\s+/g, "_")}.pdf`,
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  }).save().then(() => cont.remove());
+};
 
 /* ============================================================
-   EDITAR PEDIDO
+   EDITAR
 ============================================================ */
 
 window.editarPedido = id => {
@@ -533,73 +372,63 @@ window.editarPedido = id => {
 
   pedidoEditandoId = id;
 
-  editEstado.value = p.estado || "PENDIENTE";
+  editEstado.value = p.estado;
   editNota.value = p.nota || "";
-  editFecha.value = p.fecha
-    ? new Date(p.fecha).toISOString().slice(0, 10)
-    : "";
-  editPagado.checked = !!p.pagado;
+  editFecha.value = p.fecha?.slice(0,10);
+  editPagado.checked = p.pagado;
 
   modalEdit.classList.remove("hidden");
 };
 
-editCerrar.addEventListener("click", () => {
-  modalEdit.classList.add("hidden");
-  pedidoEditandoId = null;
-});
-
-editGuardar.addEventListener("click", async () => {
+editGuardar.onclick = async () => {
   if (!pedidoEditandoId) return;
 
-  const nuevoEstado = editEstado.value;
-  const nuevaNota = editNota.value.trim();
-  const nuevaFecha = editFecha.value
-    ? new Date(editFecha.value + "T00:00:00").toISOString()
-    : null;
-  const nuevoPagado = editPagado.checked;
+  await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
+    estado: editEstado.value,
+    nota: editNota.value,
+    pagado: editPagado.checked,
+    fecha: editFecha.value
+      ? new Date(editFecha.value + "T00:00").toISOString()
+      : null
+  });
 
-  try {
-    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-      estado: nuevoEstado,
-      nota: nuevaNota,
-      fecha: nuevaFecha,
-      pagado: nuevoPagado
-    });
+  modalEdit.classList.add("hidden");
+  cargarPedidos();
+};
 
-    alert("Cambios guardados ✔");
-    modalEdit.classList.add("hidden");
-    pedidoEditandoId = null;
-    cargarPedidos();
-  } catch (err) {
-    console.error(err);
-    alert("Error al actualizar.");
-  }
-});
+editCerrar.onclick = () => modalEdit.classList.add("hidden");
 
 /* ============================================================
-   DUPLICAR PEDIDO
+   ELIMINAR
+============================================================ */
+
+window.eliminarPedido = async id => {
+  if (!confirm("¿Eliminar pedido?")) return;
+
+  await deleteDoc(doc(db, "pedidos", id));
+  cargarPedidos();
+};
+
+/* ============================================================
+   DUPLICAR
 ============================================================ */
 
 window.duplicarPedido = async id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
-  const nuevo = {
-    ...p,
-    fecha: new Date().toISOString(),
-    fechaServer: serverTimestamp()
-  };
-
+  const nuevo = { ...p };
   delete nuevo.id;
 
-  await addDoc(collection(db, "pedidos"), nuevo);
+  nuevo.fecha = new Date().toISOString();
+  nuevo.fechaServer = serverTimestamp();
 
-  alert("Pedido duplicado ✔");
+  await addDoc(collection(db, "pedidos"), nuevo);
   cargarPedidos();
 };
 
 /* ============================================================
-   INICIO
+   INIT
 ============================================================ */
 
 (async function init() {
