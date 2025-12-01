@@ -44,7 +44,11 @@ const filtroBusqueda = document.getElementById("filtroBusqueda");
 // Modal ver pedido
 const modal = document.getElementById("pedidoModal");
 const modalTitulo = document.getElementById("modalTitulo");
+const modalCliente = document.getElementById("modalCliente");
+const modalEstado = document.getElementById("modalEstado");
+const modalFecha = document.getElementById("modalFecha");
 const modalItems = document.getElementById("modalItems");
+const modalNota = document.getElementById("modalNota");
 const modalTotal = document.getElementById("modalTotal");
 const modalCerrar = document.getElementById("modalCerrar");
 const modalPdf = document.getElementById("modalPdf");
@@ -67,6 +71,7 @@ let productos = [];
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
+let pedidoActual = null;
 
 // =========================
 // CARGAR CLIENTES
@@ -76,13 +81,13 @@ async function cargarClientes() {
   clientesPorNombre = {};
 
   const snap = await getDocs(collection(db, "clientes"));
-
   snap.forEach(d => {
     const c = d.data();
     clientesPorNombre[c.nombre] = {
       id: d.id,
       telefono: c.telefono || "",
       red: c.red || "",
+      apodo: c.apodo || "",
       nota: c.nota || ""
     };
     datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
@@ -210,8 +215,9 @@ btnGuardar.addEventListener("click", async () => {
   const pedidoDoc = {
     clienteId: clienteInfo ? clienteInfo.id : null,
     clienteNombre: nombre,
-    clienteTelefono: telefono || (clienteInfo ? clienteInfo.telefono : ""),
-    clienteRed: red || (clienteInfo ? clienteInfo.red : ""),
+    clienteApodo: clienteInfo?.apodo || "",
+    clienteTelefono: telefono || clienteInfo?.telefono || "",
+    clienteRed: red || clienteInfo?.red || "",
     fecha: fechaIso,
     fechaServer: serverTimestamp(),
     estado,
@@ -274,7 +280,7 @@ function renderLista() {
       }</td>
           <td>$${p.total}</td>
           <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
+            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕</button>
           </td>
@@ -292,7 +298,14 @@ window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
+  pedidoActual = p;
+
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
+  modalCliente.textContent = `📱 ${p.clienteTelefono || "Sin teléfono"} • ${p.clienteRed || "Sin red"}`;
+  modalEstado.textContent = `Estado: ${p.estado}`;
+  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleDateString()}`;
+  modalNota.textContent = p.nota ? `📝 ${p.nota}` : "";
+
   modalItems.innerHTML = p.items
     .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
     .join("<br>");
@@ -310,90 +323,58 @@ modal.addEventListener("click", e => {
 });
 
 // =========================
-// MODAL EDITAR
-// =========================
-window.editarPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  pedidoEditandoId = id;
-  editEstado.value = p.estado || "PENDIENTE";
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha
-    ? new Date(p.fecha).toISOString().slice(0, 10)
-    : "";
-  editPagado.checked = !!p.pagado;
-  modalEdit.classList.remove("hidden");
-};
-
-editCerrar.addEventListener("click", () => {
-  modalEdit.classList.add("hidden");
-  pedidoEditandoId = null;
-});
-
-editGuardar.addEventListener("click", async () => {
-  if (!pedidoEditandoId) return;
-  const nuevoEstado = editEstado.value;
-  const nuevaNota = editNota.value.trim();
-  const nuevaFecha = editFecha.value
-    ? new Date(editFecha.value + "T00:00:00").toISOString()
-    : null;
-  const nuevoPagado = editPagado.checked;
-
-  try {
-    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-      estado: nuevoEstado,
-      nota: nuevaNota,
-      fecha: nuevaFecha,
-      pagado: nuevoPagado
-    });
-    alert("Cambios guardados correctamente");
-    modalEdit.classList.add("hidden");
-    pedidoEditandoId = null;
-    cargarPedidos();
-  } catch (err) {
-    console.error(err);
-    alert("Error al actualizar el pedido.");
-  }
-});
-
-// =========================
-// DUPLICAR
-// =========================
-window.duplicarPedido = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-  const nuevo = { ...p, fecha: new Date().toISOString(), fechaServer: serverTimestamp() };
-  delete nuevo.id;
-  await addDoc(collection(db, "pedidos"), nuevo);
-  alert("Pedido duplicado ✔");
-  cargarPedidos();
-};
-
-// =========================
 // PDF + WHATSAPP
 // =========================
-function generarPDF(pedido) {
+function generarPDF(p) {
   const element = document.createElement("div");
   element.innerHTML = `
-    <h3>Pedido de ${pedido.clienteNombre}</h3>
-    <p><strong>Fecha:</strong> ${new Date(pedido.fecha).toLocaleDateString()}</p>
-    <p><strong>Estado:</strong> ${pedido.estado}</p>
+    <h3>Pedido de ${p.clienteNombre}</h3>
+    <p><strong>Fecha:</strong> ${new Date(p.fecha).toLocaleDateString()}</p>
+    <p><strong>Estado:</strong> ${p.estado}</p>
     <hr>
-    ${pedido.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}
+    ${p.items.map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`).join("<br>")}
     <hr>
-    <p><strong>Total:</strong> $${pedido.total}</p>
+    <p><strong>Total:</strong> $${p.total}</p>
   `;
-  html2pdf().from(element).save(`Pedido_${pedido.clienteNombre}.pdf`);
+  html2pdf().from(element).save(`Pedido_${p.clienteNombre}.pdf`);
 }
 
-function enviarWhatsApp(pedido) {
-  const mensaje = `🦊 *Pixel* - Pedido de ${pedido.clienteNombre}%0AEstado: ${pedido.estado}%0ATotal: $${pedido.total}%0A%0A${pedido.items
-    .map(i => `• ${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-    .join("%0A")}`;
-  const telefono = pedido.clienteTelefono || "";
-  const url = `https://wa.me/${telefono}?text=${mensaje}`;
-  window.open(url, "_blank");
+function enviarWhatsApp(p) {
+  const nombreMostrar = p.clienteApodo || p.clienteNombre.split(" ")[0];
+  const fechaBonita = p.fecha
+    ? new Date(p.fecha).toLocaleDateString()
+    : "—";
+
+  const estadoEmoji = {
+    "PENDIENTE": "🟥 Pendiente",
+    "PROCESO": "🟨 En proceso",
+    "LISTO": "🟪 Listo",
+    "ENTREGADO": "🟩 Entregado"
+  }[p.estado] || p.estado;
+
+  const pagadoTxt = p.pagado ? "Sí ✔" : "No ❌";
+  const itemsTxt = p.items
+    .map(i => `✨ ${i.cantidad}× *${i.nombre}* — $${i.subtotal}`)
+    .join("\n");
+
+  const mensaje =
+`¡Hola ${nombreMostrar}! 😊
+
+🦊 *Pixel - Detalle de tu pedido*
+
+${itemsTxt}
+
+💰 *Total:* $${p.total}
+📅 *Fecha:* ${fechaBonita}
+📌 *Estado:* ${estadoEmoji}
+💵 *Pagado:* ${pagadoTxt}
+
+💛 ¡Gracias por tu compra!
+📸 Instagram: https://instagram.com/pixel.stickerss`;
+
+  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
+  const link = `https://wa.me/54${telefono}?text=${encodeURIComponent(mensaje)}`;
+  window.open(link, "_blank");
 }
 
 // =========================
