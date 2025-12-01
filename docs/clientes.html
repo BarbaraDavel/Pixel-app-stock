@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Clientes - Pixel</title>
+  <title>Pedidos - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -19,49 +19,87 @@
     <a href="./movimientos_stock.html">Movimientos</a>
     <a href="./recetas.html">Recetas</a>
     <a href="./productos.html">Productos</a>
-    <a class="active" href="./clientes.html">Clientes</a>
+    <a href="./clientes.html">Clientes</a>
+    <a class="active" href="./pedidos.html">Pedidos</a>
   </div>
 </div>
 
 <div class="main">
 
   <div class="card">
-    <h1>Clientes</h1>
-    <p class="hint">Resumen de compras por cliente, generado automáticamente desde las ventas.</p>
+    <h1>Pedidos</h1>
+    <p class="hint">
+      Armá pedidos usando los productos cargados y calculamos el total para saber cuánto cobrar 💸.
+    </p>
 
-    <table class="tabla-stock">
+    <!-- DATOS DEL CLIENTE -->
+    <h3>Datos del cliente</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="clienteNombre">Nombre</label>
+        <input id="clienteNombre" placeholder="Ej: Juan Pérez">
+      </div>
+
+      <div class="form-group">
+        <label for="clienteTelefono">Teléfono</label>
+        <input id="clienteTelefono" placeholder="Ej: 3764...">
+      </div>
+    </div>
+
+    <!-- AGREGAR PRODUCTOS -->
+    <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="productoSelect">Producto</label>
+        <select id="productoSelect">
+          <option value="">Cargando productos...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cantidadInput">Cantidad</label>
+        <input id="cantidadInput" type="number" min="1" value="1">
+      </div>
+
+      <div class="form-group" style="align-self:flex-end;">
+        <button id="agregarItemBtn" class="btn btn-primary">
+          ➕ Agregar al pedido
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLA DE ITEMS -->
+    <table class="tabla-stock" style="margin-top:1rem;">
       <thead>
         <tr>
-          <th>Cliente</th>
-          <th>Teléfono</th>
-          <th>Compras total gastado</th>
-          <th>Última compra</th>
+          <th>Producto</th>
+          <th>Precio unitario</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="clientesLista"></tbody>
+      <tbody id="pedidoItems"></tbody>
     </table>
-  </div>
 
-</div>
+    <!-- TOTAL -->
+    <p style="text-align:right; margin-top:1rem; font-size:1.1rem;">
+      <strong>Total del pedido:</strong>
+      $<span id="totalPedido">0</span>
+    </p>
 
-<!-- MODAL DETALLE CLIENTE -->
-<div id="clienteModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h3 id="clienteModalTitulo"></h3>
-
-    <div id="clienteMovimientos"></div>
-
-    <p id="clienteModalTotal" style="margin-top:1rem; font-weight:700;"></p>
-
-    <div style="text-align:right; margin-top:1.3rem;">
-      <button id="clienteModalCerrar" class="btn btn-primary">Cerrar</button>
+    <!-- BOTONES -->
+    <div style="text-align:right; margin-top:1.2rem;">
+      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
+      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
     </div>
+
   </div>
+
 </div>
 
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/clientes.js"></script>
+<script type="module" src="js/pedidos.js"></script>
 
 </body>
 </html>

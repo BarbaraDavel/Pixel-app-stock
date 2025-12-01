@@ -1,151 +1,190 @@
 import { db } from "./firebase.js";
 import {
   collection,
-  addDoc,
   getDocs,
-  updateDoc,
-  deleteDoc,
-  doc
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const lista = document.getElementById("listaPedidos");
-const btnGuardar = document.getElementById("pedidoGuardar");
+// =========================
+// REFERENCIAS DOM
+// =========================
+const selProducto = document.getElementById("productoSelect");
+const inputCantidad = document.getElementById("cantidadInput");
+const inputClienteNombre = document.getElementById("clienteNombre");
+const inputClienteTel = document.getElementById("clienteTelefono");
 
-const inputCliente = document.getElementById("pedidoCliente");
-const inputDetalle = document.getElementById("pedidoDetalle");
-const inputFecha = document.getElementById("pedidoFecha");
-const inputEstado = document.getElementById("pedidoEstado");
-const inputNota = document.getElementById("pedidoNota");
+const tbodyItems = document.getElementById("pedidoItems");
+const spanTotal = document.getElementById("totalPedido");
 
-// Modal refs
-const modal = document.getElementById("pedidoModal");
-const modalCliente = document.getElementById("modalCliente");
-const modalDetalle = document.getElementById("modalDetalle");
-const modalFecha = document.getElementById("modalFecha");
-const modalEstado = document.getElementById("modalEstado");
-const modalNota = document.getElementById("modalNota");
-const modalGuardar = document.getElementById("modalGuardar");
-const modalCerrar = document.getElementById("modalCerrar");
+const btnAgregar = document.getElementById("agregarItemBtn");
+const btnGuardar = document.getElementById("guardarPedidoBtn");
+const btnLimpiar = document.getElementById("limpiarPedidoBtn");
 
-let pedidosCache = {};
-let editId = null;
+// =========================
+// ESTADO EN MEMORIA
+// =========================
+let productos = [];      // viene de Firestore (productos)
+let itemsPedido = [];    // ítems del pedido actual
 
-// ===============================
-// Cargar pedidos
-// ===============================
-async function cargarPedidos() {
-  lista.innerHTML = "";
-  pedidosCache = {};
+// =========================
+// CARGAR PRODUCTOS
+// =========================
+async function cargarProductos() {
+  selProducto.innerHTML = `<option value="">Cargando productos...</option>`;
 
-  const snap = await getDocs(collection(db, "pedidos"));
+  const snap = await getDocs(collection(db, "productos"));
+  productos = [];
 
-  snap.forEach((d) => {
-    const p = d.data();
-    pedidosCache[d.id] = p;
+  snap.forEach(d => {
+    productos.push({ id: d.id, ...d.data() });
+  });
 
-    lista.innerHTML += `
-      <tr>
-        <td>${p.cliente}</td>
-        <td>${p.detalle}</td>
-        <td>${p.fecha || "-"}</td>
-        <td>${estadoBadge(p.estado)}</td>
-        <td>
-          <button class="btn-pp btn-edit-pp" onclick="editarPedido('${d.id}')">✏️ Editar</button>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarPedido('${d.id}')">🗑️ Eliminar</button>
-        </td>
-      </tr>
+  if (!productos.length) {
+    selProducto.innerHTML = `<option value="">No hay productos cargados</option>`;
+    return;
+  }
+
+  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
+
+  productos.forEach(p => {
+    const precioUnit = Number(p.precio || 0);
+    const etiqueta = `${p.nombre} — $${precioUnit}`;
+    selProducto.innerHTML += `
+      <option value="${p.id}">${etiqueta}</option>
     `;
   });
 }
 
-// Badge del estado
-function estadoBadge(e) {
-  switch (e) {
-    case "PENDIENTE": return "🟥 Pendiente";
-    case "PROCESO": return "🟨 En proceso";
-    case "LISTO": return "🟪 Listo";
-    case "ENTREGADO": return "🟩 Entregado";
-    default: return e;
-  }
+// =========================
+// RENDER DEL PEDIDO
+// =========================
+function renderPedido() {
+  tbodyItems.innerHTML = "";
+  let total = 0;
+
+  itemsPedido.forEach((item, idx) => {
+    total += item.subtotal;
+
+    tbodyItems.innerHTML += `
+      <tr>
+        <td>${item.nombre}</td>
+        <td>$${item.precio}</td>
+        <td>${item.cantidad}</td>
+        <td>$${item.subtotal}</td>
+        <td>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  spanTotal.textContent = total;
 }
 
-// ===============================
-// Guardar nuevo pedido
-// ===============================
-btnGuardar.onclick = async () => {
-  const cliente = inputCliente.value.trim();
-  const detalle = inputDetalle.value.trim();
-  const fecha = inputFecha.value;
-  const estado = inputEstado.value;
-  const nota = inputNota.value.trim();
+// Hacemos la función global para el onclick del botón
+window.eliminarItem = function (idx) {
+  itemsPedido.splice(idx, 1);
+  renderPedido();
+};
 
-  if (!cliente || !detalle) {
-    alert("Completá cliente y detalle.");
+// =========================
+// AGREGAR ÍTEM AL PEDIDO
+// =========================
+btnAgregar.addEventListener("click", e => {
+  e.preventDefault();
+
+  const prodId = selProducto.value;
+  const cant = Number(inputCantidad.value || "0");
+
+  if (!prodId) {
+    alert("Elegí un producto primero 😊");
+    return;
+  }
+  if (!cant || cant <= 0) {
+    alert("La cantidad debe ser al menos 1.");
     return;
   }
 
-  await addDoc(collection(db, "pedidos"), {
-    cliente,
-    detalle,
-    fecha,
-    estado,
-    nota
+  const prod = productos.find(p => p.id === prodId);
+  if (!prod) {
+    alert("No se encontró el producto seleccionado.");
+    return;
+  }
+
+  const precioUnit = Number(prod.precio || 0);
+  const subtotal = precioUnit * cant;
+
+  itemsPedido.push({
+    productoId: prod.id,
+    nombre: prod.nombre,
+    precio: precioUnit,
+    cantidad: cant,
+    subtotal
   });
 
-  inputCliente.value = "";
-  inputDetalle.value = "";
-  inputFecha.value = "";
-  inputEstado.value = "PENDIENTE";
-  inputNota.value = "";
-
-  cargarPedidos();
-};
-
-// ===============================
-// Editar pedido
-// ===============================
-window.editarPedido = (id) => {
-  editId = id;
-  const p = pedidosCache[id];
-
-  modalCliente.value = p.cliente;
-  modalDetalle.value = p.detalle;
-  modalFecha.value = p.fecha;
-  modalEstado.value = p.estado;
-  modalNota.value = p.nota || "";
-
-  modal.classList.remove("hidden");
-};
-
-modalGuardar.onclick = async () => {
-  if (!editId) return;
-
-  await updateDoc(doc(db, "pedidos", editId), {
-    cliente: modalCliente.value.trim(),
-    detalle: modalDetalle.value.trim(),
-    fecha: modalFecha.value,
-    estado: modalEstado.value,
-    nota: modalNota.value.trim()
-  });
-
-  modal.classList.add("hidden");
-  cargarPedidos();
-};
-
-// ===============================
-// Eliminar
-// ===============================
-window.eliminarPedido = async (id) => {
-  if (!confirm("¿Eliminar pedido?")) return;
-
-  await deleteDoc(doc(db, "pedidos", id));
-  cargarPedidos();
-};
-
-modalCerrar.onclick = () => modal.classList.add("hidden");
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
+  renderPedido();
 });
 
-// ===============================
-cargarPedidos();
+// =========================
+// LIMPIAR PEDIDO
+// =========================
+btnLimpiar.addEventListener("click", e => {
+  e.preventDefault();
+  itemsPedido = [];
+  renderPedido();
+});
+
+// =========================
+// GUARDAR PEDIDO (colección "pedidos")
+// =========================
+btnGuardar.addEventListener("click", async e => {
+  e.preventDefault();
+
+  const nombre = inputClienteNombre.value.trim();
+  const tel = inputClienteTel.value.trim();
+
+  if (!nombre) {
+    alert("Poné el nombre del cliente 😉");
+    return;
+  }
+
+  if (!itemsPedido.length) {
+    alert("Agregá al menos un producto al pedido.");
+    return;
+  }
+
+  const total = itemsPedido.reduce((acc, i) => acc + i.subtotal, 0);
+
+  const pedidoDoc = {
+    clienteNombre: nombre,
+    clienteTelefono: tel || "—",
+    fechaCreacion: new Date().toISOString(),
+    fechaServer: serverTimestamp(),
+    estado: "PENDIENTE",          // después podríamos manejar Confirmado / Cancelado
+    total,
+    items: itemsPedido
+  };
+
+  try {
+    await addDoc(collection(db, "pedidos"), pedidoDoc);
+    alert("✅ Pedido guardado (presupuesto listo).");
+
+    // limpiar todo para el siguiente
+    itemsPedido = [];
+    renderPedido();
+    inputClienteNombre.value = "";
+    inputClienteTel.value = "";
+    inputCantidad.value = 1;
+    selProducto.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Error al guardar el pedido. Revisá la consola.");
+  }
+});
+
+// =========================
+// INICIO
+// =========================
+cargarProductos();
+renderPedido();
