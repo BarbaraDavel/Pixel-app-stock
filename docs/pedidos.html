@@ -35,26 +35,31 @@
     </p>
   </div>
 
-  <!-- DATOS DEL CLIENTE + PEDIDO -->
+  <!-- DATOS DEL CLIENTE -->
   <div class="card">
     <h3>Datos del cliente</h3>
+
     <div class="form-grid">
       <div class="form-group">
         <label for="clienteNombre">Cliente</label>
         <input id="clienteNombre" placeholder="Escribí o elegí un cliente" list="clientesDatalist">
         <datalist id="clientesDatalist"></datalist>
       </div>
+
       <div class="form-group">
         <label for="clienteTelefono">Teléfono</label>
         <input id="clienteTelefono" placeholder="Teléfono">
       </div>
+
       <div class="form-group">
         <label for="clienteRed">Red / Contacto</label>
         <input id="clienteRed" placeholder="Instagram / WhatsApp">
       </div>
     </div>
 
+    <!-- PRODUCTOS -->
     <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
+
     <div class="form-grid">
       <div class="form-group">
         <label for="productoSelect">Producto</label>
@@ -62,15 +67,18 @@
           <option value="">Cargando productos...</option>
         </select>
       </div>
+
       <div class="form-group">
         <label for="cantidadInput">Cantidad</label>
         <input id="cantidadInput" type="number" min="1" value="1">
       </div>
+
       <div class="form-group" style="align-self:flex-end;">
         <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar al pedido</button>
       </div>
     </div>
 
+    <!-- TABLA ITEMS -->
     <table class="tabla-stock" style="margin-top:1rem;">
       <thead>
         <tr>
@@ -84,16 +92,21 @@
       <tbody id="pedidoItems"></tbody>
     </table>
 
+    <!-- TOTAL -->
     <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
       <strong>Total del pedido:</strong>
       $<span id="totalPedido">0</span>
     </p>
 
-    <div class="form-grid" style="margin-top:1rem;">
+    <!-- DATOS DEL PEDIDO -->
+    <h3 style="margin-top:1.5rem;">Datos del pedido</h3>
+
+    <div class="form-grid">
       <div class="form-group">
         <label for="pedidoFecha">Fecha</label>
         <input id="pedidoFecha" type="date">
       </div>
+
       <div class="form-group">
         <label for="pedidoEstado">Estado</label>
         <select id="pedidoEstado">
@@ -103,18 +116,20 @@
           <option value="ENTREGADO">🟩 Entregado</option>
         </select>
       </div>
+
       <div class="form-group">
         <label for="pedidoNota">Nota</label>
         <input id="pedidoNota" placeholder="Detalles extra (opcional)">
       </div>
     </div>
-        <div class="form-group">
+
+    <div class="form-group" style="margin-top:0.8rem;">
       <label for="pedidoPagado">
         <input type="checkbox" id="pedidoPagado"> Pagado
       </label>
     </div>
 
-
+    <!-- BOTONES -->
     <div style="text-align:right; margin-top:1.2rem;">
       <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
       <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
@@ -123,15 +138,36 @@
 
   <br>
 
-  <!-- LISTA DE PEDIDOS -->
+  <!-- FILTROS -->
   <div class="card">
     <h3>Lista de pedidos</h3>
+
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="form-group">
+        <label>Filtrar por estado</label>
+        <select id="filtroEstado">
+          <option value="">Todos</option>
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="PROCESO">En proceso</option>
+          <option value="LISTO">Listo</option>
+          <option value="ENTREGADO">Entregado</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Búsqueda</label>
+        <input id="filtroBusqueda" placeholder="Buscar cliente...">
+      </div>
+    </div>
+
+    <!-- TABLA DE PEDIDOS -->
     <table class="tabla-stock">
       <thead>
         <tr>
           <th>Cliente</th>
           <th>Fecha</th>
           <th>Estado</th>
+          <th>Pagado</th>
           <th>Total</th>
           <th>Acciones</th>
         </tr>
@@ -142,17 +178,13 @@
 
 </div>
 
-<!-- MODAL DETALLE PEDIDO -->
+<!-- MODAL VER -->
 <div id="pedidoModal" class="modal-backdrop hidden">
   <div class="modal">
     <h3 id="modalTitulo"></h3>
-    <p id="modalCliente"></p>
-    <p id="modalEstado"></p>
-    <p id="modalFecha"></p>
 
-    <div id="modalItems" style="margin-top:0.8rem;"></div>
+    <div id="modalItems" style="margin-top:0.8rem; line-height:1.6;"></div>
 
-    <p id="modalNota" style="margin-top:0.8rem;"></p>
     <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
 
     <div style="text-align:right;margin-top:1rem;">
@@ -160,7 +192,8 @@
     </div>
   </div>
 </div>
-<!-- MODAL EDITAR PEDIDO -->
+
+<!-- MODAL EDITAR -->
 <div id="editarPedidoModal" class="modal-backdrop hidden">
   <div class="modal">
     <h3>Editar Pedido</h3>
@@ -178,6 +211,10 @@
 
     <label>Fecha</label>
     <input id="editFecha" type="date" class="input-pixel">
+
+    <label>
+      <input type="checkbox" id="editPagado"> Pagado
+    </label>
 
     <div style="text-align:right;margin-top:1rem;">
       <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
