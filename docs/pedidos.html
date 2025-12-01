@@ -4,23 +4,18 @@
   <meta charset="UTF-8">
   <title>Pedidos - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-<!-- HEADER -->
+<!-- ================================
+          HEADER
+================================ -->
 <div class="topbar">
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel
   </div>
-
-  <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
-    ☰
-  </button>
-
   <div class="nav-links">
-    <!-- tus <a> de siempre -->
     <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./stock.html">Stock</a>
@@ -32,91 +27,93 @@
   </div>
 </div>
 
-
 <div class="main">
 
-  <!-- CABECERA -->
+  <!-- ================================
+        ENCABEZADO
+  ================================= -->
   <div class="card">
     <h1>Pedidos</h1>
     <p class="hint">
-      Armá pedidos con uno o varios productos, calculamos el total y podés ver el detalle en un modal para mandar captura 💸.
+      Armá pedidos con uno o varios productos, calculamos el total y generamos un detalle para enviar por captura 💸.
     </p>
   </div>
 
-  <!-- DATOS DEL CLIENTE -->
+
+  <!-- ================================
+        FORMULARIO DEL PEDIDO
+  ================================= -->
   <div class="card">
     <h3>Datos del cliente</h3>
 
     <div class="form-grid">
       <div class="form-group">
-        <label for="clienteNombre">Cliente</label>
-        <input id="clienteNombre" placeholder="Escribí o elegí un cliente" list="clientesDatalist">
+        <label>Cliente</label>
+        <input id="clienteNombre" placeholder="Nombre del cliente" list="clientesDatalist">
         <datalist id="clientesDatalist"></datalist>
       </div>
 
       <div class="form-group">
-        <label for="clienteTelefono">Teléfono</label>
+        <label>Teléfono</label>
         <input id="clienteTelefono" placeholder="Teléfono">
       </div>
 
       <div class="form-group">
-        <label for="clienteRed">Red / Contacto</label>
+        <label>Red / Contacto</label>
         <input id="clienteRed" placeholder="Instagram / WhatsApp">
       </div>
     </div>
 
-    <!-- PRODUCTOS -->
+
     <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
 
     <div class="form-grid">
       <div class="form-group">
-        <label for="productoSelect">Producto</label>
+        <label>Producto</label>
         <select id="productoSelect">
           <option value="">Cargando productos...</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="cantidadInput">Cantidad</label>
+        <label>Cantidad</label>
         <input id="cantidadInput" type="number" min="1" value="1">
       </div>
 
       <div class="form-group" style="align-self:flex-end;">
-        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar al pedido</button>
+        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
       </div>
     </div>
+
 
     <!-- TABLA ITEMS -->
     <table class="tabla-stock" style="margin-top:1rem;">
       <thead>
         <tr>
           <th>Producto</th>
-          <th>Precio unitario</th>
-          <th>Cantidad</th>
+          <th>Precio</th>
+          <th>Cant</th>
           <th>Subtotal</th>
-          <th>Acciones</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="pedidoItems"></tbody>
     </table>
 
-    <!-- TOTAL -->
     <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
-      <strong>Total del pedido:</strong>
-      $<span id="totalPedido">0</span>
+      <strong>Total:</strong> $<span id="totalPedido">0</span>
     </p>
 
-    <!-- DATOS DEL PEDIDO -->
-    <h3 style="margin-top:1.5rem;">Datos del pedido</h3>
 
-    <div class="form-grid">
+    <!-- DATOS DEL PEDIDO -->
+    <div class="form-grid" style="margin-top:1rem;">
       <div class="form-group">
-        <label for="pedidoFecha">Fecha</label>
+        <label>Fecha</label>
         <input id="pedidoFecha" type="date">
       </div>
 
       <div class="form-group">
-        <label for="pedidoEstado">Estado</label>
+        <label>Estado</label>
         <select id="pedidoEstado">
           <option value="PENDIENTE">🟥 Pendiente</option>
           <option value="PROCESO">🟨 En proceso</option>
@@ -126,16 +123,20 @@
       </div>
 
       <div class="form-group">
-        <label for="pedidoNota">Nota</label>
+        <label>Nota</label>
         <input id="pedidoNota" placeholder="Detalles extra (opcional)">
       </div>
     </div>
 
-    <div class="form-group" style="margin-top:0.8rem;">
-      <label for="pedidoPagado">
-        <input type="checkbox" id="pedidoPagado"> Pagado
+
+    <!-- PAGADO -->
+    <div style="margin-top:0.5rem;">
+      <label style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="pedidoPagado" style="width:18px; height:18px;">
+        <span style="font-size:0.95rem;">Pagado</span>
       </label>
     </div>
+
 
     <!-- BOTONES -->
     <div style="text-align:right; margin-top:1.2rem;">
@@ -146,29 +147,32 @@
 
   <br>
 
-  <!-- FILTROS -->
+
+  <!-- ================================
+        LISTA DE PEDIDOS
+  ================================= -->
   <div class="card">
     <h3>Lista de pedidos</h3>
 
+    <!-- FILTROS -->
     <div class="form-grid" style="margin-bottom:1rem;">
-      <div class="form-group">
+      <div>
+        <label>Buscar cliente</label>
+        <input id="filtroBusqueda" placeholder="Buscar por nombre...">
+      </div>
+
+      <div>
         <label>Filtrar por estado</label>
         <select id="filtroEstado">
           <option value="">Todos</option>
-          <option value="PENDIENTE">Pendiente</option>
+          <option value="PENDIENTE">Pendientes</option>
           <option value="PROCESO">En proceso</option>
-          <option value="LISTO">Listo</option>
-          <option value="ENTREGADO">Entregado</option>
+          <option value="LISTO">Listos</option>
+          <option value="ENTREGADO">Entregados</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label>Búsqueda</label>
-        <input id="filtroBusqueda" placeholder="Buscar cliente...">
       </div>
     </div>
 
-    <!-- TABLA DE PEDIDOS -->
     <table class="tabla-stock">
       <thead>
         <tr>
@@ -186,13 +190,21 @@
 
 </div>
 
-<!-- MODAL VER -->
+
+<!-- ================================
+      MODAL VER PEDIDO
+================================ -->
 <div id="pedidoModal" class="modal-backdrop hidden">
   <div class="modal">
     <h3 id="modalTitulo"></h3>
 
-    <div id="modalItems" style="margin-top:0.8rem; line-height:1.6;"></div>
+    <p id="modalCliente"></p>
+    <p id="modalEstado"></p>
+    <p id="modalFecha"></p>
 
+    <div id="modalItems" style="margin-top:0.8rem;"></div>
+
+    <p id="modalNota" style="margin-top:0.8rem;"></p>
     <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
 
     <div style="text-align:right;margin-top:1rem;">
@@ -201,7 +213,10 @@
   </div>
 </div>
 
-<!-- MODAL EDITAR -->
+
+<!-- ================================
+      MODAL EDITAR PEDIDO
+================================ -->
 <div id="editarPedidoModal" class="modal-backdrop hidden">
   <div class="modal">
     <h3>Editar Pedido</h3>
@@ -220,11 +235,10 @@
     <label>Fecha</label>
     <input id="editFecha" type="date" class="input-pixel">
 
-    <div class="form-group" style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
-      <input type="checkbox" id="editPagado" style="transform:scale(1.3);">
-      <label for="editPagado" style="margin:0;">Pagado</label>
-    </div>
-
+    <label style="display:flex; align-items:center; gap:8px; margin-top:0.6rem;">
+      <input type="checkbox" id="editPagado" style="width:18px; height:18px;">
+      <span>Pagado</span>
+    </label>
 
     <div style="text-align:right;margin-top:1rem;">
       <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
@@ -232,6 +246,15 @@
     </div>
   </div>
 </div>
+
+
+<!-- SCRIPTS -->
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/pedidos.js"></script>
+
+</body>
+</html>
+
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/pedidos.js"></script>
