@@ -108,6 +108,12 @@
         <input id="pedidoNota" placeholder="Detalles extra (opcional)">
       </div>
     </div>
+        <div class="form-group">
+      <label for="pedidoPagado">
+        <input type="checkbox" id="pedidoPagado"> Pagado
+      </label>
+    </div>
+
 
     <div style="text-align:right; margin-top:1.2rem;">
       <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
@@ -151,6 +157,31 @@
 
     <div style="text-align:right;margin-top:1rem;">
       <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL EDITAR PEDIDO -->
+<div id="editarPedidoModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Editar Pedido</h3>
+
+    <label>Estado</label>
+    <select id="editEstado" class="input-pixel">
+      <option value="PENDIENTE">🟥 Pendiente</option>
+      <option value="PROCESO">🟨 En proceso</option>
+      <option value="LISTO">🟪 Listo</option>
+      <option value="ENTREGADO">🟩 Entregado</option>
+    </select>
+
+    <label>Nota</label>
+    <input id="editNota" class="input-pixel">
+
+    <label>Fecha</label>
+    <input id="editFecha" type="date" class="input-pixel">
+
+    <div style="text-align:right;margin-top:1rem;">
+      <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
+      <button id="editCerrar" class="btn btn-outline">Cerrar</button>
     </div>
   </div>
 </div>

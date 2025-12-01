@@ -3,6 +3,8 @@ import {
   collection,
   getDocs,
   addDoc,
+  updateDoc,
+  doc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
@@ -16,7 +18,7 @@ const inputClienteTelefono = document.getElementById("clienteTelefono");
 const inputClienteRed = document.getElementById("clienteRed");
 const datalistClientes = document.getElementById("clientesDatalist");
 
-// Productos e items
+// Productos / items
 const selProducto = document.getElementById("productoSelect");
 const inputCantidad = document.getElementById("cantidadInput");
 const tbodyItems = document.getElementById("pedidoItems");
@@ -26,41 +28,53 @@ const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
 const btnLimpiar = document.getElementById("limpiarPedidoBtn");
 
-// Datos del pedido
+// Datos generales del pedido
 const inputFecha = document.getElementById("pedidoFecha");
 const selectEstado = document.getElementById("pedidoEstado");
 const inputNota = document.getElementById("pedidoNota");
+const inputPagado = document.getElementById("pedidoPagado");
 
-// Lista de pedidos
+// Lista pedidos
 const listaPedidosBody = document.getElementById("listaPedidos");
 
-// Modal
+// Filtros
+const filtroEstado = document.getElementById("filtroEstado");
+const filtroBusqueda = document.getElementById("filtroBusqueda");
+
+// Modal ver pedido
 const modal = document.getElementById("pedidoModal");
 const modalTitulo = document.getElementById("modalTitulo");
-const modalCliente = document.getElementById("modalCliente");
-const modalEstado = document.getElementById("modalEstado");
-const modalFecha = document.getElementById("modalFecha");
 const modalItems = document.getElementById("modalItems");
-const modalNota = document.getElementById("modalNota");
 const modalTotal = document.getElementById("modalTotal");
 const modalCerrar = document.getElementById("modalCerrar");
+
+// Modal editar pedido
+const modalEdit = document.getElementById("editarPedidoModal");
+const editEstado = document.getElementById("editEstado");
+const editNota = document.getElementById("editNota");
+const editFecha = document.getElementById("editFecha");
+const editPagado = document.getElementById("editPagado");
+const editGuardar = document.getElementById("editGuardar");
+const editCerrar = document.getElementById("editCerrar");
 
 // =========================
 // ESTADO
 // =========================
-let clientesPorNombre = {}; // nombre -> { id, telefono, red, nota }
-let productos = [];         // lista de productos
-let itemsPedido = [];       // items del pedido actual
-let pedidosCache = [];      // pedidos cargados para la lista
+let clientesPorNombre = {};
+let productos = [];
+let itemsPedido = [];
+let pedidosCache = [];
+let pedidoEditandoId = null;
 
 // =========================
-// CARGAR CLIENTES PARA AUTOCOMPLETAR
+// CARGAR CLIENTES
 // =========================
 async function cargarClientes() {
   datalistClientes.innerHTML = "";
   clientesPorNombre = {};
 
   const snap = await getDocs(collection(db, "clientes"));
+
   snap.forEach(d => {
     const c = d.data();
     clientesPorNombre[c.nombre] = {
@@ -73,15 +87,16 @@ async function cargarClientes() {
   });
 }
 
-// Cuando el nombre del cliente coincide con uno guardado, autocompletamos datos
 function syncClienteDesdeNombre() {
   const nombre = inputClienteNombre.value.trim();
   const c = clientesPorNombre[nombre];
+
   if (c) {
     if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
     if (!inputClienteRed.value) inputClienteRed.value = c.red;
   }
 }
+
 inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
 inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 
@@ -89,30 +104,21 @@ inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 // CARGAR PRODUCTOS
 // =========================
 async function cargarProductos() {
-  selProducto.innerHTML = `<option value="">Cargando productos...</option>`;
+  selProducto.innerHTML = `<option value="">Cargando...</option>`;
   productos = [];
 
   const snap = await getDocs(collection(db, "productos"));
-  snap.forEach(d => {
-    productos.push({ id: d.id, ...d.data() });
-  });
 
-  if (!productos.length) {
-    selProducto.innerHTML = `<option value="">No hay productos cargados</option>`;
-    return;
-  }
+  snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
   selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
   productos.forEach(p => {
-    const precioUnit = Number(p.precio || 0);
-    selProducto.innerHTML += `
-      <option value="${p.id}">${p.nombre} — $${precioUnit}</option>
-    `;
+    selProducto.innerHTML += `<option value="${p.id}">${p.nombre} — $${p.precio}</option>`;
   });
 }
 
 // =========================
-// RENDER ITEMS DEL PEDIDO
+// RENDER ITEMS
 // =========================
 function renderPedido() {
   tbodyItems.innerHTML = "";
@@ -136,54 +142,39 @@ function renderPedido() {
   spanTotal.textContent = total;
 }
 
-window.eliminarItem = function (idx) {
+window.eliminarItem = idx => {
   itemsPedido.splice(idx, 1);
   renderPedido();
 };
 
 // =========================
-// AGREGAR ÍTEM
+// AGREGAR ITEM
 // =========================
-btnAgregar.addEventListener("click", e => {
-  e.preventDefault();
+btnAgregar.addEventListener("click", () => {
+  const id = selProducto.value;
+  const cant = Number(inputCantidad.value);
 
-  const prodId = selProducto.value;
-  const cant = Number(inputCantidad.value || "0");
+  if (!id) return alert("Elegí un producto.");
+  if (!cant || cant <= 0) return alert("Cantidad inválida.");
 
-  if (!prodId) {
-    alert("Elegí un producto primero.");
-    return;
-  }
-  if (!cant || cant <= 0) {
-    alert("La cantidad debe ser al menos 1.");
-    return;
-  }
-
-  const prod = productos.find(p => p.id === prodId);
-  if (!prod) {
-    alert("No se encontró el producto seleccionado.");
-    return;
-  }
-
-  const precioUnit = Number(prod.precio || 0);
-  const subtotal = precioUnit * cant;
+  const prod = productos.find(p => p.id === id);
+  const precio = Number(prod.precio);
 
   itemsPedido.push({
-    productoId: prod.id,
+    productoId: id,
     nombre: prod.nombre,
-    precio: precioUnit,
+    precio,
     cantidad: cant,
-    subtotal
+    subtotal: precio * cant
   });
 
   renderPedido();
 });
 
 // =========================
-// LIMPIAR PEDIDO
+// LIMPIAR
 // =========================
-btnLimpiar.addEventListener("click", e => {
-  e.preventDefault();
+btnLimpiar.addEventListener("click", () => {
   itemsPedido = [];
   renderPedido();
   inputClienteNombre.value = "";
@@ -193,38 +184,33 @@ btnLimpiar.addEventListener("click", e => {
   inputCantidad.value = 1;
   selProducto.value = "";
   inputFecha.value = "";
+  inputPagado.checked = false;
   selectEstado.value = "PENDIENTE";
 });
 
 // =========================
-// GUARDAR PEDIDO EN FIRESTORE
+// GUARDAR PEDIDO
 // =========================
-btnGuardar.addEventListener("click", async e => {
-  e.preventDefault();
-
+btnGuardar.addEventListener("click", async () => {
   const nombre = inputClienteNombre.value.trim();
   const telefono = inputClienteTelefono.value.trim();
   const red = inputClienteRed.value.trim();
   const nota = inputNota.value.trim();
   const estado = selectEstado.value;
   const fechaInput = inputFecha.value;
+  const pagado = inputPagado.checked;
 
-  if (!nombre) {
-    alert("Poné el nombre del cliente.");
-    return;
-  }
-  if (!itemsPedido.length) {
-    alert("Agregá al menos un producto al pedido.");
-    return;
-  }
+  if (!nombre) return alert("Poné el nombre del cliente.");
+  if (!itemsPedido.length) return alert("Agregá productos.");
 
   const total = itemsPedido.reduce((acc, i) => acc + i.subtotal, 0);
 
   const clienteInfo = clientesPorNombre[nombre] || null;
 
-  const fechaIso = fechaInput
-    ? new Date(fechaInput + "T00:00:00").toISOString()
-    : new Date().toISOString();
+  const fechaIso =
+    fechaInput === ""
+      ? new Date().toISOString()
+      : new Date(fechaInput + "T00:00:00").toISOString();
 
   const pedidoDoc = {
     clienteId: clienteInfo ? clienteInfo.id : null,
@@ -235,102 +221,198 @@ btnGuardar.addEventListener("click", async e => {
     fechaServer: serverTimestamp(),
     estado,
     nota,
+    pagado,
     total,
     items: itemsPedido
   };
 
   try {
     await addDoc(collection(db, "pedidos"), pedidoDoc);
-    alert("✅ Pedido guardado.");
 
-    // limpiar formulario actual
+    alert("Pedido guardado.");
+
+    // limpiar
     itemsPedido = [];
     renderPedido();
     inputClienteNombre.value = "";
     inputClienteTelefono.value = "";
     inputClienteRed.value = "";
     inputNota.value = "";
+    inputPagado.checked = false;
     inputCantidad.value = 1;
     selProducto.value = "";
     inputFecha.value = "";
     selectEstado.value = "PENDIENTE";
 
-    // recargar lista
     cargarPedidos();
   } catch (err) {
     console.error(err);
-    alert("Error al guardar el pedido. Revisá la consola.");
+    alert("Error al guardar.");
   }
 });
 
 // =========================
-// CARGAR LISTA DE PEDIDOS
+// CARGAR PEDIDOS
 // =========================
 async function cargarPedidos() {
-  listaPedidosBody.innerHTML = "";
   pedidosCache = [];
+  listaPedidosBody.innerHTML = "";
 
   const snap = await getDocs(collection(db, "pedidos"));
-  snap.forEach(d => {
-    pedidosCache.push({ id: d.id, ...d.data() });
-  });
 
-  // ordenar por fecha (más nuevo primero)
-  pedidosCache.sort((a, b) => {
-    const da = a.fecha ? new Date(a.fecha).getTime() : 0;
-    const db = b.fecha ? new Date(b.fecha).getTime() : 0;
-    return db - da;
-  });
+  snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
-  pedidosCache.forEach(p => {
-    const fechaTexto = p.fecha ? new Date(p.fecha).toLocaleDateString() : "—";
-    listaPedidosBody.innerHTML += `
-      <tr>
-        <td>${p.clienteNombre}</td>
-        <td>${fechaTexto}</td>
-        <td>${p.estado || "—"}</td>
-        <td>$${p.total || 0}</td>
-        <td>
-          <button class="btn-pp btn-edit-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
-        </td>
-      </tr>
-    `;
-  });
+  pedidosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  renderLista();
 }
 
 // =========================
-// MODAL VER PEDIDO (para captura)
+// RENDER LISTA + FILTROS
 // =========================
-window.verPedido = function (id) {
+function renderLista() {
+  const est = filtroEstado.value;
+  const txt = filtroBusqueda.value.toLowerCase();
+
+  listaPedidosBody.innerHTML = "";
+
+  pedidosCache
+    .filter(p => {
+      if (est && p.estado !== est) return false;
+      if (txt && !p.clienteNombre.toLowerCase().includes(txt)) return false;
+      return true;
+    })
+    .forEach(p => {
+      const fechaTxt = p.fecha
+        ? new Date(p.fecha).toLocaleDateString()
+        : "—";
+
+      listaPedidosBody.innerHTML += `
+        <tr>
+          <td>${p.clienteNombre}</td>
+          <td>${fechaTxt}</td>
+
+          <td class="estado ${p.estado}">
+            ${p.estado}
+          </td>
+
+          <td class="${p.pagado ? "pagado-si" : "pagado-no"}">
+            ${p.pagado ? "✔ Pagado" : "✖ No pagado"}
+          </td>
+
+          <td>$${p.total}</td>
+
+          <td>
+            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
+            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️ Editar</button>
+            <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕ Duplicar</button>
+          </td>
+        </tr>
+      `;
+    });
+}
+
+filtroEstado.addEventListener("change", renderLista);
+filtroBusqueda.addEventListener("input", renderLista);
+
+// =========================
+// MODAL VER
+// =========================
+window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre} — Tel: ${p.clienteTelefono || "—"} — Contacto: ${p.clienteRed || "—"}`;
-  modalEstado.textContent = `Estado: ${p.estado || "—"}`;
-  modalFecha.textContent = p.fecha
-    ? `Fecha: ${new Date(p.fecha).toLocaleString()}`
-    : "Fecha: —";
 
-  modalItems.innerHTML = p.items && p.items.length
-    ? p.items
-        .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-        .join("<br>")
-    : "<em>Sin items</em>";
+  modalItems.innerHTML =
+    p.items && p.items.length
+      ? p.items
+          .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
+          .join("<br>")
+      : "<em>Sin items</em>";
 
-  modalNota.textContent = p.nota ? `Nota: ${p.nota}` : "";
-  modalTotal.textContent = `Total: $${p.total || 0}`;
+  modalTotal.textContent = `Total: $${p.total}`;
 
   modal.classList.remove("hidden");
 };
 
-modalCerrar.addEventListener("click", () => {
-  modal.classList.add("hidden");
-});
-
+modalCerrar.addEventListener("click", () => modal.classList.add("hidden"));
 modal.addEventListener("click", e => {
   if (e.target === modal) modal.classList.add("hidden");
 });
+
+// =========================
+// MODAL EDITAR
+// =========================
+window.editarPedido = id => {
+  const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  pedidoEditandoId = id;
+
+  editEstado.value = p.estado || "PENDIENTE";
+  editNota.value = p.nota || "";
+  editFecha.value = p.fecha
+    ? new Date(p.fecha).toISOString().slice(0, 10)
+    : "";
+  editPagado.checked = !!p.pagado;
+
+  modalEdit.classList.remove("hidden");
+};
+
+editCerrar.addEventListener("click", () => {
+  modalEdit.classList.add("hidden");
+  pedidoEditandoId = null;
+});
+
+editGuardar.addEventListener("click", async () => {
+  if (!pedidoEditandoId) return;
+
+  const nuevoEstado = editEstado.value;
+  const nuevaNota = editNota.value.trim();
+  const nuevaFecha = editFecha.value
+    ? new Date(editFecha.value + "T00:00:00").toISOString()
+    : null;
+  const nuevoPagado = editPagado.checked;
+
+  try {
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
+      estado: nuevoEstado,
+      nota: nuevaNota,
+      fecha: nuevaFecha,
+      pagado: nuevoPagado
+    });
+
+    alert("Cambios guardados.");
+    modalEdit.classList.add("hidden");
+    pedidoEditandoId = null;
+    cargarPedidos();
+  } catch (err) {
+    console.error(err);
+    alert("Error al actualizar.");
+  }
+});
+
+// =========================
+// DUPLICAR
+// =========================
+window.duplicarPedido = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  const nuevo = {
+    ...p,
+    fecha: new Date().toISOString(),
+    fechaServer: serverTimestamp()
+  };
+
+  delete nuevo.id;
+
+  await addDoc(collection(db, "pedidos"), nuevo);
+
+  alert("Pedido duplicado ✔");
+  cargarPedidos();
+};
 
 // =========================
 // INICIO

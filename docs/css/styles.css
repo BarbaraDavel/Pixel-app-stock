@@ -901,3 +901,12 @@ input, select {
   font-size: 0.8rem;
   color: #666;
 }
+/* PAGADO */
+.pagado-si { color: #28a745; font-weight: bold; }
+.pagado-no { color: #d33; }
+
+/* ESTADOS */
+.estado.PENDIENTE { color: #d60000; font-weight:bold; }
+.estado.PROCESO { color: #d6b400; font-weight:bold; }
+.estado.LISTO { color: #8a00d6; font-weight:bold; }
+.estado.ENTREGADO { color: #1fa65d; font-weight:bold; }
