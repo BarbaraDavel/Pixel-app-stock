@@ -959,3 +959,15 @@ input, select, textarea {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
+/* --- FIX: Asegurar popup bien visible incluso en modo oscuro --- */
+
+.popup-box {
+  background: #ffffff !important;
+  color: #222 !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35) !important;
+}
+
+.popup-pixel {
+  background: rgba(0,0,0,0.55) !important; /* fondo oscuro real */
+}
+
