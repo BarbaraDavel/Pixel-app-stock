@@ -10,6 +10,10 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* ============================================================
+   ELEMENTOS DEL DOM
+============================================================ */
+
 const grid = document.getElementById("productosLista");
 const btnGuardar = document.getElementById("guardarProd");
 const inputNombre = document.getElementById("prodNombre");
@@ -39,34 +43,31 @@ const editNombre = document.getElementById("editNombre");
 const editPrecio = document.getElementById("editPrecio");
 const recetaDetalle = document.getElementById("recetaProductoDetalle");
 const costoBox = document.getElementById("costoProduccionBox");
+const gananciaBox = document.getElementById("gananciaBox");
 const btnCancelarEdicion = document.getElementById("cancelarEdicion");
 const btnGuardarEdicion = document.getElementById("guardarEdicion");
-
-let productoEditandoId = null;
-
-// Popup Pixel (es el globito violeta abajo a la derecha)
-function popup(msg) {
-  const box = document.getElementById("popupPixel");
-  const txt = document.getElementById("popupText");
-
-  if (!box || !txt) {
-    alert(msg);
-    return;
-  }
-
-  txt.textContent = msg;
-  box.classList.remove("hidden");
-
-  setTimeout(() => box.classList.add("hidden"), 2000);
-}
 
 // Cache
 let productosCache = {};
 let ventaItems = [];
+let productoEditandoId = null;
 
-// ==============================
-// Cargar productos
-// ==============================
+/* ============================================================
+   POPUP PIXEL (globito violeta)
+============================================================ */
+function popup(msg) {
+  const box = document.getElementById("popupPixel");
+  const txt = document.getElementById("popupText");
+  if (!box || !txt) return alert(msg);
+
+  txt.textContent = msg;
+  box.classList.remove("hidden");
+  setTimeout(() => box.classList.add("hidden"), 2000);
+}
+
+/* ============================================================
+   CARGAR PRODUCTOS
+============================================================ */
 async function cargarProductos() {
   grid.innerHTML = "";
   productosCache = {};
@@ -86,7 +87,7 @@ async function cargarProductos() {
 
         <div class="producto-actions">
           <button class="btn btn-outline" onclick="editarProducto('${d.id}')">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarProducto('${d.id}')">✕</button>
+          <button class="btn btn-delete-pp" onclick="eliminarProducto('${d.id}')">✕</button>
           <button class="btn btn-primary" onclick="agregarAVenta('${d.id}')">💸 Vender</button>
         </div>
       </div>
@@ -94,14 +95,15 @@ async function cargarProductos() {
   });
 }
 
-// =============================================================
-// Cargar Receta + Costo de producción para el modal de producto
-// =============================================================
+/* ============================================================
+   CARGAR RECETAS + COSTO + GANANCIA
+============================================================ */
 async function cargarRecetaYCostos(productoId) {
   if (!recetaDetalle || !costoBox) return;
 
   recetaDetalle.innerHTML = "Cargando...";
   costoBox.innerHTML = "Calculando...";
+  if (gananciaBox) gananciaBox.innerHTML = "";
 
   const recetasSnap = await getDocs(
     query(collection(db, "recetas"), where("productoId", "==", productoId))
@@ -137,16 +139,24 @@ async function cargarRecetaYCostos(productoId) {
   });
 
   recetaDetalle.innerHTML = htmlReceta;
-  costoBox.innerHTML = `<strong>Total producir 1 unidad:</strong> $${costoTotal}`;
+  costoBox.innerHTML = `<strong>Costo producir 1 unidad:</strong> $${costoTotal}`;
+
+  const precioVenta = Number(editPrecio.value) || 0;
+  if (gananciaBox) {
+    gananciaBox.innerHTML = `
+      <strong>Ganancia estimada:</strong> $${precioVenta - costoTotal}
+      <br><span class="hint">(por unidad)</span>
+    `;
+  }
 }
 
-// =============================================================
-// Descontar insumos según recetas al confirmar una venta
-// =============================================================
+/* ============================================================
+   DESCONTAR INSUMOS POR VENTA SEGÚN RECETAS
+============================================================ */
 async function descontarInsumosPorVenta(items) {
   if (!items || items.length === 0) return;
 
-  // Traigo TODO el stock una vez para no pegarle mil veces
+  // Cargo stock una sola vez
   const stockSnap = await getDocs(collection(db, "stock"));
   const stockMap = {};
   stockSnap.forEach((s) => {
@@ -186,15 +196,14 @@ async function descontarInsumosPorVenta(items) {
         nota: "Consumo automático por venta"
       });
 
-      // Actualizo cache local
       stockInfo.stockActual = nuevoStock;
     }
   }
 }
 
-// =========================================
-// EDITAR PRODUCTO
-// =========================================
+/* ============================================================
+   EDITAR PRODUCTO
+============================================================ */
 window.editarProducto = function (id) {
   const p = productosCache[id];
   if (!p || !modalEditar) return;
@@ -227,9 +236,9 @@ btnGuardarEdicion.onclick = async () => {
   cargarProductos();
 };
 
-// =========================================
-// ELIMINAR PRODUCTO
-// =========================================
+/* ============================================================
+   ELIMINAR PRODUCTO
+============================================================ */
 window.eliminarProducto = async function (id) {
   if (!confirm("¿Eliminar este producto?")) return;
 
@@ -238,9 +247,9 @@ window.eliminarProducto = async function (id) {
   cargarProductos();
 };
 
-// =========================================
-// AGREGAR PRODUCTO NUEVO
-// =========================================
+/* ============================================================
+   AGREGAR PRODUCTO NUEVO
+============================================================ */
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
   const precio = Number(inputPrecio.value);
@@ -259,9 +268,9 @@ btnGuardar.onclick = async () => {
   cargarProductos();
 };
 
-// =========================================
-// AGREGAR A VENTA
-// =========================================
+/* ============================================================
+   AGREGAR A VENTA
+============================================================ */
 window.agregarAVenta = function (id) {
   const p = productosCache[id];
   if (!p) return;
@@ -282,9 +291,9 @@ window.agregarAVenta = function (id) {
   renderVenta();
 };
 
-// =========================================
- // RENDER VENTA
-// =========================================
+/* ============================================================
+   RENDER VENTA
+============================================================ */
 function renderVenta() {
   if (ventaItems.length === 0) {
     ventaVacia.classList.remove("hidden");
@@ -315,7 +324,7 @@ function renderVenta() {
         </td>
         <td>$${i.precio}</td>
         <td>$${sub}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="quitarItem(${index})">✕</button></td>
+        <td><button class="btn btn-delete-pp" onclick="quitarItem(${index})">✕</button></td>
       </tr>
     `;
   });
@@ -338,9 +347,9 @@ window.quitarItem = function (idx) {
   renderVenta();
 };
 
-// =========================================
-// FINALIZAR / CANCELAR VENTA
-// =========================================
+/* ============================================================
+   FINALIZAR / CANCELAR VENTA
+============================================================ */
 btnCancelarVenta.onclick = () => {
   if (!confirm("¿Cancelar venta actual?")) return;
   ventaItems = [];
@@ -367,12 +376,9 @@ modalVenta.addEventListener("click", (e) => {
   if (e.target === modalVenta) modalVenta.classList.add("hidden");
 });
 
-// =========================================
-// CONFIRMAR VENTA
-// =========================================
-// =========================================
-// CONFIRMAR VENTA (VERSIÓN ARREGLADA)
-// =========================================
+/* ============================================================
+   CONFIRMAR VENTA
+============================================================ */
 btnVentaConfirmar.onclick = async () => {
   if (ventaItems.length === 0) return;
 
@@ -382,7 +388,6 @@ btnVentaConfirmar.onclick = async () => {
   const nota = inputNotaVenta.value.trim();
   const fechaIso = new Date().toISOString();
 
-  // preparo items con subtotal
   const items = ventaItems.map((i) => ({
     productoId: i.productoId,
     nombre: i.nombre,
@@ -394,7 +399,7 @@ btnVentaConfirmar.onclick = async () => {
   const total = items.reduce((sum, it) => sum + it.subtotal, 0);
 
   try {
-    // 1) Guardar venta completa
+    // Guardar venta completa
     const ventaRef = await addDoc(collection(db, "ventas"), {
       tipo: "VENTA",
       clienteNombre,
@@ -406,10 +411,10 @@ btnVentaConfirmar.onclick = async () => {
       items
     });
 
-    // 2) Registrar movimiento tipo VENTA (esto alimenta historial + clientes)
+    // Registrar movimiento
     await addDoc(collection(db, "movimientos_stock"), {
       tipo: "VENTA",
-      ventaId: ventaRef.id,     // para ver detalle desde movimientos
+      ventaId: ventaRef.id,
       clienteNombre,
       metodoPago,
       cantidadTotal: items.reduce((acc, it) => acc + it.cantidad, 0),
@@ -418,7 +423,7 @@ btnVentaConfirmar.onclick = async () => {
       nota
     });
 
-    // 3) Descontar insumos según recetas (esto sí funciona bien)
+    // Descontar insumos según recetas
     await descontarInsumosPorVenta(items);
 
     popup("Venta registrada 💖");
@@ -428,10 +433,12 @@ btnVentaConfirmar.onclick = async () => {
     modalVenta.classList.add("hidden");
   } catch (err) {
     console.error(err);
-    alert("Ocurrió un error al registrar la venta. Revisá la consola.");
+    alert("Error registrando la venta.");
   }
 };
 
-// ==================================================
+/* ============================================================
+   INICIO
+============================================================ */
 cargarProductos();
 renderVenta();
