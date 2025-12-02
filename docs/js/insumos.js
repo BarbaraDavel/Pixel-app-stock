@@ -1,3 +1,4 @@
+// js/insumos.js
 import { db } from "./firebase.js";
 import {
   collection,
@@ -9,12 +10,15 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const lista = document.getElementById("listaInsumos");
-const btnGuardar = document.getElementById("guardarInsumo");
+// =============================
+//   DOM
+// =============================
+const lista       = document.getElementById("listaInsumos");
+const btnGuardar  = document.getElementById("guardarInsumo");
 
-const inputNombre = document.getElementById("nombreInsumo");
-const inputCosto = document.getElementById("costoInsumo");
-const inputPaquete = document.getElementById("cantidadPaquete");
+const inputNombre   = document.getElementById("nombreInsumo");
+const inputCosto    = document.getElementById("costoInsumo");
+const inputPaquete  = document.getElementById("cantidadPaquete");
 
 let editId = null;
 
@@ -23,42 +27,45 @@ let editId = null;
 // =============================
 async function cargarInsumos() {
   lista.innerHTML = "";
+
   const snap = await getDocs(collection(db, "insumos"));
 
   snap.forEach((d) => {
     const ins = d.data();
-    const nombre = ins.nombre ?? "(sin nombre)";
-    const costo = ins.costoUnitario ?? 0;
-    const paquete = ins.cantidadPaquete ?? 0;
 
-    tbody.innerHTML += `
+    const nombre  = ins.nombre ?? "(sin nombre)";
+    const costo   = Number(ins.costoUnitario ?? 0);
+    const paquete = Number(ins.cantidadPaquete ?? 0);
+
+    lista.innerHTML += `
       <tr>
-        <td>${insumo.nombre}</td>
-        <td>$${insumo.costoUnitario}</td>
-        <td>${insumo.cantidadPorPaquete}</td>
+        <td>${nombre}</td>
+        <td>$${costo}</td>
+        <td>${paquete}</td>
         <td>
           <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
           <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${d.id}')">🗑️ Eliminar</button>
         </td>
       </tr>
     `;
-
-
-
   });
 }
 
 // =============================
 //   EDITAR INSUMO
 // =============================
-window.editar = async function (id) {
+window.editarInsumo = async function (id) {
   editId = id;
-  const ref = doc(db, "insumos", id);
+
+  const ref  = doc(db, "insumos", id);
   const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
   const ins = snap.data();
 
-  inputNombre.value = ins.nombre ?? "";
-  inputCosto.value = ins.costoUnitario ?? 0;
+  inputNombre.value  = ins.nombre ?? "";
+  inputCosto.value   = ins.costoUnitario ?? 0;
   inputPaquete.value = ins.cantidadPaquete ?? 0;
 
   mostrarPopup("Editando insumo…");
@@ -67,20 +74,22 @@ window.editar = async function (id) {
 // =============================
 //   ELIMINAR INSUMO + STOCK
 // =============================
-window.eliminar = async function (id) {
+window.eliminarInsumo = async function (id) {
   if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
 
+  // Borrar insumo
   await deleteDoc(doc(db, "insumos", id));
 
-  // borrar stock asociado
+  // Borrar stock asociado
   const stockSnap = await getDocs(collection(db, "stock"));
   for (const s of stockSnap.docs) {
-    if (s.data().insumoId === id) {
+    const data = s.data();
+    if (data.insumoId === id) {
       await deleteDoc(doc(db, "stock", s.id));
     }
   }
 
-  cargarInsumos();
+  await cargarInsumos();
   mostrarPopup("Insumo eliminado 🗑️");
 };
 
@@ -88,8 +97,8 @@ window.eliminar = async function (id) {
 //   GUARDAR / EDITAR INSUMO
 // =============================
 btnGuardar.onclick = async () => {
-  const nombre = inputNombre.value.trim();
-  const costo = Number(inputCosto.value) || 0;
+  const nombre  = inputNombre.value.trim();
+  const costo   = Number(inputCosto.value) || 0;
   const paquete = Number(inputPaquete.value) || 0;
 
   if (!nombre) {
@@ -98,21 +107,23 @@ btnGuardar.onclick = async () => {
   }
 
   if (!editId) {
+    // NUEVO INSUMO
     const ref = await addDoc(collection(db, "insumos"), {
       nombre,
       costoUnitario: costo,
       cantidadPaquete: paquete
     });
 
+    // Crear registro en STOCK asociado (para que aparezca en módulo Stock)
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
-      nombre,
-      actual: paquete,
-      minimo: 5
+      stockActual: paquete,
+      stockMinimo: 5
     });
 
     mostrarPopup("Insumo agregado ✔️");
   } else {
+    // EDITAR INSUMO
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoUnitario: costo,
@@ -123,19 +134,22 @@ btnGuardar.onclick = async () => {
     editId = null;
   }
 
-  inputNombre.value = "";
-  inputCosto.value = "";
+  // Limpiar form
+  inputNombre.value  = "";
+  inputCosto.value   = "";
   inputPaquete.value = "";
 
   cargarInsumos();
 };
 
 // =============================
-//   POPUP
+//   POPUP PIXEL
 // =============================
 function mostrarPopup(msg = "Guardado") {
   const popup = document.getElementById("popupPixel");
   const texto = document.getElementById("popupText");
+
+  if (!popup || !texto) return;
 
   texto.textContent = msg;
   popup.classList.remove("hidden");
@@ -145,4 +159,7 @@ function mostrarPopup(msg = "Guardado") {
   }, 1500);
 }
 
+// =============================
+//   INICIO
+// =============================
 cargarInsumos();
