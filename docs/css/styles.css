@@ -970,4 +970,67 @@ input, select, textarea {
 .popup-pixel {
   background: rgba(0,0,0,0.55) !important; /* fondo oscuro real */
 }
+/* ============================================
+   FIX REAL PARA EL POPUP PIXEL
+============================================ */
+
+/* Fondo oscuro detrás del popup */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55) !important;
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  opacity: 1 !important;
+}
+
+/* Caja del popup */
+.popup-contenido {
+  background: #ffffff !important;
+  color: #222 !important;
+  padding: 18px 30px;
+  font-size: 1.15rem;
+  border-radius: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.45) !important;
+  animation: popupScale 0.22s ease-out;
+}
+
+/* Animación */
+@keyframes popupScale {
+  0%   { transform: scale(0.7); opacity: 0; }
+  70%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+/* ============================================
+   FIX DEFINITIVO POPUP PIXEL — FONDO SÓLIDO
+============================================ */
+#popupPixel {
+  background: rgba(0,0,0,0.55) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+#popupPixel .popup-box {
+  background: #ffffff !important;
+  color: #222 !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
+
+  /* Mejor contraste */
+  font-size: 1.2rem;
+  font-weight: 600;
+
+  /* Animación */
+  animation: popupReal .22s ease-out;
+}
+
+@keyframes popupReal {
+  0%   { transform: scale(0.75); opacity: 0; }
+  70%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
 
