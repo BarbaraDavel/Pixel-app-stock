@@ -31,18 +31,14 @@ async function cargarInsumos() {
     const costo = ins.costoUnitario ?? 0;
     const paquete = ins.cantidadPaquete ?? 0;
 
-    lista.innerHTML += `
+    tbody.innerHTML += `
       <tr>
-        <td>${nombre}</td>
-        <td>$${costo}</td>
-        <td>${paquete}</td>
-        <td class="td-actions">
-          <button class="btn-edit" onclick="editar('${d.id}')">
-            ✏️ Editar
-          </button>
-          <button class="btn-delete" onclick="eliminar('${d.id}')">
-            🗑️ Eliminar
-          </button>
+        <td>${insumo.nombre}</td>
+        <td>$${insumo.costoUnitario}</td>
+        <td>${insumo.cantidadPorPaquete}</td>
+        <td>
+          <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${d.id}')">🗑️ Eliminar</button>
         </td>
       </tr>
     `;
