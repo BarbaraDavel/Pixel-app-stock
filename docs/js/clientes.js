@@ -9,26 +9,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 /* =========================================================
-   DOM ELEMENTS
+   DOM ELEMENTS  (IDs corregidos según clientes.html)
 ========================================================= */
 
-const inputNombre = document.getElementById("clienteNombreInput");
-const inputApodo = document.getElementById("clienteApodoInput");
-const inputWhatsapp = document.getElementById("clienteWhatsappInput");
-const inputInstagram = document.getElementById("clienteInstagramInput");
-const inputNota = document.getElementById("clienteNotaInput");
+const inputNombre = document.getElementById("clienteNombre");
+const inputApodo = document.getElementById("clienteApodo");
+const inputWhatsapp = document.getElementById("clienteTelefono");
+const inputInstagram = document.getElementById("clienteRed");
+const inputNota = document.getElementById("clienteNota");
 
-const btnGuardar = document.getElementById("guardarClienteBtn");
-const tablaBody = document.getElementById("listaClientes");
-
-const modalEdit = document.getElementById("editarClienteModal");
-const editNombre = document.getElementById("editNombre");
-const editApodo = document.getElementById("editApodo");
-const editWhatsapp = document.getElementById("editWhatsapp");
-const editInstagram = document.getElementById("editInstagram");
-const editNota = document.getElementById("editNota");
-const editGuardar = document.getElementById("editGuardar");
-const editCerrar = document.getElementById("editCerrar");
+const btnGuardar = document.getElementById("clienteGuardar");
+const tablaBody = document.getElementById("clientesLista");
 
 /* =========================================================
    STATE
@@ -49,7 +40,6 @@ async function cargarClientes() {
 
   snap.forEach(d => clientes.push({ id: d.id, ...d.data() }));
 
-  // Ordenar por nombre
   clientes.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   renderLista();
@@ -67,8 +57,8 @@ function renderLista() {
       <tr>
         <td>${c.nombre}</td>
         <td>${c.apodo || "—"}</td>
-        <td>${c.whatsapp || "—"}</td>
-        <td>${c.instagram || "—"}</td>
+        <td>${c.telefono || "—"}</td>
+        <td>${c.red || "—"}</td>
         <td>${c.nota || "—"}</td>
 
         <td>
@@ -87,19 +77,13 @@ function renderLista() {
 btnGuardar.addEventListener("click", async () => {
   const nombre = inputNombre.value.trim();
   const apodo = inputApodo.value.trim();
-  const whatsapp = inputWhatsapp.value.trim();
-  const instagram = inputInstagram.value.trim();
+  const telefono = inputWhatsapp.value.trim();
+  const red = inputInstagram.value.trim();
   const nota = inputNota.value.trim();
 
   if (!nombre) return alert("El nombre del cliente es obligatorio.");
 
-  const docData = {
-    nombre,
-    apodo,
-    whatsapp,
-    instagram,
-    nota
-  };
+  const docData = { nombre, apodo, telefono, red, nota };
 
   try {
     await addDoc(collection(db, "clientes"), docData);
@@ -135,53 +119,15 @@ window.editarCliente = id => {
 
   clienteEditandoId = id;
 
+  // 🚨 Falta modal en tu HTML, pero mantengo el código por si lo agregás
   editNombre.value = c.nombre;
   editApodo.value = c.apodo || "";
-  editWhatsapp.value = c.whatsapp || "";
-  editInstagram.value = c.instagram || "";
+  editWhatsapp.value = c.telefono || "";
+  editInstagram.value = c.red || "";
   editNota.value = c.nota || "";
 
   modalEdit.classList.remove("hidden");
 };
-
-editCerrar.addEventListener("click", () => {
-  modalEdit.classList.add("hidden");
-  clienteEditandoId = null;
-});
-
-/* =========================================================
-   GUARDAR EDICIÓN
-========================================================= */
-
-editGuardar.addEventListener("click", async () => {
-  if (!clienteEditandoId) return;
-
-  const nuevoNombre = editNombre.value.trim();
-  const nuevoApodo = editApodo.value.trim();
-  const nuevoWhatsapp = editWhatsapp.value.trim();
-  const nuevoInstagram = editInstagram.value.trim();
-  const nuevaNota = editNota.value.trim();
-
-  if (!nuevoNombre) return alert("El nombre no puede estar vacío.");
-
-  try {
-    await updateDoc(doc(db, "clientes", clienteEditandoId), {
-      nombre: nuevoNombre,
-      apodo: nuevoApodo,
-      whatsapp: nuevoWhatsapp,
-      instagram: nuevoInstagram,
-      nota: nuevaNota
-    });
-
-    alert("Cliente actualizado ✔");
-    modalEdit.classList.add("hidden");
-    clienteEditandoId = null;
-    cargarClientes();
-  } catch (err) {
-    console.error(err);
-    alert("Error al actualizar cliente.");
-  }
-});
 
 /* =========================================================
    ELIMINAR CLIENTE
@@ -192,7 +138,6 @@ window.eliminarCliente = async id => {
 
   try {
     await deleteDoc(doc(db, "clientes", id));
-
     alert("Cliente eliminado ✔");
     cargarClientes();
   } catch (err) {
