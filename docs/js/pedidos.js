@@ -1,3 +1,4 @@
+// js/pedidos.js
 import { db } from "./firebase.js";
 import {
   collection,
@@ -6,129 +7,145 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// =========================================================
+// =========================
 // DOM
-// =========================================================
+// =========================
 
 // Cliente
-const inputClienteNombre = document.getElementById("clienteNombre");
+const inputClienteNombre   = document.getElementById("clienteNombre");
 const inputClienteTelefono = document.getElementById("clienteTelefono");
-const inputClienteRed = document.getElementById("clienteRed");
-const datalistClientes = document.getElementById("clientesDatalist");
+const inputClienteRed      = document.getElementById("clienteRed");
+const datalistClientes     = document.getElementById("clientesDatalist");
 
-// Productos
-const selProducto = document.getElementById("productoSelect");
+// Productos / items
+const selProducto   = document.getElementById("productoSelect");
 const inputCantidad = document.getElementById("cantidadInput");
-const tbodyItems = document.getElementById("pedidoItems");
-const spanTotal = document.getElementById("totalPedido");
+const tbodyItems    = document.getElementById("pedidoItems");
+const spanTotal     = document.getElementById("totalPedido");
 
 const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
 const btnLimpiar = document.getElementById("limpiarPedidoBtn");
 
-// Otros datos
-const inputFecha = document.getElementById("pedidoFecha");
+// Datos generales del pedido
+const inputFecha  = document.getElementById("pedidoFecha");
 const selectEstado = document.getElementById("pedidoEstado");
-const inputNota = document.getElementById("pedidoNota");
+const inputNota   = document.getElementById("pedidoNota");
 const inputPagado = document.getElementById("pedidoPagado");
 
-// Lista de pedidos
+// Lista pedidos
 const listaPedidosBody = document.getElementById("listaPedidos");
 
 // Filtros
-const filtroEstado = document.getElementById("filtroEstado");
+const filtroEstado   = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
 
-// Modal Ver
-const modal = document.getElementById("pedidoModal");
-const modalTitulo = document.getElementById("modalTitulo");
-const modalItems = document.getElementById("modalItems");
-const modalTotal = document.getElementById("modalTotal");
+// Modal ver pedido
+const modal        = document.getElementById("pedidoModal");
+const modalTitulo  = document.getElementById("modalTitulo");
 const modalCliente = document.getElementById("modalCliente");
-const modalFecha = document.getElementById("modalFecha");
-const modalNota = document.getElementById("modalNota");
-const modalPdf = document.getElementById("modalPdf");
-const modalWhatsApp = document.getElementById("modalWhatsApp");
-const modalCerrar = document.getElementById("modalCerrar");
+const modalEstado  = document.getElementById("modalEstado");
+const modalFecha   = document.getElementById("modalFecha");
+const modalItems   = document.getElementById("modalItems");
+const modalNota    = document.getElementById("modalNota");
+const modalTotal   = document.getElementById("modalTotal");
+const modalPdf     = document.getElementById("modalPdf");
+const modalWhats   = document.getElementById("modalWhatsApp");
+const modalCerrar  = document.getElementById("modalCerrar");
 
-// Modal Editar completo
-const modalEdit = document.getElementById("editarPedidoModal");
-const editEstado = document.getElementById("editEstado");
-const editNota = document.getElementById("editNota");
-const editFecha = document.getElementById("editFecha");
-const editPagado = document.getElementById("editPagado");
+// Modal editar pedido
+const modalEdit   = document.getElementById("editarPedidoModal");
+const editEstado  = document.getElementById("editEstado");
+const editNota    = document.getElementById("editNota");
+const editFecha   = document.getElementById("editFecha");
+const editPagado  = document.getElementById("editPagado");
 const editGuardar = document.getElementById("editGuardar");
-const editCerrar = document.getElementById("editCerrar");
+const editCerrar  = document.getElementById("editCerrar");
 
-// =========================================================
+// =========================
 // ESTADO
-// =========================================================
-let clientes = {};
-let productos = [];
-let itemsPedido = [];
-let pedidosCache = [];
-let pedidoEditId = null;
-let pedidoActual = null; // para PDF y WhatsApp
+// =========================
+let clientesPorNombre = {}; // {nombre: {id, apodo, whatsapp, instagram, nota}}
+let productos = [];         // productos cargados
+let itemsPedido = [];       // items del pedido actual
+let pedidosCache = [];      // pedidos para la lista
+let pedidoEditandoId = null;
+let pedidoModalActual = null; // el pedido que se está viendo en el modal
 
-// =========================================================
-// CARGAR CLIENTES
-// =========================================================
+// =========================
+// HELPERS
+// =========================
+function esEstadoFinal(estado) {
+  return estado === "LISTO" || estado === "ENTREGADO";
+}
+
+function debeDescontarStock(p) {
+  // Solo descontamos si NO se descontó antes
+  // y está listo/entregado o marcado como pagado
+  return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
+}
+
+// =========================
+// CARGAR CLIENTES (para autocomplete + apodo)
+// =========================
 async function cargarClientes() {
   datalistClientes.innerHTML = "";
-  clientes = {};
+  clientesPorNombre = {};
 
   const snap = await getDocs(collection(db, "clientes"));
 
   snap.forEach(d => {
     const c = d.data();
-    clientes[c.nombre] = {
+    clientesPorNombre[c.nombre] = {
       id: d.id,
-      telefono: c.telefono || "",
-      red: c.red || "",
-      nota: c.nota || "",
-      apodo: c.apodo || ""
+      apodo: c.apodo || "",
+      telefono: c.whatsapp || c.telefono || "",
+      red: c.instagram || c.red || "",
+      nota: c.nota || ""
     };
 
     datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
   });
 }
 
-function syncCliente() {
+// Cuando el nombre coincide con uno guardado, autocompletamos
+function syncClienteDesdeNombre() {
   const nombre = inputClienteNombre.value.trim();
-  const c = clientes[nombre];
+  const c = clientesPorNombre[nombre];
 
   if (c) {
     if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-    if (!inputClienteRed.value) inputClienteRed.value = c.red;
+    if (!inputClienteRed.value)      inputClienteRed.value      = c.red;
   }
 }
+inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
+inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
 
-inputClienteNombre.addEventListener("change", syncCliente);
-inputClienteNombre.addEventListener("blur", syncCliente);
-
-// =========================================================
+// =========================
 // CARGAR PRODUCTOS
-// =========================================================
+// =========================
 async function cargarProductos() {
   selProducto.innerHTML = `<option value="">Cargando...</option>`;
   productos = [];
 
   const snap = await getDocs(collection(db, "productos"));
+
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
-  selProducto.innerHTML = `<option value="">Elegí un producto…</option>`;
-
+  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
   productos.forEach(p => {
-    selProducto.innerHTML += `<option value="${p.id}">${p.nombre} — $${p.precio}</option>`;
+    const precio = Number(p.precio || 0);
+    selProducto.innerHTML += `<option value="${p.id}">${p.nombre} — $${precio}</option>`;
   });
 }
 
-// =========================================================
-// RENDER ITEMS
-// =========================================================
+// =========================
+// RENDER ITEMS DEL PEDIDO
+// =========================
 function renderPedido() {
   tbodyItems.innerHTML = "";
   let total = 0;
@@ -152,283 +169,507 @@ function renderPedido() {
   spanTotal.textContent = total;
 }
 
-window.eliminarItem = i => {
-  itemsPedido.splice(i, 1);
+window.eliminarItem = idx => {
+  itemsPedido.splice(idx, 1);
   renderPedido();
 };
 
-// =========================================================
+// =========================
 // AGREGAR ITEM
-// =========================================================
-btnAgregar.addEventListener("click", () => {
-  const id = selProducto.value;
+// =========================
+btnAgregar.addEventListener("click", e => {
+  e.preventDefault();
+
+  const id   = selProducto.value;
   const cant = Number(inputCantidad.value);
 
-  if (!id) return alert("Elegí un producto.");
-  if (cant <= 0) return alert("Cantidad incorrecta.");
+  if (!id) {
+    alert("Elegí un producto.");
+    return;
+  }
+  if (!cant || cant <= 0) {
+    alert("Cantidad inválida.");
+    return;
+  }
 
   const prod = productos.find(p => p.id === id);
-  const precio = Number(prod.precio);
+  if (!prod) {
+    alert("No se encontró el producto.");
+    return;
+  }
+
+  const precio = Number(prod.precio || 0);
 
   itemsPedido.push({
     productoId: id,
     nombre: prod.nombre,
     precio,
     cantidad: cant,
-    subtotal: cant * precio
+    subtotal: precio * cant
   });
 
   renderPedido();
 });
 
-// =========================================================
-// LIMPIAR
-// =========================================================
-btnLimpiar.addEventListener("click", () => {
+// =========================
+// LIMPIAR FORMULARIO
+// =========================
+function limpiarFormulario() {
   itemsPedido = [];
   renderPedido();
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   inputClienteRed.value = "";
-  inputCantidad.value = 1;
   inputNota.value = "";
+  inputCantidad.value = 1;
+  selProducto.value = "";
+  inputFecha.value = "";
   inputPagado.checked = false;
   selectEstado.value = "PENDIENTE";
-  inputFecha.value = "";
+}
+
+btnLimpiar.addEventListener("click", e => {
+  e.preventDefault();
+  limpiarFormulario();
 });
 
-// =========================================================
+// =========================
+// DESCUENTO DE STOCK SEGÚN RECETAS
+// =========================
+
+// Obtiene todas las recetas de un producto
+async function obtenerRecetasDeProducto(productoId) {
+  const snap = await getDocs(collection(db, "recetas"));
+  const lista = [];
+
+  snap.forEach(r => {
+    const data = r.data();
+    if (data.productoId === productoId) {
+      lista.push({ id: r.id, ...data });
+    }
+  });
+
+  return lista;
+}
+
+// Busca en "stock" el registro que corresponde a ese insumoId
+async function obtenerStockPorInsumo(insumoId) {
+  const snap = await getDocs(collection(db, "stock"));
+  let encontrado = null;
+
+  snap.forEach(s => {
+    const d = s.data();
+    if (d.insumoId === insumoId) {
+      encontrado = { id: s.id, ...d };
+    }
+  });
+
+  return encontrado;
+}
+
+// Descontar insumos + registrar movimientos
+async function descontarStockPorPedido(pedido) {
+  if (!pedido.items || !pedido.items.length) return;
+
+  for (const item of pedido.items) {
+    const recetasProd = await obtenerRecetasDeProducto(item.productoId);
+
+    for (const r of recetasProd) {
+      const cantUsadaPorUnidad = Number(r.cantidadUsada || 0);
+      if (!cantUsadaPorUnidad) continue;
+
+      const totalUsado = cantUsadaPorUnidad * item.cantidad;
+
+      const stockDoc = await obtenerStockPorInsumo(r.insumoId);
+      if (!stockDoc) {
+        console.warn("No hay stock vinculado al insumo", r.insumoId);
+        continue;
+      }
+
+      const stockAnterior = Number(stockDoc.cantidad || 0);
+      const stockNuevo = stockAnterior - totalUsado;
+
+      await updateDoc(doc(db, "stock", stockDoc.id), {
+        cantidad: stockNuevo
+      });
+
+      // Registrar movimiento
+      await addDoc(collection(db, "movimientos_stock"), {
+        tipo: "VENTA",
+        motivo: "Pedido",
+        fecha: serverTimestamp(),
+        pedidoId: pedido.id || null,
+        clienteNombre: pedido.clienteNombre,
+        productoId: item.productoId,
+        productoNombre: item.nombre,
+        insumoId: r.insumoId,
+        cantidad: -totalUsado,
+        stockAnterior,
+        stockNuevo
+      });
+
+      if (stockNuevo < 0) {
+        console.warn("⚠ Stock negativo para", stockDoc);
+      }
+    }
+  }
+}
+
+// =========================
 // GUARDAR PEDIDO
-// =========================================================
-btnGuardar.addEventListener("click", async () => {
-  const nombre = inputClienteNombre.value.trim();
-  if (!nombre) return alert("Ingresá el nombre del cliente.");
-  if (itemsPedido.length === 0) return alert("Agregá productos.");
+// =========================
+btnGuardar.addEventListener("click", async e => {
+  e.preventDefault();
 
-  const c = clientes[nombre] || {};
+  const nombre   = inputClienteNombre.value.trim();
+  const telefono = inputClienteTelefono.value.trim();
+  const red      = inputClienteRed.value.trim();
+  const nota     = inputNota.value.trim();
+  const estado   = selectEstado.value;
   const fechaInput = inputFecha.value;
+  const pagado   = inputPagado.checked;
 
-  const pedidoData = {
+  if (!nombre) {
+    alert("Poné el nombre del cliente.");
+    return;
+  }
+  if (!itemsPedido.length) {
+    alert("Agregá productos al pedido.");
+    return;
+  }
+
+  const total = itemsPedido.reduce((acc, i) => acc + i.subtotal, 0);
+
+  const clienteInfo = clientesPorNombre[nombre] || null;
+
+  const fechaIso =
+    fechaInput === ""
+      ? new Date().toISOString()
+      : new Date(fechaInput + "T00:00:00").toISOString();
+
+  const pedidoDoc = {
+    clienteId: clienteInfo ? clienteInfo.id : null,
     clienteNombre: nombre,
-    clienteRed: inputClienteRed.value.trim() || c.red || "",
-    clienteTelefono: inputClienteTelefono.value.trim() || c.telefono || "",
-    clienteApodo: c.apodo || "",
-    clienteId: c.id || null,
-    items: itemsPedido,
-    total: itemsPedido.reduce((a, b) => a + b.subtotal, 0),
-    fecha: fechaInput ? new Date(fechaInput + "T00:00:00").toISOString() : new Date().toISOString(),
+    clienteApodo: clienteInfo ? clienteInfo.apodo : "",
+    clienteTelefono: telefono || (clienteInfo ? clienteInfo.telefono : ""),
+    clienteRed: red || (clienteInfo ? clienteInfo.red : ""),
+    fecha: fechaIso,
     fechaServer: serverTimestamp(),
-    nota: inputNota.value.trim(),
-    estado: selectEstado.value,
-    pagado: inputPagado.checked
+    estado,
+    nota,
+    pagado,
+    total,
+    stockDescontado: false,
+    items: itemsPedido
   };
 
   try {
-    await addDoc(collection(db, "pedidos"), pedidoData);
+    const ref = await addDoc(collection(db, "pedidos"), pedidoDoc);
+    const pedidoGuardado = { id: ref.id, ...pedidoDoc };
+
+    // Descontar stock si corresponde
+    if (debeDescontarStock(pedidoGuardado)) {
+      await descontarStockPorPedido(pedidoGuardado);
+      await updateDoc(doc(db, "pedidos", ref.id), {
+        stockDescontado: true
+      });
+    }
+
     alert("Pedido guardado ✔");
 
-    cargarPedidos();
-    btnLimpiar.click();
-  } catch (e) {
-    console.error(e);
+    limpiarFormulario();
+    await cargarPedidos();
+  } catch (err) {
+    console.error(err);
     alert("Error al guardar.");
   }
 });
 
-// =========================================================
+// =========================
 // CARGAR PEDIDOS
-// =========================================================
+// =========================
 async function cargarPedidos() {
   pedidosCache = [];
   listaPedidosBody.innerHTML = "";
 
   const snap = await getDocs(collection(db, "pedidos"));
+
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
   pedidosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
   renderLista();
 }
 
-// =========================================================
-// RENDER LISTA
-// =========================================================
+// =========================
+// RENDER LISTA + FILTROS
+// =========================
 function renderLista() {
-  const fEstado = filtroEstado.value;
-  const fTxt = filtroBusqueda.value.toLowerCase();
+  const est = filtroEstado ? filtroEstado.value : "";
+  const txt = filtroBusqueda ? filtroBusqueda.value.toLowerCase() : "";
 
   listaPedidosBody.innerHTML = "";
 
   pedidosCache
-    .filter(p => (!fEstado || p.estado === fEstado))
-    .filter(p => p.clienteNombre.toLowerCase().includes(fTxt))
+    .filter(p => {
+      if (est && p.estado !== est) return false;
+      if (txt && !p.clienteNombre.toLowerCase().includes(txt)) return false;
+      return true;
+    })
     .forEach(p => {
-      const fechaTxt = new Date(p.fecha).toLocaleDateString();
+      const fechaTxt = p.fecha
+        ? new Date(p.fecha).toLocaleDateString()
+        : "—";
 
       listaPedidosBody.innerHTML += `
         <tr>
           <td>${p.clienteNombre}</td>
           <td>${fechaTxt}</td>
-          <td class="estado ${p.estado}">${p.estado}</td>
-          <td class="${p.pagado ? "pagado-si" : "pagado-no"}">
-            ${p.pagado ? "✔ Sí" : "✖ No"}
+
+          <td class="estado ${p.estado}">
+            ${p.estado}
           </td>
+
+          <td class="${p.pagado ? "pagado-si" : "pagado-no"}">
+            ${p.pagado ? "✔ Pagado" : "✖ No pagado"}
+          </td>
+
           <td>$${p.total}</td>
-          <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
+
+          <td class="td-actions">
+            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️ Ver</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕</button>
-            <button class="btn-pp btn-delete-pp" onclick="eliminarPedido('${p.id}')">🗑️</button>
+            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>
         </tr>
       `;
     });
 }
 
-filtroEstado.addEventListener("change", renderLista);
-filtroBusqueda.addEventListener("input", renderLista);
+if (filtroEstado)   filtroEstado.addEventListener("change", renderLista);
+if (filtroBusqueda) filtroBusqueda.addEventListener("input", renderLista);
 
-// =========================================================
-// VER PEDIDO
-// =========================================================
+// =========================
+// MODAL VER
+// =========================
 window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
-  pedidoActual = p;
+  pedidoModalActual = p;
 
-  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Contacto: ${p.clienteRed || "—"}`;
-  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleDateString()}`;
+  const nombreMostrar = p.clienteApodo || p.clienteNombre;
+
+  modalTitulo.textContent = `Pedido de ${nombreMostrar}`;
+  modalCliente.textContent = `Cliente: ${p.clienteNombre} ${
+    p.clienteApodo ? "(" + p.clienteApodo + ")" : ""
+  } — Tel: ${p.clienteTelefono || "—"} — Contacto: ${
+    p.clienteRed || "—"
+  }`;
+
+  modalEstado.textContent = `Estado: ${p.estado || "—"}`;
+  modalFecha.textContent = p.fecha
+    ? `Fecha: ${new Date(p.fecha).toLocaleString()}`
+    : "Fecha: —";
+
+  modalItems.innerHTML =
+    p.items && p.items.length
+      ? p.items
+          .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
+          .join("<br>")
+      : "<em>Sin items</em>";
+
   modalNota.textContent = p.nota ? `Nota: ${p.nota}` : "";
-
-  modalItems.innerHTML = p.items
-    .map(i => `${i.cantidad}× ${i.nombre} — $${i.subtotal}`)
-    .join("<br>");
-
   modalTotal.textContent = `Total: $${p.total}`;
 
   modal.classList.remove("hidden");
 };
 
 modalCerrar.addEventListener("click", () => modal.classList.add("hidden"));
-
 modal.addEventListener("click", e => {
   if (e.target === modal) modal.classList.add("hidden");
 });
 
-// =========================================================
-// PDF (PIXEL PRO – SIN ESTADO)
-// =========================================================
+// =========================
+// PDF (SIN ESTADO)
+// =========================
 modalPdf.addEventListener("click", () => {
-  if (!pedidoActual) return;
+  if (!pedidoModalActual) return;
 
-  const cliente = pedidoActual.clienteApodo || pedidoActual.clienteNombre;
+  const p = pedidoModalActual;
+  const nombreMostrar = p.clienteApodo || p.clienteNombre;
+  const fechaTxt = p.fecha
+    ? new Date(p.fecha).toLocaleString()
+    : "—";
 
-  const contenido = `
-    <div style="
-      font-family: Poppins, sans-serif;
-      padding: 20px;
-      width: 330px;
-    ">
-      <h2>🦊 Pixel – Detalle de Pedido</h2>
-      <p><strong>Cliente:</strong> ${cliente}</p>
-      <p><strong>Fecha:</strong> ${new Date(pedidoActual.fecha).toLocaleDateString()}</p>
+  const html = `
+    <div style="font-family: Poppins, Arial, sans-serif; padding:16px; max-width:480px;">
+      <h2 style="margin-bottom:8px;">Pedido de ${nombreMostrar}</h2>
+      <p><strong>Cliente:</strong> ${p.clienteNombre}</p>
+      ${
+        p.clienteApodo
+          ? `<p><strong>Apodo:</strong> ${p.clienteApodo}</p>`
+          : ""
+      }
+      <p><strong>Teléfono:</strong> ${p.clienteTelefono || "—"}</p>
+      <p><strong>Contacto:</strong> ${p.clienteRed || "—"}</p>
+      <p><strong>Fecha:</strong> ${fechaTxt}</p>
 
-      <hr>
+      <hr style="margin:12px 0;">
 
-      <div>
-        ${pedidoActual.items.map(i =>
-          `<p>${i.cantidad}× ${i.nombre} — $${i.subtotal}</p>`
-        ).join("")}
-      </div>
+      <h3>Detalle</h3>
+      ${
+        p.items && p.items.length
+          ? p.items
+              .map(
+                i => `<p>${i.cantidad}× ${i.nombre} — $${i.subtotal}</p>`
+              )
+              .join("")
+          : "<p>Sin items</p>"
+      }
 
-      <hr>
+      ${
+        p.nota
+          ? `<p style="margin-top:8px;"><strong>Nota:</strong> ${p.nota}</p>`
+          : ""
+      }
 
-      <p style="font-size:18px; font-weight:700;">Total: $${pedidoActual.total}</p>
+      <p style="margin-top:12px; font-size:1.05rem;">
+        <strong>Total:</strong> $${p.total}
+      </p>
     </div>
   `;
 
-  html2pdf().from(contenido).save(`pedido-${cliente}.pdf`);
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+
+  const opt = {
+    margin:       10,
+    filename:     `Pedido_${nombreMostrar}.pdf`,
+    image:        { type: "jpeg", quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+
+  // @ts-ignore (html2pdf es global del CDN)
+  html2pdf().set(opt).from(tmp).save();
 });
 
-// =========================================================
-// WHATSAPP – CON APODO
-// =========================================================
-modalWhatsApp.addEventListener("click", () => {
-  if (!pedidoActual) return;
+// =========================
+// WHATSAPP (USANDO APODO)
+// =========================
+modalWhats.addEventListener("click", () => {
+  if (!pedidoModalActual) return;
 
-  const apodo = pedidoActual.clienteApodo || pedidoActual.clienteNombre;
-  const tel = pedidoActual.clienteTelefono?.replace(/\D/g, "");
+  const p = pedidoModalActual;
+  const nombreMostrar = p.clienteApodo || p.clienteNombre;
+  const fechaTxt = p.fecha
+    ? new Date(p.fecha).toLocaleDateString()
+    : "—";
 
-  const lineas = pedidoActual.items
-    .map(i => `✨ ${i.cantidad}× *${i.nombre}* — $${i.subtotal}`)
-    .join("\n");
+  const lineasItems =
+    p.items && p.items.length
+      ? p.items
+          .map(i => `✨ ${i.cantidad}× *${i.nombre}* — $${i.subtotal}`)
+          .join("\n")
+      : "—";
 
-  const mensaje = encodeURIComponent(
-`¡Hola ${apodo}! 😊
+  const msg = `¡Hola ${nombreMostrar}! 😊
 
 🦊 *Pixel - Detalle de tu pedido*
 
-${lineas}
+${lineasItems}
 
-💰 *Total:* $${pedidoActual.total}
-📅 *Fecha:* ${new Date(pedidoActual.fecha).toLocaleDateString()}
+💰 *Total:* $${p.total}
+📅 *Fecha:* ${fechaTxt}
+💵 *Pagado:* ${p.pagado ? "Sí ✔" : "No ❌"}
 
 💜 Gracias por tu compra!
-📸 Instagram: https://instagram.com/pixel.stickerss`
-  );
+📸 Instagram: https://instagram.com/pixel.stickerss`;
 
-  window.open(`https://wa.me/${tel}?text=${mensaje}`);
+  const numero = (p.clienteTelefono || "").replace(/[^0-9]/g, "");
+  const url = numero
+    ? `https://wa.me/549${numero}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  window.open(url, "_blank");
 });
 
-// =========================================================
-// EDITAR PEDIDO COMPLETO
-// =========================================================
+// =========================
+// MODAL EDITAR
+// =========================
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
-  pedidoEditId = id;
-  pedidoActual = p;
+  pedidoEditandoId = id;
 
-  editEstado.value = p.estado;
+  editEstado.value = p.estado || "PENDIENTE";
+  editNota.value   = p.nota || "";
+  editFecha.value  = p.fecha
+    ? new Date(p.fecha).toISOString().slice(0, 10)
+    : "";
   editPagado.checked = !!p.pagado;
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha ? new Date(p.fecha).toISOString().slice(0, 10) : "";
 
   modalEdit.classList.remove("hidden");
 };
 
 editCerrar.addEventListener("click", () => {
   modalEdit.classList.add("hidden");
-  pedidoEditId = null;
+  pedidoEditandoId = null;
 });
 
 editGuardar.addEventListener("click", async () => {
-  if (!pedidoEditId) return;
+  if (!pedidoEditandoId) return;
+
+  const pAnterior = pedidosCache.find(x => x.id === pedidoEditandoId);
+  if (!pAnterior) return;
+
+  const nuevoEstado = editEstado.value;
+  const nuevaNota   = editNota.value.trim();
+  const nuevaFecha  = editFecha.value
+    ? new Date(editFecha.value + "T00:00:00").toISOString()
+    : pAnterior.fecha;
+  const nuevoPagado = editPagado.checked;
+
+  const pedidoActualizado = {
+    ...pAnterior,
+    estado: nuevoEstado,
+    nota: nuevaNota,
+    fecha: nuevaFecha,
+    pagado: nuevoPagado
+  };
 
   try {
-    await updateDoc(doc(db, "pedidos", pedidoEditId), {
-      estado: editEstado.value,
-      pagado: editPagado.checked,
-      nota: editNota.value.trim(),
-      fecha: editFecha.value
-        ? new Date(editFecha.value + "T00:00:00").toISOString()
-        : null
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
+      estado: nuevoEstado,
+      nota: nuevaNota,
+      fecha: nuevaFecha,
+      pagado: nuevoPagado
     });
+
+    // Si antes no estaba descontado y ahora sí debe descontar → descontamos
+    if (debeDescontarStock(pedidoActualizado) && !pAnterior.stockDescontado) {
+      await descontarStockPorPedido(pedidoActualizado);
+      await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
+        stockDescontado: true
+      });
+    }
 
     alert("Cambios guardados ✔");
     modalEdit.classList.add("hidden");
-    cargarPedidos();
-  } catch (e) {
-    console.error(e);
-    alert("Error al guardar.");
+    pedidoEditandoId = null;
+    await cargarPedidos();
+  } catch (err) {
+    console.error(err);
+    alert("Error al actualizar.");
   }
 });
 
-// =========================================================
-// DUPLICAR
-// =========================================================
+// =========================
+// DUPLICAR PEDIDO (NO DESCUENTA STOCK SOLO POR DUPLICAR)
+// =========================
 window.duplicarPedido = async id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
@@ -436,32 +677,42 @@ window.duplicarPedido = async id => {
   const nuevo = {
     ...p,
     fecha: new Date().toISOString(),
-    fechaServer: serverTimestamp()
+    fechaServer: serverTimestamp(),
+    estado: "PENDIENTE",
+    pagado: false,
+    stockDescontado: false
   };
+
   delete nuevo.id;
 
   await addDoc(collection(db, "pedidos"), nuevo);
+
   alert("Pedido duplicado ✔");
   cargarPedidos();
 };
 
-// =========================================================
-// ELIMINAR
-// =========================================================
-window.eliminarPedido = async id => {
-  if (!confirm("¿Eliminar pedido?")) return;
+// =========================
+// BORRAR PEDIDO
+// =========================
+window.borrarPedido = async id => {
+  if (!confirm("¿Eliminar este pedido?")) return;
 
-  await deleteDoc(doc(db, "pedidos", id));
-  cargarPedidos();
+  try {
+    await deleteDoc(doc(db, "pedidos", id));
+    alert("Pedido eliminado ✔");
+    await cargarPedidos();
+  } catch (err) {
+    console.error(err);
+    alert("Error al eliminar pedido.");
+  }
 };
 
-// =========================================================
-// INIT
-// =========================================================
+// =========================
+// INICIO
+// =========================
 (async function init() {
   await cargarClientes();
   await cargarProductos();
   await cargarPedidos();
   renderPedido();
 })();
-
