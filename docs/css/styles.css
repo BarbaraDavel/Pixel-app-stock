@@ -1163,4 +1163,71 @@ input, select, textarea {
   60%  { transform: scale(1.08); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+/* ============================================
+   POPUP PIXEL — ALERTA CENTRADA PREMIUM
+============================================ */
+
+#popupPixel {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0,0,0,0.45);          /* fondo suave */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  z-index: 99999;
+
+  opacity: 1;
+  transition: opacity .25s ease-out;
+}
+
+#popupPixel.hidden {
+  opacity: 0;
+  pointer-events: none;  /* no bloquea clics al ocultarse */
+}
+
+/* Caja del popup */
+#popupPixel .popup-box {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+
+  padding: 20px 32px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.35);
+
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  box-shadow:
+    0 12px 35px rgba(0,0,0,0.35),
+    0 0 20px rgba(166, 107, 255, 0.4);  /* glow Pixel */
+
+  animation: popupCenterIn .35s cubic-bezier(.25,.9,.35,1.2);
+}
+
+/* icono check */
+#popupPixel .popup-box::after {
+  content: "✔";
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #c59bff;
+  text-shadow: 0 0 8px rgba(166,107,255,0.9);
+}
+
+/* Animación */
+@keyframes popupCenterIn {
+  0%   { transform: scale(.7) translateY(20px); opacity: 0; }
+  60%  { transform: scale(1.08) translateY(-6px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); }
+}
 
