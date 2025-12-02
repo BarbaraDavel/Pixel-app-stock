@@ -130,7 +130,7 @@ btnGuardar.onclick = async () => {
       cantidadPaquete: paquete
     });
 
-    mostrarPopup("Insumo actualizado ✔️");
+    mostrarPopup("Insumo actualizado");
     editId = null;
   }
 
