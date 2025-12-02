@@ -1,138 +1,284 @@
-// js/recetas.js
+// ================================================
+//   RECETAS.JS - NUEVO SISTEMA COMPLETO
+// ================================================
 import { db } from "./firebase.js";
 import {
   collection,
-  addDoc,
+  doc,
   getDocs,
-  deleteDoc,
-  doc
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const selProducto = document.getElementById("recetaProducto");
-const selInsumo   = document.getElementById("recetaInsumo");
-const inputCantidad = document.getElementById("recetaCantidad");
-const btnGuardar  = document.getElementById("guardarReceta");
-const lista       = document.getElementById("listaRecetas");
 
+// ==========================
+//   ELEMENTOS DEL DOM
+// ==========================
+const selProducto = document.getElementById("recetaProducto");
+const selInsumo = document.getElementById("recetaInsumo");
+const inputCantidad = document.getElementById("recetaCantidad");
+const btnGuardar = document.getElementById("guardarReceta");
+const lista = document.getElementById("listaRecetas");
+
+
+// ---------- Modal ----------
+const modal = document.getElementById("modalReceta");
+const modalTitulo = document.getElementById("modalRecetaTitulo");
+const modalItems = document.getElementById("modalRecetaItems");
+const btnAgregarInsumo = document.getElementById("btnAgregarInsumo");
+const btnGuardarReceta = document.getElementById("btnGuardarReceta");
+const btnCerrarReceta = document.getElementById("btnCerrarReceta");
+
+
+// ==========================
+//   VARIABLES GLOBALES
+// ==========================
+let productos = {};   // id -> {nombre, precio...}
+let insumos = {};     // id -> {nombre, stock...}
+let recetas = {};     // idProducto -> { items: [] }
+
+let recetaEditandoId = null;
+
+
+
+// =================================================
+//   POPUP
+// =================================================
 function popup(msg) {
-  const box = document.getElementById("popupPixel");
-  const txt = document.getElementById("popupText");
-  if (!box || !txt) {
-    alert(msg);
-    return;
-  }
-  txt.textContent = msg;
-  box.classList.remove("hidden");
-  setTimeout(() => box.classList.add("hidden"), 1600);
+  console.log(msg);
 }
 
-let productos = {}; // idProducto -> data
-let insumos   = {}; // idInsumo   -> data
-let recetas   = []; // cache de recetas
 
-// ============================
-// Cargar selects (productos / insumos)
-// ============================
+
+// =================================================
+//   CARGAR PRODUCTOS E INSUMOS
+// =================================================
 async function cargarSelects() {
   selProducto.innerHTML = "";
   selInsumo.innerHTML = "";
 
-  // Productos
+  // ----- Productos -----
   const snapProd = await getDocs(collection(db, "productos"));
   snapProd.forEach(p => {
-    const data = p.data();
-    productos[p.id] = data;
-    selProducto.innerHTML += `<option value="${p.id}">${data.nombre}</option>`;
+    productos[p.id] = p.data();
+    selProducto.innerHTML += `<option value="${p.id}">${p.data().nombre}</option>`;
   });
 
-  // Insumos
+  // ----- Insumos -----
   const snapIns = await getDocs(collection(db, "insumos"));
   snapIns.forEach(i => {
-    const data = i.data();
-    insumos[i.id] = data;
-    selInsumo.innerHTML += `<option value="${i.id}">${data.nombre}</option>`;
+    insumos[i.id] = i.data();
+    selInsumo.innerHTML += `<option value="${i.id}">${i.data().nombre}</option>`;
   });
 }
 
-// ============================
-// Cargar recetas
-// ============================
+
+
+// =================================================
+//   GUARDAR UNA NUEVA LÍNEA DE RECETA A UN PRODUCTO
+// =================================================
+btnGuardar.addEventListener("click", async () => {
+  const productoId = selProducto.value;
+  const insumoId = selInsumo.value;
+  const cantidad = Number(inputCantidad.value);
+
+  if (!productoId || !insumoId || !cantidad || cantidad <= 0) {
+    alert("Completá todos los campos correctamente.");
+    return;
+  }
+
+  // Leer receta existente
+  const recetaRef = doc(db, "recetas", productoId);
+  const recetaSnap = await getDoc(recetaRef);
+
+  let datos = { productoId, items: [] };
+
+  if (recetaSnap.exists()) {
+    datos = recetaSnap.data();
+  }
+
+  // Agregar nueva línea
+  datos.items.push({
+    insumoId,
+    cantidad
+  });
+
+  await setDoc(recetaRef, datos);
+
+  popup("Receta agregada ✔");
+  inputCantidad.value = "";
+  await cargarRecetas();
+});
+
+
+
+// =================================================
+//   CARGAR Y MOSTRAR LISTA DE RECETAS (agrupadas)
+// =================================================
 async function cargarRecetas() {
   lista.innerHTML = "";
-  recetas = [];
+  recetas = {};
 
   const snap = await getDocs(collection(db, "recetas"));
 
   snap.forEach(r => {
-    recetas.push({ id: r.id, ...r.data() });
-  });
-
-  // Ordenar por producto
-  recetas.sort((a, b) => {
-    const pa = productos[a.productoId]?.nombre || "";
-    const pb = productos[b.productoId]?.nombre || "";
-    return pa.localeCompare(pb);
+    recetas[r.id] = r.data();
   });
 
   renderRecetas();
 }
 
+
 function renderRecetas() {
   lista.innerHTML = "";
 
-  recetas.forEach(r => {
-    const prod = productos[r.productoId]?.nombre || "-";
-    const ins  = insumos[r.insumoId]?.nombre   || "-";
+  Object.keys(recetas).forEach(productoId => {
+    const receta = recetas[productoId];
+    const nombreProd = productos[productoId]?.nombre || "(producto eliminado)";
+    const cantItems = receta.items?.length || 0;
 
     lista.innerHTML += `
       <tr>
-        <td>${prod}</td>
-        <td>${ins}</td>
-        <td>${r.cantidadUsada}</td>
+        <td>${nombreProd}</td>
+        <td>${cantItems} insumos</td>
         <td>
-          <button class="boton-eliminar" onclick="eliminarReceta('${r.id}')">
-            Eliminar
-          </button>
+          <button class="btn btn-primary" onclick="editarReceta('${productoId}')">Ver / Editar</button>
+          <button class="btn btn-outline" onclick="eliminarReceta('${productoId}')">Eliminar todo</button>
         </td>
       </tr>
     `;
   });
 }
 
-window.eliminarReceta = async function (id) {
-  await deleteDoc(doc(db, "recetas", id));
-  popup("Receta eliminada 💔");
+
+
+// =================================================
+//   ELIMINAR TODA UNA RECETA
+// =================================================
+window.eliminarReceta = async (productoId) => {
+  if (!confirm("¿Eliminar toda la receta de este producto?")) return;
+
+  await deleteDoc(doc(db, "recetas", productoId));
+
+  popup("Receta eliminada ✔");
   cargarRecetas();
 };
 
-// ============================
-// Guardar receta
-// ============================
-btnGuardar.onclick = async () => {
-  const prodId = selProducto.value;
-  const insId  = selInsumo.value;
-  const cant   = Number(inputCantidad.value);
 
-  if (!prodId || !insId || !cant || cant <= 0) {
-    alert("Completá todos los campos con una cantidad válida.");
-    return;
-  }
 
-  await addDoc(collection(db, "recetas"), {
-    productoId: prodId,
-    insumoId: insId,
-    cantidadUsada: cant
-  });
+// =================================================
+//   ABRIR MODAL DE EDICIÓN
+// =================================================
+window.editarReceta = async (productoId) => {
+  recetaEditandoId = productoId;
+  const receta = recetas[productoId];
 
-  popup("Receta agregada ✨");
+  modalTitulo.textContent = "Editar receta – " + (productos[productoId]?.nombre || "");
 
-  inputCantidad.value = "";
-  await cargarRecetas();
+  renderModalItems(receta.items);
+
+  modal.classList.remove("hidden");
 };
 
-// ============================
-// INIT
-// ============================
+
+
+// =================================================
+//   RENDERIZAR LISTA DENTRO DEL MODAL
+// =================================================
+function renderModalItems(items) {
+  modalItems.innerHTML = "";
+
+  items.forEach((item, index) => {
+    modalItems.innerHTML += `
+      <tr>
+        <td>
+          <select data-index="${index}" class="selInsumoModal input-pixel">
+            ${Object.keys(insumos)
+              .map(id => `<option value="${id}" ${id === item.insumoId ? "selected" : ""}>${insumos[id].nombre}</option>`)
+              .join("")}
+          </select>
+        </td>
+
+        <td>
+          <input data-index="${index}" class="cantInsumoModal input-pixel"
+                 type="number" min="1" value="${item.cantidad}">
+        </td>
+
+        <td>
+          <button class="btn btn-outline" onclick="eliminarLineaReceta(${index})">✖</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+
+
+// =================================================
+//   AGREGAR UNA NUEVA LÍNEA EN EL MODAL
+// =================================================
+btnAgregarInsumo.addEventListener("click", () => {
+  recetas[recetaEditandoId].items.push({
+    insumoId: Object.keys(insumos)[0],
+    cantidad: 1
+  });
+
+  renderModalItems(recetas[recetaEditandoId].items);
+});
+
+
+
+// =================================================
+//   ELIMINAR UNA LÍNEA
+// =================================================
+window.eliminarLineaReceta = (index) => {
+  recetas[recetaEditandoId].items.splice(index, 1);
+  renderModalItems(recetas[recetaEditandoId].items);
+};
+
+
+
+// =================================================
+//   GUARDAR CAMBIOS DEL MODAL
+// =================================================
+btnGuardarReceta.addEventListener("click", async () => {
+  const items = recetas[recetaEditandoId].items;
+
+  // Actualizar valores desde el DOM
+  document.querySelectorAll(".selInsumoModal").forEach(sel => {
+    const i = Number(sel.dataset.index);
+    items[i].insumoId = sel.value;
+  });
+
+  document.querySelectorAll(".cantInsumoModal").forEach(inp => {
+    const i = Number(inp.dataset.index);
+    items[i].cantidad = Number(inp.value);
+  });
+
+  // Guardar en Firestore
+  await updateDoc(doc(db, "recetas", recetaEditandoId), { items });
+
+  popup("Receta actualizada ✔");
+  modal.classList.add("hidden");
+  cargarRecetas();
+});
+
+
+
+// =================================================
+//   CERRAR MODAL
+// =================================================
+btnCerrarReceta.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+
+
+// =================================================
+//   INIT
+// =================================================
 (async function init() {
   await cargarSelects();
   await cargarRecetas();

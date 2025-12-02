@@ -860,3 +860,82 @@ input, select, textarea {
     background: rgba(255,255,255,0.13) !important;
   }
 }
+/* ============================
+      MODAL RECETAS
+============================ */
+
+.modal-receta {
+  width: 90%;
+  max-width: 550px;
+  background: #2a203aee;
+  border-radius: 18px;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease;
+  box-shadow: 0 0 20px #0004;
+}
+
+.modal-title {
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.tabla-modal {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.tabla-modal th {
+  font-weight: 600;
+  padding-bottom: 6px;
+  color: #e3caff;
+  border-bottom: 1px solid #5e3f83;
+}
+
+.tabla-modal td {
+  padding: 8px 0;
+  text-align: center;
+}
+
+.modal-receta select,
+.modal-receta input {
+  width: 90%;
+  background: #3a2952;
+  border: 1px solid #7d5bb3;
+  padding: 6px;
+  color: #fff;
+  border-radius: 8px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 10px;
+}
+
+.modal-buttons .btn {
+  flex: 1 1 auto;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #0008;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+.hidden { display: none !important; }
+
+/* Animación */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
