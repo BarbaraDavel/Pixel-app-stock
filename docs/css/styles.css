@@ -1099,4 +1099,68 @@ input, select, textarea {
   60%  { transform: scale(1.08) translateY(-6px); opacity: 1; }
   100% { transform: scale(1) translateY(0); }
 }
+/* ============================================
+   POPUP PERFECT PIXEL (sin capa gigante)
+============================================ */
+
+/* Contenedor chico flotante */
+#popupPixel {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+
+  /* NO ocupa toda la pantalla */
+  width: auto;
+  height: auto;
+
+  opacity: 1;
+  transition: opacity .25s ease-out;
+  pointer-events: none;
+}
+
+#popupPixel.hidden {
+  opacity: 0;
+}
+
+/* Caja estilo iOS */
+#popupPixel .popup-box {
+  background: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+
+  padding: 12px 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.35) !important;
+
+  color: #fff !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  box-shadow:
+    0 6px 25px rgba(0,0,0,0.35),
+    0 0 15px rgba(166, 107, 255, 0.5);
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  animation: pixelPop .35s cubic-bezier(.25,.9,.35,1.2);
+}
+
+#popupPixel .popup-box::after {
+  content: "✔";
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #c59bff !important;
+  text-shadow: 0 0 6px rgba(166,107,255,0.8);
+}
+
+/* animación elegante */
+@keyframes pixelPop {
+  0%   { transform: scale(.75); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
