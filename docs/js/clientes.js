@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 /* =========================================================
-   DOM ELEMENTS  (IDs corregidos según clientes.html)
+   DOM ELEMENTS
 ========================================================= */
 
 const inputNombre = document.getElementById("clienteNombre");
@@ -20,6 +20,17 @@ const inputNota = document.getElementById("clienteNota");
 
 const btnGuardar = document.getElementById("clienteGuardar");
 const tablaBody = document.getElementById("clientesLista");
+
+/* === ELEMENTOS DEL MODAL DE EDICIÓN === */
+
+const modalEdit = document.getElementById("editarClienteModal");
+const editNombre = document.getElementById("editNombre");
+const editApodo = document.getElementById("editApodo");
+const editWhatsapp = document.getElementById("editWhatsapp");
+const editInstagram = document.getElementById("editInstagram");
+const editNota = document.getElementById("editNota");
+const editGuardar = document.getElementById("editGuardar");
+const editCerrar = document.getElementById("editCerrar");
 
 /* =========================================================
    STATE
@@ -119,7 +130,6 @@ window.editarCliente = id => {
 
   clienteEditandoId = id;
 
-  // 🚨 Falta modal en tu HTML, pero mantengo el código por si lo agregás
   editNombre.value = c.nombre;
   editApodo.value = c.apodo || "";
   editWhatsapp.value = c.telefono || "";
@@ -128,6 +138,44 @@ window.editarCliente = id => {
 
   modalEdit.classList.remove("hidden");
 };
+
+/* =========================================================
+   GUARDAR EDICIÓN
+========================================================= */
+
+editGuardar.addEventListener("click", async () => {
+  if (!clienteEditandoId) return;
+
+  try {
+    await updateDoc(doc(db, "clientes", clienteEditandoId), {
+      nombre: editNombre.value.trim(),
+      apodo: editApodo.value.trim(),
+      telefono: editWhatsapp.value.trim(),
+      red: editInstagram.value.trim(),
+      nota: editNota.value.trim()
+    });
+
+    alert("Cliente actualizado ✔");
+    modalEdit.classList.add("hidden");
+    clienteEditandoId = null;
+    cargarClientes();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al actualizar cliente.");
+  }
+});
+
+/* =========================================================
+   CERRAR MODAL
+========================================================= */
+
+if (editCerrar) {
+  editCerrar.addEventListener("click", () => {
+    modalEdit.classList.add("hidden");
+    clienteEditandoId = null;
+  });
+}
 
 /* =========================================================
    ELIMINAR CLIENTE

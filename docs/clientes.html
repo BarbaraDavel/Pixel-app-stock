@@ -9,6 +9,9 @@
 
 <body>
 
+<!-- ================================
+          HEADER
+================================ -->
 <div class="topbar">
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel
@@ -30,11 +33,16 @@
   </div>
 </div>
 
+<!-- ================================
+          CONTENIDO PRINCIPAL
+================================ -->
 <div class="main">
 
   <div class="card">
     <h1>Clientes</h1>
-    <p class="hint">Base de datos de clientes. Estos datos se usan para los pedidos y el mensaje de WhatsApp 💬.</p>
+    <p class="hint">
+      Base de datos de clientes. Estos datos se usan para los pedidos y el mensaje de WhatsApp 💬.
+    </p>
 
     <div class="form-grid">
       <input id="clienteNombre" placeholder="Nombre del cliente">
@@ -42,8 +50,10 @@
       <input id="clienteTelefono" placeholder="Whatsapp">
       <input id="clienteRed" placeholder="Instagram">
       <input id="clienteNota" placeholder="Nota (opcional)">
+
       <button id="clienteGuardar" class="btn btn-primary">Guardar</button>
     </div>
+
     <p class="hint" id="clienteModo"></p>
   </div>
 
@@ -67,28 +77,71 @@
     </table>
   </div>
 
-</div>
+</div> <!-- FIN MAIN -->
 
-<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
+
+<!-- ================================
+         BOTTOM NAV MOBILE
+================================ -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
     <span class="bn-icon">🏠</span>
     <span class="bn-label">Inicio</span>
   </a>
+
   <a href="productos.html" class="bn-item">
     <span class="bn-icon">🏷️</span>
     <span class="bn-label">Productos</span>
   </a>
+
   <a href="pedidos.html" class="bn-item">
     <span class="bn-icon">📝</span>
     <span class="bn-label">Pedidos</span>
   </a>
+
   <a href="clientes.html" class="bn-item">
     <span class="bn-icon">👥</span>
     <span class="bn-label">Clientes</span>
   </a>
 </nav>
 
+
+<!-- ================================
+         MODAL EDITAR CLIENTE
+================================ -->
+<div id="editarClienteModal" class="modal-backdrop hidden">
+  <div class="modal">
+
+    <h3>Editar cliente</h3>
+
+    <label>Nombre</label>
+    <input id="editNombre" class="input-pixel">
+
+    <label>Apodo</label>
+    <input id="editApodo" class="input-pixel">
+
+    <label>Whatsapp</label>
+    <input id="editWhatsapp" class="input-pixel">
+
+    <label>Instagram</label>
+    <input id="editInstagram" class="input-pixel">
+
+    <label>Nota</label>
+    <input id="editNota" class="input-pixel">
+
+    <div style="text-align:right; margin-top:1rem;">
+      <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
+      <button id="editCerrar" class="btn btn-outline">Cerrar</button>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- ================================
+          SCRIPTS
+================================ -->
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/clientes.js"></script>
 
