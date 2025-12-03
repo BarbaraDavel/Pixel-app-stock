@@ -1294,4 +1294,18 @@ input, select, textarea {
   60%  { transform: scale(1.05) translateY(-6px); opacity: 1; }
   100% { transform: scale(1) translateY(0); }
 }
+/* FIX HEADER TABLAS EN DARK MODE */
+@media (prefers-color-scheme: dark) {
+
+  .tabla-insumos thead,
+  .tabla-stock thead {
+    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
+    color: #fff !important;
+  }
+
+  .tabla-insumos th,
+  .tabla-stock th {
+    color: #fff !important;
+  }
+}
 
