@@ -1342,4 +1342,44 @@ body.dark-mode .tabla-stock thead,
     background: rgba(255,255,255,0.13) !important;
   }
 }
+/* ============================================
+   FIX FINAL Y REAL — TABLAS OSCURAS PIXEL
+============================================ */
+
+@media (prefers-color-scheme: dark) {
+
+  /* Header */
+  .tabla-insumos thead,
+  .tabla-stock thead {
+    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
+  }
+
+  .tabla-insumos th,
+  .tabla-stock th {
+    color: #ffffff !important;
+  }
+
+  /* Filas */
+  .tabla-insumos tbody tr,
+  .tabla-stock tbody tr {
+    background: rgba(255,255,255,0.05) !important;
+  }
+
+  .tabla-insumos tbody tr:nth-child(even),
+  .tabla-stock tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.09) !important;
+  }
+
+  /* Hover */
+  .tabla-insumos tbody tr:hover,
+  .tabla-stock tbody tr:hover {
+    background: rgba(255,255,255,0.15) !important;
+  }
+
+  /* Texto */
+  .tabla-insumos td,
+  .tabla-stock td {
+    color: #eee !important;
+  }
+}
 
