@@ -95,6 +95,7 @@ async function cargarProductos() {
         </div>
       </div>
     `;
+
   });
 }
 
