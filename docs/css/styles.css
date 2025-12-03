@@ -1308,4 +1308,38 @@ input, select, textarea {
     color: #fff !important;
   }
 }
+/* ==========================================================
+   FIX DEFINITIVO — STOCK OSCURO PIXEL (forzado)
+========================================================== */
+
+body.dark-mode .tabla-insumos thead,
+body.dark-mode .tabla-stock thead,
+@media (prefers-color-scheme: dark) {
+  .tabla-insumos thead,
+  .tabla-stock thead {
+    background: linear-gradient(90deg, #2f2542, #4b3a68) !important;
+    color: #ffffff !important;
+  }
+
+  .tabla-insumos th,
+  .tabla-stock th {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+
+  .tabla-insumos tbody tr,
+  .tabla-stock tbody tr {
+    background: rgba(255,255,255,0.03) !important;
+  }
+
+  .tabla-insumos tbody tr:nth-child(even),
+  .tabla-stock tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.07) !important;
+  }
+
+  .tabla-insumos tbody tr:hover,
+  .tabla-stock tbody tr:hover {
+    background: rgba(255,255,255,0.13) !important;
+  }
+}
 
