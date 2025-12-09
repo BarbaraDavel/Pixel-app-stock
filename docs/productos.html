@@ -20,7 +20,6 @@
   </button>
 
   <div class="nav-links">
-    <!-- tus <a> de siempre -->
     <a href="./index.html">Inicio</a>
     <a href="./insumos.html">Insumos</a>
     <a href="./stock.html">Stock</a>
@@ -31,7 +30,6 @@
     <a href="./pedidos.html">Pedidos</a>
   </div>
 </div>
-
 
 <div class="main">
 
@@ -55,6 +53,8 @@
   </div>
 
   <br>
+
+</div>
 
 <!-- MODAL VER PRODUCTO -->
 <div id="verProductoModal" class="modal-backdrop hidden">
@@ -96,40 +96,12 @@
     <h4>Costo de producción</h4>
     <div id="costoProduccionBox" class="hint"></div>
 
+    <h4>Ganancia estimada</h4>
+    <div id="gananciaBox" class="hint"></div>
+
     <div class="modal-actions">
       <button id="cancelarEdicion" class="btn btn-outline">Cancelar</button>
       <button id="guardarEdicion" class="btn btn-primary">Guardar cambios</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL VENTA -->
-<div id="ventaModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h3>Confirmar venta</h3>
-
-    <label>Nombre del cliente</label>
-    <input id="clienteNombre">
-
-    <label>Teléfono</label>
-    <input id="clienteTelefono">
-
-    <label>Medio de pago</label>
-    <select id="metodoPago">
-      <option value="Efectivo">Efectivo</option>
-      <option value="Transferencia">Transferencia</option>
-      <option value="Débito">Débito</option>
-      <option value="Crédito">Crédito</option>
-      <option value="Mercado Pago">Mercado Pago</option>
-      <option value="Otro">Otro</option>
-    </select>
-
-    <label>Notas (opcional)</label>
-    <input id="notaVenta">
-
-    <div class="modal-actions">
-      <button id="ventaCancelar" class="btn btn-outline">Cancelar</button>
-      <button id="ventaConfirmar" class="btn btn-primary">Confirmar venta</button>
     </div>
   </div>
 </div>
@@ -138,7 +110,8 @@
 <div id="popupPixel" class="popup hidden">
   <span id="popupText"></span>
 </div>
-<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
+
+<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
     <span class="bn-icon">🏠</span>
