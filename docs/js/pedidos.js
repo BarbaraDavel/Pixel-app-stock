@@ -545,6 +545,10 @@ ${lineasItems}
 📅 *Fecha:* ${fechaTxt}
 💵 *Pagado:* ${p.pagado ? "Sí ✔" : "No ❌"}
 
+💳 *Forma de pago*
+Podés abonar mediante transferencia bancaria:
+👉 *Alias:* barbi-d
+
 💜 Gracias por tu compra!
 📸 Instagram: https://instagram.com/pixel.stickerss`;
 
