@@ -543,10 +543,9 @@ ${lineasItems}
 
 💰 *Total:* $${p.total}
 📅 *Fecha:* ${fechaTxt}
-💵 *Pagado:* ${p.pagado ? "Sí ✔" : "No ❌"}
 
 💳 *Forma de pago*
-Podés abonar mediante transferencia bancaria:
+Podés abonar mediante transferencia:
 👉 *Alias:* barbi-d
 
 💜 Gracias por tu compra!
