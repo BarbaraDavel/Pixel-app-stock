@@ -546,7 +546,7 @@ ${lineasItems}
 
 💳 *Forma de pago*
 Podés abonar mediante transferencia:
-👉 *Alias:* barbi-d
+👉 *Alias:* barbi.dLE
 
 💜 Gracias por tu compra!
 📸 Instagram: https://instagram.com/pixel.stickerss`;
