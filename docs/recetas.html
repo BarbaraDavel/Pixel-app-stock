@@ -28,9 +28,9 @@
     <a href="./productos.html">Productos</a>
     <a href="./clientes.html">Clientes</a>
     <a href="./pedidos.html">Pedidos</a>
+    <a href="./guia.html">Guia</a>
   </div>
 </div>
-
 
 <div class="main">
 
@@ -39,15 +39,25 @@
   ========================== -->
   <div class="card">
     <h1>Recetas</h1>
-    <p class="hint">Configurá cuántos insumos usa cada producto.</p>
+    <p class="hint">
+      Definí insumos y guardá la ficha técnica de cada producto
+    </p>
 
-    <h3>Agregar receta</h3>
+    <h3>Agregar insumo a receta</h3>
 
     <div class="form-grid">
       <select id="recetaProducto" class="input-pixel"></select>
       <select id="recetaInsumo" class="input-pixel"></select>
-      <input id="recetaCantidad" type="number" class="input-pixel" placeholder="Cantidad usada">
-      <button id="guardarReceta" class="btn btn-primary">Agregar</button>
+      <input
+        id="recetaCantidad"
+        type="number"
+        class="input-pixel"
+        placeholder="Cantidad usada"
+        min="1"
+      >
+      <button id="guardarReceta" class="btn btn-primary">
+        Agregar
+      </button>
     </div>
   </div>
 
@@ -73,7 +83,6 @@
 
 </div>
 
-
 <!-- ==========================
         MODAL DE RECETA
 ============================== -->
@@ -82,6 +91,7 @@
 
     <h2 id="modalRecetaTitulo" class="modal-title"></h2>
 
+    <!-- INSUMOS -->
     <table class="tabla-modal">
       <thead>
         <tr>
@@ -93,32 +103,77 @@
       <tbody id="modalRecetaItems"></tbody>
     </table>
 
+    <!-- =========================
+         FICHA TÉCNICA
+    ========================== -->
+    <h3 style="margin-top: 1rem;">🧾 Ficha técnica</h3>
+
+    <div class="form-grid">
+      <textarea
+        id="recetaMateriales"
+        class="input-pixel"
+        placeholder="Materiales usados (papel, vinilo, laminado, etc.)"
+        rows="2"
+      ></textarea>
+
+      <textarea
+        id="recetaImpresion"
+        class="input-pixel"
+        placeholder="Configuración de impresión (calidad, papel, perfil, etc.)"
+        rows="2"
+      ></textarea>
+
+      <textarea
+        id="recetaCorte"
+        class="input-pixel"
+        placeholder="Configuración de corte (cuchilla, presión, pasadas, etc.)"
+        rows="2"
+      ></textarea>
+
+      <textarea
+        id="recetaNotas"
+        class="input-pixel"
+        placeholder="Notas, tips o recordatorios"
+        rows="2"
+      ></textarea>
+    </div>
+
     <div class="modal-buttons">
-      <button id="btnAgregarInsumo" class="btn btn-secondary">➕ Agregar insumo</button>
-      <button id="btnGuardarReceta" class="btn btn-primary">Guardar cambios</button>
-      <button id="btnCerrarReceta" class="btn btn-outline">Cerrar</button>
+      <button id="btnAgregarInsumo" class="btn btn-secondary">
+        ➕ Agregar insumo
+      </button>
+      <button id="btnGuardarReceta" class="btn btn-primary">
+        Guardar cambios
+      </button>
+      <button id="btnCerrarReceta" class="btn btn-outline">
+        Cerrar
+      </button>
     </div>
 
   </div>
 </div>
 
-
-<!-- BOTTOM NAV -->
+<!-- ==========================
+        BOTTOM NAV
+============================== -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
-    <span class="bn-icon">🏠</span><span class="bn-label">Inicio</span>
+    <span class="bn-icon">🏠</span>
+    <span class="bn-label">Inicio</span>
   </a>
   <a href="productos.html" class="bn-item">
-    <span class="bn-icon">🏷️</span><span class="bn-label">Productos</span>
+    <span class="bn-icon">🏷️</span>
+    <span class="bn-label">Productos</span>
   </a>
   <a href="pedidos.html" class="bn-item">
-    <span class="bn-icon">📝</span><span class="bn-label">Pedidos</span>
+    <span class="bn-icon">📝</span>
+    <span class="bn-label">Pedidos</span>
   </a>
   <a href="clientes.html" class="bn-item">
-    <span class="bn-icon">👥</span><span class="bn-label">Clientes</span>
+    <span class="bn-icon">👥</span>
+    <span class="bn-label">Clientes</span>
   </a>
 </nav>
-
 
 <!-- JS -->
 <script type="module" src="js/firebase.js"></script>
