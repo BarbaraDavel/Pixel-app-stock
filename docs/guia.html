@@ -2,100 +2,54 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Guía de anillos – Pixel</title>
-  <link rel="stylesheet" href="./css/styles.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de anillos - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
 
-  <!-- HEADER -->
-  <div class="topbar">
-    <div class="brand">
-      <span class="logo-fox">🦊</span> Pixel
-    </div>
-
-    <button class="hamburger" id="hamburgerBtn">☰</button>
-
-    <div class="nav-links">
-      <a href="./index.html">Inicio</a>
-      <a href="./insumos.html">Insumos</a>
-      <a href="./stock.html">Stock</a>
-      <a href="./movimientos_stock.html">Movimientos</a>
-      <a href="./recetas.html">Recetas</a>
-      <a href="./productos.html">Productos</a>
-      <a href="./clientes.html">Clientes</a>
-      <a href="./pedidos.html">Pedidos</a>
-      <a class="active" href="./guia.html">Guia</a>
-    </div>
+<!-- HEADER -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
   </div>
 
-  <!-- CONTENIDO -->
-  <main class="main">
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a class="active" href="./guia.html">Guía</a>
+  </div>
+</div>
 
-    <div class="card">
-      <h2>📘 Guía rápida de anillos (Wire)</h2>
-      <p style="margin-top: 6px;">
-        Referencia para <strong>agendas A5</strong> con
-        <strong>papel interior 90 g</strong> y
-        <strong>tapas de 1,5 mm</strong>.
-      </p>
+<div class="main">
 
-      <table class="tabla-stock">
-        <thead>
-          <tr>
-            <th>Cantidad de hojas</th>
-            <th>Grosor interior aprox.</th>
-            <th>Tapas</th>
-            <th>Total aprox.</th>
-            <th>Anillo recomendado</th>
-            <th>Alternativa</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td data-label="Hojas">50 hojas</td>
-            <td data-label="Interior">≈ 6 mm</td>
-            <td data-label="Tapas">3 mm</td>
-            <td data-label="Total">≈ 9 mm</td>
-            <td data-label="Anillo"><strong>3/4” (19 mm)</strong></td>
-            <td data-label="Alternativa">7/8” si querés más aire</td>
-          </tr>
+  <div class="card">
+    <h1>📘 Guía rápida de anillos (Wire)</h1>
+    <p class="hint">
+      Referencia para agendas A5 con papel interior 90 g y tapas de 1,5 mm.
+    </p>
 
-          <tr>
-            <td data-label="Hojas">60 hojas</td>
-            <td data-label="Interior">≈ 7–8 mm</td>
-            <td data-label="Tapas">3 mm</td>
-            <td data-label="Total">≈ 10–11 mm</td>
-            <td data-label="Anillo"><strong>7/8” (22 mm)</strong></td>
-            <td data-label="Alternativa">3/4” más compacto</td>
-          </tr>
+    <table class="tabla-insumos">
+      <thead>
+        <tr>
+          <th>Cantidad de hojas</th>
+          <th>Grosor interior aprox.</th>
+          <th>Tapas</th>
+          <th>Total aprox.</th>
+          <th>Anillo recomendado</th>
+          <th>Alternativa</th>
+        </tr>
+      </thead>
 
-          <tr>
-            <td data-label="Hojas">70 hojas</td>
-            <td data-label="Interior">≈ 9 mm</td>
-            <td data-label="Tapas">3 mm</td>
-            <td data-label="Total">≈ 12 mm</td>
-            <td data-label="Anillo"><strong>1” (25 mm)</strong></td>
-            <td data-label="Alternativa">7/8” si pasa cómodo</td>
-          </tr>
-        </tbody>
-      </table>
+      <tbody>
+        <tr>
+          <td><strong>40 hojas</strong></td>
+          <td>≈ 5 mm</td>
+          <td>3 mm</td>
+          <td>≈ 8 mm</td>
+          <td><strong>5/8” (16 mm)</strong></td>
+          <td>3/4” si querés más aire</td>
+        </tr>
 
-      <p style="margin-top: 12px; font-size: 0.9rem;">
-        💡 <strong>Tip:</strong> si al pasar las hojas roza, el anillo es chico.
-        Si queda flojo y “baila”, es grande.
-        Para empezar, el tamaño más versátil suele ser <strong>7/8”</strong>.
-      </p>
-    </div>
-
-  </main>
-
-  <!-- SCRIPT MENÚ MOBILE -->
-  <script>
-    const btn = document.getElementById("hamburgerBtn");
-    const nav = document.getElementById("navLinks");
-    btn.addEventListener("click", () => nav.classList.toggle("open"));
-  </script>
-
-</body>
-</html>
+        <tr>
+          <td><strong>50 hojas</strong></td>
+          <td>≈

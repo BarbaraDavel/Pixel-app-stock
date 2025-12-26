@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Costos - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
+  </div>
+
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a class="active" href="./costos.html">Costos</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>🧮 Calculadora de costos</h1>
+    <p class="hint">
+      Probá cuánto te cuesta producir un producto usando tus insumos reales.
+    </p>
+
+    <input id="nombreProducto" class="input-pixel" placeholder="Nombre del producto">
+
+    <table class="tabla-insumos">
+      <thead>
+        <tr>
+          <th>Insumo</th>
+          <th>Cantidad usada</th>
+          <th>Costo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="lineasCostos"></tbody>
+    </table>
+
+    <div style="margin-top:12px;">
+      <button id="btnAgregarLinea" class="btn btn-secondary">➕ Agregar insumo</button>
+    </div>
+
+    <hr>
+
+    <p><strong>Costo total:</strong> $<span id="costoTotal">0</span></p>
+
+  </div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/costos.js"></script>
+
+</body>
+</html>
