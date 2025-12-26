@@ -1,61 +1,70 @@
+// js/costos.js
 import { db } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* ============================================================
+   DOM
+============================================================ */
 const tbody = document.getElementById("lineasCostos");
 const btnAgregar = document.getElementById("btnAgregarLinea");
 const costoTotalEl = document.getElementById("costoTotal");
+const btnGuardarReceta = document.getElementById("btnGuardarReceta");
+const nombreProductoInput = document.getElementById("nombreProducto");
 
+/* ============================================================
+   STATE
+============================================================ */
 let insumos = {};
 let lineas = [];
 
-// =======================
-// Helpers
-// =======================
+/* ============================================================
+   HELPERS
+============================================================ */
 function toNumber(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
 
 /**
- * Devuelve el costo unitario REAL, aunque el insumo venga con datos viejos.
- *
- * Soporta 3 casos:
- * 1) Nuevo: { costoPaquete, cantidadPaquete } => costoPaquete / cantidadPaquete
- * 2) Viejo: { costoUnitario (pero era pack), cantidadPaquete } => costoUnitario / cantidadPaquete
- * 3) Unitario real: { costoUnitario } sin cantidadPaquete => costoUnitario
+ * Devuelve el costo unitario REAL del insumo.
+ * Soporta datos nuevos y viejos sin romper nada.
  */
 function getCostoUnitarioReal(ins) {
   const cantidadPaquete = toNumber(ins.cantidadPaquete);
   const costoPaquete = toNumber(ins.costoPaquete);
+  const costoUnitarioGuardado = toNumber(ins.costoUnitario);
 
-  // Caso nuevo: costoPaquete y cantidadPaquete
+  // Caso nuevo correcto
   if (costoPaquete > 0 && cantidadPaquete > 0) {
     return costoPaquete / cantidadPaquete;
   }
 
-  // Caso viejo: costoUnitario era pack y hay cantidadPaquete
-  const costoUnitarioGuardado = toNumber(ins.costoUnitario);
+  // Caso viejo: costoUnitario era el pack
   if (cantidadPaquete > 0 && costoUnitarioGuardado > 0) {
-    // si no hay costoPaquete, interpretamos costoUnitario como pack
     return costoUnitarioGuardado / cantidadPaquete;
   }
 
-  // Caso unitario real (sin pack)
+  // Caso unitario real
   return costoUnitarioGuardado;
 }
 
-// =======================
-// Cargar insumos
-// =======================
+/* ============================================================
+   CARGAR INSUMOS
+============================================================ */
 async function cargarInsumos() {
   insumos = {};
   const snap = await getDocs(collection(db, "insumos"));
   snap.forEach(d => (insumos[d.id] = d.data()));
 }
 
-// =======================
-// Agregar línea
-// =======================
+/* ============================================================
+   AGREGAR LÍNEA
+============================================================ */
 btnAgregar.onclick = () => {
   const ids = Object.keys(insumos);
   if (!ids.length) {
@@ -63,14 +72,13 @@ btnAgregar.onclick = () => {
     return;
   }
 
-  const id = ids[0];
-  lineas.push({ insumoId: id, cantidad: 1 });
+  lineas.push({ insumoId: ids[0], cantidad: 1 });
   render();
 };
 
-// =======================
-// Render
-// =======================
+/* ============================================================
+   RENDER
+============================================================ */
 function render() {
   tbody.innerHTML = "";
   let total = 0;
@@ -84,18 +92,10 @@ function render() {
     const subtotal = cant * unit;
     total += subtotal;
 
-    const cantidadPaquete = toNumber(ins.cantidadPaquete);
-    const costoPaquete = toNumber(ins.costoPaquete);
-    const costoUnitarioGuardado = toNumber(ins.costoUnitario);
-
-    // Texto de ayuda (solo para que vos veas qué está usando)
-    let hint = "";
-    if (costoPaquete > 0 && cantidadPaquete > 0) {
-      hint = `Unit: $${unit.toFixed(2)} (pack: $${costoPaquete.toFixed(2)} / ${cantidadPaquete})`;
-    } else if (cantidadPaquete > 0 && costoUnitarioGuardado > 0) {
-      hint = `Unit: $${unit.toFixed(2)} (compat: $${costoUnitarioGuardado.toFixed(2)} / ${cantidadPaquete})`;
-    } else {
-      hint = `Unit: $${unit.toFixed(2)}`;
+    // Hint informativo
+    let hint = `Unit: $${unit.toFixed(2)}`;
+    if (ins.costoPaquete && ins.cantidadPaquete) {
+      hint = `Unit: $${unit.toFixed(2)} (pack: $${ins.costoPaquete} / ${ins.cantidadPaquete})`;
     }
 
     tbody.innerHTML += `
@@ -103,20 +103,24 @@ function render() {
         <td>
           <select data-i="${index}" class="selInsumo">
             ${Object.keys(insumos)
-              .map(id => {
-                const selected = id === l.insumoId ? "selected" : "";
-                return `<option value="${id}" ${selected}>${insumos[id].nombre}</option>`;
-              })
+              .map(id =>
+                `<option value="${id}" ${id === l.insumoId ? "selected" : ""}>
+                  ${insumos[id].nombre}
+                </option>`
+              )
               .join("")}
           </select>
           <div class="hint" style="margin-top:6px;">${hint}</div>
         </td>
+
         <td>
           <input type="number" min="0" step="0.01"
                  data-i="${index}" class="inpCantidad"
                  value="${cant}">
         </td>
+
         <td>$${subtotal.toFixed(2)}</td>
+
         <td>
           <button class="btn btn-outline" onclick="eliminarLinea(${index})">✖</button>
         </td>
@@ -128,9 +132,9 @@ function render() {
   bindEvents();
 }
 
-// =======================
-// Eventos inputs
-// =======================
+/* ============================================================
+   EVENTS
+============================================================ */
 function bindEvents() {
   document.querySelectorAll(".selInsumo").forEach(sel => {
     sel.onchange = e => {
@@ -141,23 +145,67 @@ function bindEvents() {
 
   document.querySelectorAll(".inpCantidad").forEach(inp => {
     inp.oninput = e => {
-      lineas[e.target.dataset.i].cantidad = Number(e.target.value);
+      lineas[e.target.dataset.i].cantidad = toNumber(e.target.value);
       render();
     };
   });
 }
 
-// =======================
-// Eliminar línea
-// =======================
+/* ============================================================
+   ELIMINAR LÍNEA
+============================================================ */
 window.eliminarLinea = (i) => {
   lineas.splice(i, 1);
   render();
 };
 
-// =======================
-// Init
-// =======================
+/* ============================================================
+   GUARDAR RECETA BORRADOR
+============================================================ */
+btnGuardarReceta.onclick = async () => {
+  const nombre = nombreProductoInput.value.trim();
+
+  if (!nombre) {
+    alert("Poné un nombre para la receta");
+    return;
+  }
+
+  if (!lineas.length) {
+    alert("Agregá al menos un insumo");
+    return;
+  }
+
+  const items = lineas.map(l => {
+    const ins = insumos[l.insumoId];
+    const unit = getCostoUnitarioReal(ins);
+    return {
+      insumoId: l.insumoId,
+      cantidad: l.cantidad,
+      costoUnitario: unit,
+      subtotal: l.cantidad * unit
+    };
+  });
+
+  const costoTotal = items.reduce((a, i) => a + i.subtotal, 0);
+
+  await addDoc(collection(db, "recetas_borrador"), {
+    nombre,
+    items,
+    costoTotal,
+    creadaEn: serverTimestamp()
+  });
+
+  alert("Receta guardada ✔️");
+
+  // reset
+  nombreProductoInput.value = "";
+  lineas = [];
+  render();
+};
+
+/* ============================================================
+   INIT
+============================================================ */
 (async function init() {
   await cargarInsumos();
   render();
