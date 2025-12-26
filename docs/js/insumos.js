@@ -17,8 +17,8 @@ const lista       = document.getElementById("listaInsumos");
 const btnGuardar  = document.getElementById("guardarInsumo");
 
 const inputNombre   = document.getElementById("nombreInsumo");
-const inputCosto    = document.getElementById("costoInsumo");
-const inputPaquete  = document.getElementById("cantidadPaquete");
+const inputCosto    = document.getElementById("costoInsumo");       // COSTO DEL PAQUETE
+const inputPaquete  = document.getElementById("cantidadPaquete");   // UNIDADES DEL PAQUETE
 
 let editId = null;
 
@@ -34,13 +34,17 @@ async function cargarInsumos() {
     const ins = d.data();
 
     const nombre  = ins.nombre ?? "(sin nombre)";
-    const costo   = Number(ins.costoUnitario ?? 0);
+    const costoU  = Number(ins.costoUnitario ?? 0);
+    const costoP  = Number(ins.costoPaquete ?? 0);
     const paquete = Number(ins.cantidadPaquete ?? 0);
 
     lista.innerHTML += `
       <tr>
         <td>${nombre}</td>
-        <td>$${costo}</td>
+        <td>
+          $${costoU.toFixed(2)}
+          <div class="hint">Pack: $${costoP} / ${paquete} u.</div>
+        </td>
         <td>${paquete}</td>
         <td>
           <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
@@ -65,8 +69,8 @@ window.editarInsumo = async function (id) {
   const ins = snap.data();
 
   inputNombre.value  = ins.nombre ?? "";
-  inputCosto.value   = ins.costoUnitario ?? 0;
-  inputPaquete.value = ins.cantidadPaquete ?? 0;
+  inputCosto.value   = ins.costoPaquete ?? ins.costoUnitario ?? 0;
+  inputPaquete.value = ins.cantidadPaquete ?? 1;
 
   mostrarPopup("Editando insumo…");
 };
@@ -77,14 +81,11 @@ window.editarInsumo = async function (id) {
 window.eliminarInsumo = async function (id) {
   if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
 
-  // Borrar insumo
   await deleteDoc(doc(db, "insumos", id));
 
-  // Borrar stock asociado
   const stockSnap = await getDocs(collection(db, "stock"));
   for (const s of stockSnap.docs) {
-    const data = s.data();
-    if (data.insumoId === id) {
+    if (s.data().insumoId === id) {
       await deleteDoc(doc(db, "stock", s.id));
     }
   }
@@ -97,44 +98,39 @@ window.eliminarInsumo = async function (id) {
 //   GUARDAR / EDITAR INSUMO
 // =============================
 btnGuardar.onclick = async () => {
-  const nombre  = inputNombre.value.trim();
-  const costo   = Number(inputCosto.value) || 0;
-  const paquete = Number(inputPaquete.value) || 0;
+  const nombre         = inputNombre.value.trim();
+  const costoPaquete   = Number(inputCosto.value) || 0;
+  const cantidadPack   = Number(inputPaquete.value) || 1;
+  const costoUnitario  = cantidadPack > 0 ? costoPaquete / cantidadPack : costoPaquete;
 
   if (!nombre) {
     alert("El insumo necesita nombre");
     return;
   }
 
-  if (!editId) {
-    // NUEVO INSUMO
-    const ref = await addDoc(collection(db, "insumos"), {
-      nombre,
-      costoUnitario: costo,
-      cantidadPaquete: paquete
-    });
+  const data = {
+    nombre,
+    costoPaquete,
+    cantidadPaquete: cantidadPack,
+    costoUnitario
+  };
 
-    // Crear registro en STOCK asociado (para que aparezca en módulo Stock)
+  if (!editId) {
+    const ref = await addDoc(collection(db, "insumos"), data);
+
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
-      stockActual: paquete,
+      stockActual: cantidadPack,
       stockMinimo: 5
     });
 
     mostrarPopup("Insumo agregado ✔️");
   } else {
-    // EDITAR INSUMO
-    await updateDoc(doc(db, "insumos", editId), {
-      nombre,
-      costoUnitario: costo,
-      cantidadPaquete: paquete
-    });
-
+    await updateDoc(doc(db, "insumos", editId), data);
     mostrarPopup("Insumo actualizado");
     editId = null;
   }
 
-  // Limpiar form
   inputNombre.value  = "";
   inputCosto.value   = "";
   inputPaquete.value = "";
@@ -154,9 +150,7 @@ function mostrarPopup(msg = "Guardado") {
   texto.textContent = msg;
   popup.classList.remove("hidden");
 
-  setTimeout(() => {
-    popup.classList.add("hidden");
-  }, 1500);
+  setTimeout(() => popup.classList.add("hidden"), 1500);
 }
 
 // =============================
