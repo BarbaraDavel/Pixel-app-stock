@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recetas guardadas - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
+  </div>
+
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a href="./costos.html">Costos</a>
+    <a class="active" href="./recetas_borrador.html">Recetas</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>📋 Recetas guardadas</h1>
+    <p class="hint">
+      Estas son tus recetas de costo guardadas.  
+      Podés revisarlas antes de convertirlas en productos.
+    </p>
+  </div>
+
+  <div id="listaRecetas" class="productos-grid"></div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/recetas_borrador.js"></script>
+
+</body>
+</html>
