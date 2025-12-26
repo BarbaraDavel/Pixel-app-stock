@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía de anillos – Pixel</title>
+  <link rel="stylesheet" href="./css/estilos.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+
+    <button class="hamburger" id="hamburgerBtn">☰</button>
+
+    <div class="nav-links" id="navLinks">
+      <a href="./index.html">Inicio</a>
+      <a href="./guia.html" class="active">Guía</a>
+    </div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <main class="main">
+
+    <div class="card">
+      <h2>📘 Guía rápida de anillos (Wire)</h2>
+      <p style="margin-top: 6px;">
+        Referencia para <strong>agendas A5</strong> con
+        <strong>papel interior 90 g</strong> y
+        <strong>tapas de 1,5 mm</strong>.
+      </p>
+
+      <table class="tabla-stock">
+        <thead>
+          <tr>
+            <th>Cantidad de hojas</th>
+            <th>Grosor interior aprox.</th>
+            <th>Tapas</th>
+            <th>Total aprox.</th>
+            <th>Anillo recomendado</th>
+            <th>Alternativa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Hojas">50 hojas</td>
+            <td data-label="Interior">≈ 6 mm</td>
+            <td data-label="Tapas">3 mm</td>
+            <td data-label="Total">≈ 9 mm</td>
+            <td data-label="Anillo"><strong>3/4” (19 mm)</strong></td>
+            <td data-label="Alternativa">7/8” si querés más aire</td>
+          </tr>
+
+          <tr>
+            <td data-label="Hojas">60 hojas</td>
+            <td data-label="Interior">≈ 7–8 mm</td>
+            <td data-label="Tapas">3 mm</td>
+            <td data-label="Total">≈ 10–11 mm</td>
+            <td data-label="Anillo"><strong>7/8” (22 mm)</strong></td>
+            <td data-label="Alternativa">3/4” más compacto</td>
+          </tr>
+
+          <tr>
+            <td data-label="Hojas">70 hojas</td>
+            <td data-label="Interior">≈ 9 mm</td>
+            <td data-label="Tapas">3 mm</td>
+            <td data-label="Total">≈ 12 mm</td>
+            <td data-label="Anillo"><strong>1” (25 mm)</strong></td>
+            <td data-label="Alternativa">7/8” si pasa cómodo</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 12px; font-size: 0.9rem;">
+        💡 <strong>Tip:</strong> si al pasar las hojas roza, el anillo es chico.
+        Si queda flojo y “baila”, es grande.
+        Para empezar, el tamaño más versátil suele ser <strong>7/8”</strong>.
+      </p>
+    </div>
+
+  </main>
+
+  <!-- SCRIPT MENÚ MOBILE -->
+  <script>
+    const btn = document.getElementById("hamburgerBtn");
+    const nav = document.getElementById("navLinks");
+    btn.addEventListener("click", () => nav.classList.toggle("open"));
+  </script>
+
+</body>
+</html>
