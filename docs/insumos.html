@@ -42,8 +42,14 @@
 
     <div class="form-grid">
       <input id="nombreInsumo" class="input-pixel" placeholder="Nombre del insumo">
-      <input id="costoInsumo" class="input-pixel" type="number" placeholder="Costo unitario">
-      <input id="cantidadPaquete" class="input-pixel" type="number" placeholder="Cantidad que trae (ej: 50)">
+
+      <!-- antes decía Costo unitario: ahora es costo del paquete -->
+      <input id="costoInsumo" class="input-pixel" type="number"
+            placeholder="Costo del paquete (ej: 13000)">
+
+      <input id="cantidadPaquete" class="input-pixel" type="number"
+            placeholder="Unidades que trae (ej: 500)">
+
       <button id="guardarInsumo" class="btn btn-primary">Guardar</button>
     </div>
   </div>
@@ -57,7 +63,7 @@
       <thead>
         <tr>
           <th>Insumo</th>
-          <th>Costo</th>
+          <th>Costos</th>
           <th>Cant. por paquete</th>
           <th>Acciones</th>
         </tr>

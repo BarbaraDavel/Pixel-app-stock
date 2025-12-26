@@ -1,3 +1,4 @@
+// js/productos.js
 import { db } from "./firebase.js";
 import {
   collection,
@@ -10,9 +11,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 /* ============================================================
-   ELEMENTOS DEL DOM
+   DOM
 ============================================================ */
-
 const grid = document.getElementById("productosLista");
 const btnGuardar = document.getElementById("guardarProd");
 const inputNombre = document.getElementById("prodNombre");
@@ -43,9 +43,31 @@ let productoEditandoId = null;
 /* ============================================================
    HELPERS
 ============================================================ */
+function toNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
-const money = n => `$${Number(n || 0).toFixed(2)}`;
+function money(n) {
+  return `$${toNumber(n).toFixed(2)}`;
+}
 
+function getCostoUnitarioInsumo(ins) {
+  // esquema nuevo
+  const cu = toNumber(ins?.costoUnitario);
+  if (cu > 0) return cu;
+
+  // compat: esquema viejo o mezclado
+  const pack = toNumber(ins?.costoPaquete ?? ins?.costoUnitario ?? 0);
+  const qty = toNumber(ins?.cantidadPaquete ?? 0);
+  if (pack > 0 && qty > 0) return pack / qty;
+
+  return 0;
+}
+
+/* ============================================================
+   POPUP
+============================================================ */
 function popup(msg) {
   const box = document.getElementById("popupPixel");
   const txt = document.getElementById("popupText");
@@ -55,9 +77,8 @@ function popup(msg) {
 }
 
 /* ============================================================
-   CARGAR PRODUCTOS
+   CARGAR PRODUCTOS (cards)
 ============================================================ */
-
 async function cargarProductos() {
   grid.innerHTML = "";
   productosCache = {};
@@ -65,6 +86,7 @@ async function cargarProductos() {
   const productosSnap = await getDocs(collection(db, "productos"));
   const recetasSnap = await getDocs(collection(db, "recetas"));
 
+  // recetasMap[productoId] = docData
   const recetasMap = {};
   recetasSnap.forEach(r => {
     recetasMap[r.id] = r.data(); // r.id === productoId
@@ -100,7 +122,6 @@ async function cargarProductos() {
 /* ============================================================
    VER PRODUCTO
 ============================================================ */
-
 window.verProducto = async function (id) {
   const p = productosCache[id];
   if (!p) return;
@@ -116,7 +137,7 @@ window.verProducto = async function (id) {
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
-  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
+  insumosSnap.forEach(i => (insumosMap[i.id] = i.data()));
 
   let html = "";
   let costoTotal = 0;
@@ -124,16 +145,19 @@ window.verProducto = async function (id) {
   if (recetaSnap.exists()) {
     const receta = recetaSnap.data();
 
+    // Items
     receta.items?.forEach(item => {
       const ins = insumosMap[item.insumoId];
       if (!ins) return;
 
-      const usado = Number(item.cantidad) || 0;
-      const costoUnit = Number(ins.costoUnitario) || 0;
-      const subtotal = usado * costoUnit;
+      const usado = toNumber(item.cantidad);
+      const costoUnit = getCostoUnitarioInsumo(ins);
+      const costo = usado * costoUnit;
 
-      costoTotal += subtotal;
-      html += `<p>• ${usado}× ${ins.nombre} — ${money(subtotal)}</p>`;
+      costoTotal += costo;
+
+      html += `<p>• ${usado}× ${ins.nombre} — ${money(costo)}</p>`;
+      html += `<p class="hint" style="margin-top:-6px;">Unit: ${money(costoUnit)} (pack: ${money(ins.costoPaquete ?? ins.costoUnitario ?? 0)} / ${toNumber(ins.cantidadPaquete) || "?"})</p>`;
     });
 
     // Ficha técnica
@@ -151,9 +175,8 @@ window.verProducto = async function (id) {
   }
 
   verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
-  verCosto.textContent = "Costo unitario: " + money(costoTotal);
-  verGanancia.textContent =
-    "Ganancia estimada: " + money(p.precio - costoTotal);
+  verCosto.textContent = `Costo unitario: ${money(costoTotal)}`;
+  verGanancia.textContent = `Ganancia estimada: ${money(toNumber(p.precio) - costoTotal)}`;
 
   modalVer.classList.remove("hidden");
 };
@@ -166,7 +189,6 @@ modalVer.addEventListener("click", e => {
 /* ============================================================
    EDITAR PRODUCTO
 ============================================================ */
-
 window.editarProducto = async function (id) {
   const p = productosCache[id];
   if (!p) return;
@@ -185,9 +207,8 @@ btnCancelarEdicion.onclick = () => {
 };
 
 /* ============================================================
-   COSTOS EN EDICIÓN
+   COSTOS EN MODO EDICIÓN
 ============================================================ */
-
 async function cargarRecetaYCostos(productoId) {
   recetaDetalle.innerHTML = "Cargando...";
   costoBox.innerHTML = "";
@@ -197,7 +218,7 @@ async function cargarRecetaYCostos(productoId) {
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
-  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
+  insumosSnap.forEach(i => (insumosMap[i.id] = i.data()));
 
   let html = "";
   let costoTotal = 0;
@@ -209,8 +230,8 @@ async function cargarRecetaYCostos(productoId) {
       const ins = insumosMap[item.insumoId];
       if (!ins) return;
 
-      const usado = Number(item.cantidad) || 0;
-      const costoUnit = Number(ins.costoUnitario) || 0;
+      const usado = toNumber(item.cantidad);
+      const costoUnit = getCostoUnitarioInsumo(ins);
       const subtotal = usado * costoUnit;
 
       costoTotal += subtotal;
@@ -221,22 +242,19 @@ async function cargarRecetaYCostos(productoId) {
   recetaDetalle.innerHTML = html || `<p class="hint">Sin receta.</p>`;
   costoBox.innerHTML = `<strong>${money(costoTotal)}</strong>`;
 
-  const precio = Number(editPrecio.value) || 0;
-  gananciaBox.innerHTML = `
-    <strong>${money(precio - costoTotal)}</strong> (por unidad)
-  `;
+  const precio = toNumber(editPrecio.value);
+  gananciaBox.innerHTML = `<strong>${money(precio - costoTotal)}</strong> (por unidad)`;
 }
 
 /* ============================================================
    GUARDAR EDICIÓN
 ============================================================ */
-
 btnGuardarEdicion.onclick = async () => {
   if (!productoEditandoId) return;
 
   await updateDoc(doc(db, "productos", productoEditandoId), {
     nombre: editNombre.value.trim(),
-    precio: Number(editPrecio.value)
+    precio: toNumber(editPrecio.value)
   });
 
   popup("Producto actualizado ✔");
@@ -248,7 +266,6 @@ btnGuardarEdicion.onclick = async () => {
 /* ============================================================
    ELIMINAR PRODUCTO
 ============================================================ */
-
 window.eliminarProducto = async function (id) {
   if (!confirm("¿Eliminar producto?")) return;
 
@@ -260,10 +277,9 @@ window.eliminarProducto = async function (id) {
 /* ============================================================
    AGREGAR PRODUCTO
 ============================================================ */
-
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
-  const precio = Number(inputPrecio.value);
+  const precio = toNumber(inputPrecio.value);
 
   if (!nombre) return alert("Ingresá un nombre");
 
@@ -272,11 +288,11 @@ btnGuardar.onclick = async () => {
   popup("Producto agregado ✔");
   inputNombre.value = "";
   inputPrecio.value = "";
+
   cargarProductos();
 };
 
 /* ============================================================
    INIT
 ============================================================ */
-
 cargarProductos();

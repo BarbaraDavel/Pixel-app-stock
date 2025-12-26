@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Migración Insumos - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="logo-fox">🦊</span> Pixel</div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <h1>Migración de Insumos</h1>
+    <p class="hint">
+      Esto convierte tu esquema viejo al nuevo:
+      <strong>costoPaquete</strong> + <strong>cantidadPaquete</strong> ⇒ <strong>costoUnitario</strong>
+    </p>
+
+    <button id="btnMigrar" class="btn btn-primary">Migrar ahora</button>
+    <div id="log" class="hint" style="margin-top:14px; white-space:pre-wrap;"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { db } from "./js/firebase.js";
+  import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  const btn = document.getElementById("btnMigrar");
+  const log = document.getElementById("log");
+
+  const toNumber = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const calcUnit = (pack, qty) => {
+    if (!qty || qty <= 0) return 0;
+    return pack / qty;
+  };
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    log.textContent = "Migrando...\n";
+
+    const snap = await getDocs(collection(db, "insumos"));
+
+    let ok = 0, skip = 0, err = 0;
+
+    for (const d of snap.docs) {
+      try {
+        const ins = d.data();
+
+        const cantidadPaquete = toNumber(ins.cantidadPaquete ?? 0);
+
+        // Si ya tiene costoPaquete, asumimos que está migrado
+        if (ins.costoPaquete != null && ins.costoUnitario != null) {
+          skip++;
+          continue;
+        }
+
+        // Compat: si no hay costoPaquete, tomamos lo que haya en costoUnitario como "pack"
+        const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
+
+        // Si no hay cantidadPaquete, no podemos calcular bien
+        if (!cantidadPaquete || cantidadPaquete <= 0) {
+          log.textContent += `⚠️ ${ins.nombre || d.id}: NO migrado (cantidadPaquete inválida)\n`;
+          err++;
+          continue;
+        }
+
+        const costoUnitario = calcUnit(costoPaquete, cantidadPaquete);
+
+        await updateDoc(doc(db, "insumos", d.id), {
+          costoUnitario_old: ins.costoUnitario ?? null,
+          costoPaquete,
+          costoUnitario
+        });
+
+        ok++;
+        log.textContent += `✅ ${ins.nombre || d.id}: pack $${costoPaquete} / ${cantidadPaquete} => unit $${costoUnitario.toFixed(4)}\n`;
+      } catch (e) {
+        err++;
+        log.textContent += `❌ Error en ${d.id}: ${e.message}\n`;
+      }
+    }
+
+    log.textContent += `\nListo. OK: ${ok} | Ya migrados: ${skip} | Errores: ${err}\n`;
+    btn.disabled = false;
+  });
+</script>
+
+</body>
+</html>
