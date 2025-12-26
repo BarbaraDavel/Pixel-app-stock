@@ -7,7 +7,8 @@ import {
   deleteDoc,
   doc,
   query,
-  where
+  where,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 /* ============================================================
@@ -62,19 +63,19 @@ async function cargarProductos() {
   const productosSnap = await getDocs(collection(db, "productos"));
   const recetasSnap = await getDocs(collection(db, "recetas"));
 
-  const recetasAgrupadas = {};
+  const recetasMap = {};
   recetasSnap.forEach(r => {
-    const data = r.data();
-    if (!recetasAgrupadas[data.productoId]) recetasAgrupadas[data.productoId] = [];
-    recetasAgrupadas[data.productoId].push(data);
+    recetasMap[r.id] = r.data(); // r.id === productoId
   });
 
   productosSnap.forEach(d => {
     const p = d.data();
     productosCache[d.id] = p;
 
-    const recetas = recetasAgrupadas[d.id] || [];
-    const recetaTxt = recetas.length ? `${recetas.length} insumos` : "Sin receta";
+    const receta = recetasMap[d.id];
+    const recetaTxt = receta?.items?.length
+      ? `${receta.items.length} insumos`
+      : "Sin receta";
 
     grid.innerHTML += `
       <div class="producto-card">
@@ -95,7 +96,7 @@ async function cargarProductos() {
 }
 
 /* ============================================================
-   VER PRODUCTO
+   VER PRODUCTO (LECTURA)
 ============================================================ */
 window.verProducto = async function (id) {
   const p = productosCache[id];
@@ -108,7 +109,7 @@ window.verProducto = async function (id) {
   verCosto.innerHTML = "";
   verGanancia.innerHTML = "";
 
-  const recetasSnap = await getDocs(query(collection(db, "recetas"), where("productoId", "==", id)));
+  const recetaSnap = await getDoc(doc(db, "recetas", id));
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
@@ -117,17 +118,33 @@ window.verProducto = async function (id) {
   let html = "";
   let costoTotal = 0;
 
-  recetasSnap.forEach(r => {
-    const rec = r.data();
-    const ins = insumosMap[rec.insumoId];
-    if (!ins) return;
+  if (recetaSnap.exists()) {
+    const receta = recetaSnap.data();
 
-    const usado = Number(rec.cantidadUsada);
-    const costo = usado * (Number(ins.costoUnitario) || 0);
+    receta.items?.forEach(item => {
+      const ins = insumosMap[item.insumoId];
+      if (!ins) return;
 
-    costoTotal += costo;
-    html += `<p>• ${usado}× ${ins.nombre} — $${costo}</p>`;
-  });
+      const usado = Number(item.cantidad);
+      const costo = usado * (Number(ins.costoUnitario) || 0);
+
+      costoTotal += costo;
+      html += `<p>• ${usado}× ${ins.nombre} — $${costo}</p>`;
+    });
+
+    // Mostrar ficha técnica (si existe)
+    if (receta.ficha) {
+      html += `<hr>`;
+      if (receta.ficha.materiales)
+        html += `<p><strong>Materiales:</strong> ${receta.ficha.materiales}</p>`;
+      if (receta.ficha.impresion)
+        html += `<p><strong>Impresión:</strong> ${receta.ficha.impresion}</p>`;
+      if (receta.ficha.corte)
+        html += `<p><strong>Corte:</strong> ${receta.ficha.corte}</p>`;
+      if (receta.ficha.notas)
+        html += `<p><strong>Notas:</strong> ${receta.ficha.notas}</p>`;
+    }
+  }
 
   verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
   verCosto.textContent = "Costo unitario: $" + costoTotal;
@@ -153,7 +170,6 @@ window.editarProducto = async function (id) {
   editPrecio.value = p.precio;
 
   modalEditar.classList.remove("hidden");
-
   await cargarRecetaYCostos(id);
 };
 
@@ -163,14 +179,14 @@ btnCancelarEdicion.onclick = () => {
 };
 
 /* ============================================================
-   CALCULAR COSTOS EN MODO EDITAR
+   COSTOS EN MODO EDICIÓN
 ============================================================ */
 async function cargarRecetaYCostos(productoId) {
   recetaDetalle.innerHTML = "Cargando...";
   costoBox.innerHTML = "";
   gananciaBox.innerHTML = "";
 
-  const recetasSnap = await getDocs(query(collection(db, "recetas"), where("productoId", "==", productoId)));
+  const recetaSnap = await getDoc(doc(db, "recetas", productoId));
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
@@ -179,18 +195,20 @@ async function cargarRecetaYCostos(productoId) {
   let html = "";
   let costoTotal = 0;
 
-  recetasSnap.forEach(r => {
-    const rec = r.data();
-    const ins = insumosMap[rec.insumoId];
+  if (recetaSnap.exists()) {
+    const receta = recetaSnap.data();
 
-    if (!ins) return;
+    receta.items?.forEach(item => {
+      const ins = insumosMap[item.insumoId];
+      if (!ins) return;
 
-    const usado = Number(rec.cantidadUsada);
-    const subtotal = usado * (Number(ins.costoUnitario) || 0);
+      const usado = Number(item.cantidad);
+      const subtotal = usado * (Number(ins.costoUnitario) || 0);
 
-    costoTotal += subtotal;
-    html += `<p>• ${usado}× ${ins.nombre} — $${subtotal}</p>`;
-  });
+      costoTotal += subtotal;
+      html += `<p>• ${usado}× ${ins.nombre} — $${subtotal}</p>`;
+    });
+  }
 
   recetaDetalle.innerHTML = html || `<p class="hint">Sin receta.</p>`;
   costoBox.innerHTML = `<strong>$${costoTotal}</strong>`;
@@ -202,7 +220,7 @@ async function cargarRecetaYCostos(productoId) {
 }
 
 /* ============================================================
-   GUARDAR CAMBIOS AL EDITAR
+   GUARDAR EDICIÓN
 ============================================================ */
 btnGuardarEdicion.onclick = async () => {
   if (!productoEditandoId) return;
@@ -214,7 +232,6 @@ btnGuardarEdicion.onclick = async () => {
 
   popup("Producto actualizado ✔");
   modalEditar.classList.add("hidden");
-
   productoEditandoId = null;
   cargarProductos();
 };
@@ -242,7 +259,6 @@ btnGuardar.onclick = async () => {
   await addDoc(collection(db, "productos"), { nombre, precio });
 
   popup("Producto agregado ✔");
-
   inputNombre.value = "";
   inputPrecio.value = "";
 
@@ -250,6 +266,6 @@ btnGuardar.onclick = async () => {
 };
 
 /* ============================================================
-   INICIO
+   INIT
 ============================================================ */
 cargarProductos();
