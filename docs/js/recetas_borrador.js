@@ -71,17 +71,32 @@ window.verReceta = async function (id) {
   modalTotal.textContent = recetaActual.costoTotal.toFixed(2);
 
   // INSUMOS
-  modalInsumos.innerHTML = "";
   recetaActual.items.forEach(i => {
+
+  // COSTO BASE
+  if (i.tipo === "base") {
     modalInsumos.innerHTML += `
       <p>
-        • ${i.cantidad} × ${i.nombre}<br>
+        ⚡ <strong>${i.nombre}</strong><br>
         <span class="hint">
-          Unit: $${i.costoUnit.toFixed(2)} — Subtotal: $${i.subtotal.toFixed(2)}
+          Costo fijo: $${i.subtotal.toFixed(2)}
         </span>
       </p>
     `;
-  });
+    return;
+  }
+
+  // INSUMO NORMAL
+  modalInsumos.innerHTML += `
+    <p>
+      • ${i.cantidad} × ${i.nombre}<br>
+      <span class="hint">
+        Unit: $${i.costoUnit.toFixed(2)} — Subtotal: $${i.subtotal.toFixed(2)}
+      </span>
+    </p>
+  `;
+});
+
 
   // FICHA
   const f = recetaActual.ficha || {};
