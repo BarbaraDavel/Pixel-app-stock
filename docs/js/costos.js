@@ -213,3 +213,8 @@ btnGuardarReceta.onclick = async () => {
   await cargarInsumos();
   render();
 })();
+
+const COSTOS_BASE_PIXEL = [
+  { nombre: "Tinta y electricidad", costo: 200 },
+  { nombre: "Tiempo y diseño", costo: 200 }
+];
