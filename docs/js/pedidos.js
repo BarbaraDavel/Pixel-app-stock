@@ -358,7 +358,12 @@ async function cargarPedidos() {
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
-  pedidosCache.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  pedidosCache.sort((a, b) => {
+  const fa = a.fecha ? new Date(a.fecha) : new Date(0);
+  const fb = b.fecha ? new Date(b.fecha) : new Date(0);
+  return fb - fa;
+});
+
   renderLista();
 }
 
