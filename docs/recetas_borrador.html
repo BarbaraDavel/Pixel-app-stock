@@ -34,9 +34,35 @@
   <div id="listaRecetas" class="productos-grid"></div>
 
 </div>
+<!-- MODAL VER RECETA -->
+<div id="modalReceta" class="modal-backdrop hidden">
+  <div class="modal modal-receta">
+
+    <h2 id="modalTitulo"></h2>
+
+    <div id="modalInsumos"></div>
+
+    <hr>
+
+    <p><strong>Costo total:</strong> $<span id="modalTotal"></span></p>
+
+    <hr>
+
+    <h4>📄 Ficha técnica</h4>
+    <div class="hint" id="modalFicha"></div>
+
+    <div class="modal-actions">
+      <button id="btnEditarReceta" class="btn btn-secondary">✏️ Editar</button>
+      <button id="btnConvertirProducto" class="btn btn-primary">🏷 Convertir en producto</button>
+      <button id="btnCerrarModal" class="btn btn-outline">Cerrar</button>
+    </div>
+
+  </div>
+</div>
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/recetas_borrador.js"></script>
+
 
 </body>
 </html>

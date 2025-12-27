@@ -1,29 +1,39 @@
-// js/recetas_borrador.js
 import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
   deleteDoc,
   doc,
-  getDoc
+  getDoc,
+  addDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const grid = document.getElementById("listaRecetas");
+
+// MODAL
+const modal = document.getElementById("modalReceta");
+const modalTitulo = document.getElementById("modalTitulo");
+const modalInsumos = document.getElementById("modalInsumos");
+const modalTotal = document.getElementById("modalTotal");
+const modalFicha = document.getElementById("modalFicha");
+
+const btnCerrar = document.getElementById("btnCerrarModal");
+const btnEditar = document.getElementById("btnEditarReceta");
+const btnConvertir = document.getElementById("btnConvertirProducto");
+
+let recetaActualId = null;
+let recetaActual = null;
 
 /* ============================================================
    CARGAR RECETAS
 ============================================================ */
 async function cargarRecetas() {
   grid.innerHTML = "";
-
   const snap = await getDocs(collection(db, "recetas_borrador"));
 
   if (snap.empty) {
-    grid.innerHTML = `
-      <div class="card">
-        <p class="hint">Todavía no guardaste ninguna receta.</p>
-      </div>
-    `;
+    grid.innerHTML = `<div class="card"><p class="hint">No hay recetas guardadas.</p></div>`;
     return;
   }
 
@@ -34,10 +44,8 @@ async function cargarRecetas() {
       <div class="producto-card">
         <div>
           <div class="producto-nombre">${r.nombre}</div>
-          <div class="producto-precio">
-            Costo: $${(r.costoTotal || 0).toFixed(2)}
-          </div>
-          <div class="hint">${r.items?.length || 0} insumos</div>
+          <div class="producto-precio">Costo: $${r.costoTotal.toFixed(2)}</div>
+          <div class="hint">${r.items.length} insumos</div>
         </div>
 
         <div class="producto-actions">
@@ -50,45 +58,96 @@ async function cargarRecetas() {
 }
 
 /* ============================================================
-   VER RECETA (alert claro y legible)
+   VER RECETA → MODAL
 ============================================================ */
 window.verReceta = async function (id) {
-  const ref = doc(db, "recetas_borrador", id);
-  const snap = await getDoc(ref);
+  const snap = await getDoc(doc(db, "recetas_borrador", id));
   if (!snap.exists()) return;
 
-  const receta = snap.data();
+  recetaActualId = id;
+  recetaActual = snap.data();
 
-  let txt = `🧾 ${receta.nombre}\n\n`;
+  modalTitulo.textContent = recetaActual.nombre;
+  modalTotal.textContent = recetaActual.costoTotal.toFixed(2);
 
-  receta.items.forEach(i => {
-    txt += `• ${i.cantidad} × ${i.nombre}\n`;
-    txt += `   Unit: $${i.costoUnit.toFixed(2)}\n`;
-    txt += `   Subtotal: $${i.subtotal.toFixed(2)}\n\n`;
+  // INSUMOS
+  modalInsumos.innerHTML = "";
+  recetaActual.items.forEach(i => {
+    modalInsumos.innerHTML += `
+      <p>
+        • ${i.cantidad} × ${i.nombre}<br>
+        <span class="hint">
+          Unit: $${i.costoUnit.toFixed(2)} — Subtotal: $${i.subtotal.toFixed(2)}
+        </span>
+      </p>
+    `;
   });
 
-  txt += `TOTAL: $${receta.costoTotal.toFixed(2)}`;
+  // FICHA
+  const f = recetaActual.ficha || {};
+  modalFicha.innerHTML = `
+    ${f.materiales ? `<p><strong>Materiales:</strong> ${f.materiales}</p>` : ""}
+    ${f.impresion ? `<p><strong>Impresión:</strong> ${f.impresion}</p>` : ""}
+    ${f.corte ? `<p><strong>Corte:</strong> ${f.corte}</p>` : ""}
+    ${f.notas ? `<p><strong>Notas:</strong> ${f.notas}</p>` : ""}
+  ` || `<p class="hint">Sin ficha técnica</p>`;
 
-  // Ficha técnica (si existe)
-  if (receta.ficha) {
-    txt += `\n\n📄 FICHA TÉCNICA\n`;
-    if (receta.ficha.materiales) txt += `• Materiales: ${receta.ficha.materiales}\n`;
-    if (receta.ficha.impresion) txt += `• Impresión: ${receta.ficha.impresion}\n`;
-    if (receta.ficha.corte) txt += `• Corte: ${receta.ficha.corte}\n`;
-    if (receta.ficha.notas) txt += `• Notas: ${receta.ficha.notas}\n`;
-  }
-
-  alert(txt);
+  modal.classList.remove("hidden");
 };
+
+/* ============================================================
+   CERRAR MODAL
+============================================================ */
+btnCerrar.onclick = () => modal.classList.add("hidden");
 
 /* ============================================================
    ELIMINAR RECETA
 ============================================================ */
 window.eliminarReceta = async function (id) {
   if (!confirm("¿Eliminar esta receta?")) return;
-
   await deleteDoc(doc(db, "recetas_borrador", id));
   cargarRecetas();
+};
+
+/* ============================================================
+   EDITAR RECETA → vuelve a costos.html
+============================================================ */
+btnEditar.onclick = () => {
+  localStorage.setItem("recetaEnEdicion", JSON.stringify({
+    id: recetaActualId,
+    data: recetaActual
+  }));
+  window.location.href = "costos.html";
+};
+
+/* ============================================================
+   CONVERTIR EN PRODUCTO
+============================================================ */
+btnConvertir.onclick = async () => {
+  const precio = prompt("Precio de venta del producto:");
+  if (!precio) return;
+
+  // Crear producto
+  const prodRef = await addDoc(collection(db, "productos"), {
+    nombre: recetaActual.nombre,
+    precio: Number(precio)
+  });
+
+  // Crear receta real
+  await setDoc(doc(db, "recetas", prodRef.id), {
+    productoId: prodRef.id,
+    items: recetaActual.items,
+    ficha: recetaActual.ficha || {},
+    costoUnitario: recetaActual.costoTotal
+  });
+
+  // Borrar borrador
+  await deleteDoc(doc(db, "recetas_borrador", recetaActualId));
+
+  modal.classList.add("hidden");
+  cargarRecetas();
+
+  alert("Producto creado correctamente ✔");
 };
 
 /* ============================================================
