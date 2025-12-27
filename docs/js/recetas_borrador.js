@@ -1,3 +1,4 @@
+// js/recetas_borrador.js
 import { db } from "./firebase.js";
 import {
   collection,
@@ -9,6 +10,9 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* ============================================================
+   DOM
+============================================================ */
 const grid = document.getElementById("listaRecetas");
 
 // MODAL
@@ -22,18 +26,34 @@ const btnCerrar = document.getElementById("btnCerrarModal");
 const btnEditar = document.getElementById("btnEditarReceta");
 const btnConvertir = document.getElementById("btnConvertirProducto");
 
+/* ============================================================
+   STATE
+============================================================ */
 let recetaActualId = null;
 let recetaActual = null;
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function n(v) {
+  const num = Number(v);
+  return Number.isFinite(num) ? num : 0;
+}
 
 /* ============================================================
    CARGAR RECETAS
 ============================================================ */
 async function cargarRecetas() {
   grid.innerHTML = "";
+
   const snap = await getDocs(collection(db, "recetas_borrador"));
 
   if (snap.empty) {
-    grid.innerHTML = `<div class="card"><p class="hint">No hay recetas guardadas.</p></div>`;
+    grid.innerHTML = `
+      <div class="card">
+        <p class="hint">No hay recetas guardadas.</p>
+      </div>
+    `;
     return;
   }
 
@@ -43,9 +63,13 @@ async function cargarRecetas() {
     grid.innerHTML += `
       <div class="producto-card">
         <div>
-          <div class="producto-nombre">${r.nombre}</div>
-          <div class="producto-precio">Costo: $${r.costoTotal.toFixed(2)}</div>
-          <div class="hint">${r.items.length} insumos</div>
+          <div class="producto-nombre">${r.nombre || "Sin nombre"}</div>
+          <div class="producto-precio">
+            Costo: $${n(r.costoTotal).toFixed(2)}
+          </div>
+          <div class="hint">
+            ${(r.items || []).length} insumos
+          </div>
         </div>
 
         <div class="producto-actions">
@@ -58,7 +82,7 @@ async function cargarRecetas() {
 }
 
 /* ============================================================
-   VER RECETA → MODAL
+   VER RECETA → MODAL (ROBUSTO)
 ============================================================ */
 window.verReceta = async function (id) {
   const snap = await getDoc(doc(db, "recetas_borrador", id));
@@ -67,45 +91,53 @@ window.verReceta = async function (id) {
   recetaActualId = id;
   recetaActual = snap.data();
 
-  modalTitulo.textContent = recetaActual.nombre;
-  modalTotal.textContent = recetaActual.costoTotal.toFixed(2);
+  // TITULO Y TOTAL
+  modalTitulo.textContent = recetaActual.nombre || "Receta";
+  modalTotal.textContent = n(recetaActual.costoTotal).toFixed(2);
 
-  // INSUMOS
-  recetaActual.items.forEach(i => {
+  // LIMPIAR MODAL
+  modalInsumos.innerHTML = "";
+  modalFicha.innerHTML = "";
 
-  // COSTO BASE
-  if (i.tipo === "base") {
+  // INSUMOS / COSTOS BASE
+  (recetaActual.items || []).forEach(i => {
+
+    // COSTO BASE
+    if (i.tipo === "base") {
+      modalInsumos.innerHTML += `
+        <p>
+          ⚡ <strong>${i.nombre || "Costo base"}</strong><br>
+          <span class="hint">
+            Costo fijo: $${n(i.subtotal).toFixed(2)}
+          </span>
+        </p>
+      `;
+      return;
+    }
+
+    // INSUMO NORMAL (viejo o nuevo)
     modalInsumos.innerHTML += `
       <p>
-        ⚡ <strong>${i.nombre}</strong><br>
+        • ${n(i.cantidad)} × ${i.nombre || "Insumo"}<br>
         <span class="hint">
-          Costo fijo: $${i.subtotal.toFixed(2)}
+          Unit: $${n(i.costoUnit).toFixed(2)} — 
+          Subtotal: $${n(i.subtotal).toFixed(2)}
         </span>
       </p>
     `;
-    return;
-  }
+  });
 
-  // INSUMO NORMAL
-  modalInsumos.innerHTML += `
-    <p>
-      • ${i.cantidad} × ${i.nombre}<br>
-      <span class="hint">
-        Unit: $${i.costoUnit.toFixed(2)} — Subtotal: $${i.subtotal.toFixed(2)}
-      </span>
-    </p>
-  `;
-});
-
-
-  // FICHA
+  // FICHA TÉCNICA
   const f = recetaActual.ficha || {};
   modalFicha.innerHTML = `
     ${f.materiales ? `<p><strong>Materiales:</strong> ${f.materiales}</p>` : ""}
     ${f.impresion ? `<p><strong>Impresión:</strong> ${f.impresion}</p>` : ""}
     ${f.corte ? `<p><strong>Corte:</strong> ${f.corte}</p>` : ""}
     ${f.notas ? `<p><strong>Notas:</strong> ${f.notas}</p>` : ""}
-  ` || `<p class="hint">Sin ficha técnica</p>`;
+    ${!f.materiales && !f.impresion && !f.corte && !f.notas
+      ? `<p class="hint">Sin ficha técnica</p>`
+      : ""}
+  `;
 
   modal.classList.remove("hidden");
 };
@@ -113,7 +145,9 @@ window.verReceta = async function (id) {
 /* ============================================================
    CERRAR MODAL
 ============================================================ */
-btnCerrar.onclick = () => modal.classList.add("hidden");
+btnCerrar.onclick = () => {
+  modal.classList.add("hidden");
+};
 
 /* ============================================================
    ELIMINAR RECETA
@@ -125,13 +159,16 @@ window.eliminarReceta = async function (id) {
 };
 
 /* ============================================================
-   EDITAR RECETA → vuelve a costos.html
+   EDITAR RECETA (futuro)
 ============================================================ */
 btnEditar.onclick = () => {
-  localStorage.setItem("recetaEnEdicion", JSON.stringify({
-    id: recetaActualId,
-    data: recetaActual
-  }));
+  localStorage.setItem(
+    "recetaEnEdicion",
+    JSON.stringify({
+      id: recetaActualId,
+      data: recetaActual
+    })
+  );
   window.location.href = "costos.html";
 };
 
@@ -145,18 +182,18 @@ btnConvertir.onclick = async () => {
   // Crear producto
   const prodRef = await addDoc(collection(db, "productos"), {
     nombre: recetaActual.nombre,
-    precio: Number(precio)
+    precio: n(precio)
   });
 
   // Crear receta real
   await setDoc(doc(db, "recetas", prodRef.id), {
     productoId: prodRef.id,
-    items: recetaActual.items,
+    items: recetaActual.items || [],
     ficha: recetaActual.ficha || {},
-    costoUnitario: recetaActual.costoTotal
+    costoUnitario: n(recetaActual.costoTotal)
   });
 
-  // Borrar borrador
+  // Eliminar borrador
   await deleteDoc(doc(db, "recetas_borrador", recetaActualId));
 
   modal.classList.add("hidden");
