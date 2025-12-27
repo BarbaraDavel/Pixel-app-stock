@@ -1382,4 +1382,7 @@ body.dark-mode .tabla-stock thead,
     color: #eee !important;
   }
 }
+#popupPixel.hidden {
+  display: none !important;
+}
 
