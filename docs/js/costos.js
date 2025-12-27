@@ -175,21 +175,19 @@ btnGuardarReceta.onclick = async () => {
     return;
   }
 
-    const items = lineas.map(l => {
-      const ins = insumos[l.insumoId];
-      const unit = getCostoUnitarioReal(ins);
-      const subtotal = l.cantidad * unit;
-      total += subtotal;
+  const items = lineas.map(l => {
+    const ins = insumos[l.insumoId];
+    const unit = getCostoUnitarioReal(ins);
+    const subtotal = l.cantidad * unit;
 
-      return {
-        insumoId: l.insumoId,
-        nombre: ins.nombre,          // 👈 CLAVE
-        cantidad: l.cantidad,
-        costoUnit: unit,
-        subtotal
-      };
-    });
-
+    return {
+      insumoId: l.insumoId,
+      nombre: ins.nombre,
+      cantidad: l.cantidad,
+      costoUnit: unit,
+      subtotal
+    };
+  });
 
   const costoTotal = items.reduce((a, i) => a + i.subtotal, 0);
 
@@ -202,11 +200,11 @@ btnGuardarReceta.onclick = async () => {
 
   alert("Receta guardada ✔️");
 
-  // reset
   nombreProductoInput.value = "";
   lineas = [];
   render();
 };
+
 
 /* ============================================================
    INIT
