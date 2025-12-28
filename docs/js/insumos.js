@@ -41,35 +41,40 @@ function calcCostoUnitario(costoPaquete, cantidadPaquete) {
 async function cargarInsumos() {
   lista.innerHTML = "";
 
-  const snap = await getDocs(collection(db, "insumos"));
+const snap = await getDocs(collection(db, "insumos"));
 
-  snap.forEach((d) => {
-    const ins = d.data();
+// 👉 ordenar por nombre
+const docsOrdenados = snap.docs.sort((a, b) => {
+  const na = (a.data().nombre || "").toLowerCase();
+  const nb = (b.data().nombre || "").toLowerCase();
+  return na.localeCompare(nb);
+});
 
-    const nombre = ins.nombre ?? "(sin nombre)";
-    const cantidadPaquete = toNumber(ins.cantidadPaquete ?? 0);
+docsOrdenados.forEach((d) => {
+  const ins = d.data();
 
-    // Compat: si todavía no existe costoPaquete, caemos al viejo campo
-    const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
-    const costoUnitario =
-      toNumber(ins.costoUnitario) ||
-      calcCostoUnitario(costoPaquete, cantidadPaquete);
+  const nombre = ins.nombre ?? "(sin nombre)";
+  const cantidadPaquete = toNumber(ins.cantidadPaquete ?? 0);
+  const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
+  const costoUnitario =
+    toNumber(ins.costoUnitario) ||
+    calcCostoUnitario(costoPaquete, cantidadPaquete);
 
-    lista.innerHTML += `
-      <tr>
-        <td>${nombre}</td>
-        <td>
-          <div><strong>Pack:</strong> $${costoPaquete}</div>
-          <div class="hint"><strong>Unit:</strong> $${costoUnitario.toFixed(2)}</div>
-        </td>
-        <td>${cantidadPaquete}</td>
-        <td>
-          <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${d.id}')">🗑️ Eliminar</button>
-        </td>
-      </tr>
-    `;
-  });
+  lista.innerHTML += `
+    <tr>
+      <td>${nombre}</td>
+      <td>
+        <div><strong>Pack:</strong> $${costoPaquete}</div>
+        <div class="hint"><strong>Unit:</strong> $${costoUnitario.toFixed(2)}</div>
+      </td>
+      <td>${cantidadPaquete}</td>
+      <td>
+        <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
+        <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${d.id}')">🗑️ Eliminar</button>
+      </td>
+    </tr>
+  `;
+});
 }
 
 // =============================
@@ -86,14 +91,17 @@ window.editarInsumo = async function (id) {
 
   inputNombre.value = ins.nombre ?? "";
 
-  // Compat: si antes guardabas costoUnitario como “pack”, lo mostramos igual
   const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
   inputCostoPaquete.value = costoPaquete;
-
   inputCantidadPaquete.value = toNumber(ins.cantidadPaquete ?? 0);
 
-  mostrarPopup("Editando insumo…");
+  // 👉 UX: subir automático y enfocar
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  setTimeout(() => inputNombre.focus(), 300);
+
+  mostrarPopup("Editando insumo ✏️");
 };
+
 
 // =============================
 // ELIMINAR INSUMO + STOCK
