@@ -1385,4 +1385,62 @@ body.dark-mode .tabla-stock thead,
 #popupPixel.hidden {
   display: none !important;
 }
+/* ============================================
+   POPUP PIXEL — SIMPLE, CENTRADO Y ELEGANTE
+============================================ */
+
+#popupPixel {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+
+  width: auto;
+  height: auto;
+
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .25s ease-out;
+}
+
+#popupPixel.hidden {
+  opacity: 0;
+}
+
+/* Caja */
+#popupPixel .popup-box {
+  background: rgba(255, 255, 255, 0.95);
+  color: #222;
+
+  padding: 12px 24px;
+  border-radius: 14px;
+
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow:
+    0 8px 25px rgba(0,0,0,0.25),
+    0 0 12px rgba(166, 107, 255, 0.35);
+
+  animation: pixelPop .25s ease-out;
+  pointer-events: all;
+}
+
+#popupPixel .popup-box::after {
+  content: "✔";
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #a66bff;
+}
+
+/* Animación */
+@keyframes pixelPop {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
 
