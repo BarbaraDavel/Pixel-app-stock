@@ -21,6 +21,7 @@ const nombreProductoInput = document.getElementById("nombreProducto");
    STATE
 ============================================================ */
 let insumos = {};
+let insumosOrdenados = [];
 let lineas = [];
 
 /* ============================================================
@@ -55,28 +56,40 @@ function getCostoUnitarioReal(ins) {
   return costoUnitarioGuardado;
 }
 
+function filtrarInsumos(texto) {
+  return insumosOrdenados.filter(id =>
+    insumos[id].nombre.toLowerCase().includes(texto.toLowerCase())
+  );
+}
+
 /* ============================================================
    CARGAR INSUMOS
 ============================================================ */
 async function cargarInsumos() {
   insumos = {};
   const snap = await getDocs(collection(db, "insumos"));
-  snap.forEach(d => (insumos[d.id] = d.data()));
+
+  snap.forEach(d => {
+    insumos[d.id] = d.data();
+  });
+
+  insumosOrdenados = Object.keys(insumos).sort((a, b) =>
+    insumos[a].nombre.localeCompare(insumos[b].nombre, "es", { sensitivity: "base" })
+  );
 }
 
 /* ============================================================
    AGREGAR INSUMO
 ============================================================ */
 btnAgregar.onclick = () => {
-  const ids = Object.keys(insumos);
-  if (!ids.length) {
+  if (!insumosOrdenados.length) {
     alert("No hay insumos cargados.");
     return;
   }
 
   lineas.push({
     tipo: "insumo",
-    insumoId: ids[0],
+    insumoId: insumosOrdenados[0],
     cantidad: 1
   });
 
@@ -88,7 +101,6 @@ btnAgregar.onclick = () => {
 ============================================================ */
 btnAgregarCostosBase.onclick = () => {
   COSTOS_BASE_PIXEL.forEach(base => {
-
     const existe = lineas.some(
       l => l.tipo === "base" && l.nombre === base.nombre
     );
@@ -154,8 +166,16 @@ function render() {
     tbody.innerHTML += `
       <tr>
         <td>
+          <input
+            type="text"
+            class="input-pixel buscar-insumo"
+            placeholder="Buscar insumo..."
+            data-i="${index}"
+            style="margin-bottom:6px;"
+          >
+
           <select data-i="${index}" class="selInsumo">
-            ${Object.keys(insumos)
+            ${insumosOrdenados
               .map(id =>
                 `<option value="${id}" ${id === l.insumoId ? "selected" : ""}>
                   ${insumos[id].nombre}
@@ -163,6 +183,7 @@ function render() {
               )
               .join("")}
           </select>
+
           <div class="hint" style="margin-top:6px;">${hint}</div>
         </td>
 
@@ -189,6 +210,8 @@ function render() {
    EVENTS
 ============================================================ */
 function bindEvents() {
+
+  // Cambio de insumo
   document.querySelectorAll(".selInsumo").forEach(sel => {
     sel.onchange = e => {
       lineas[e.target.dataset.i].insumoId = e.target.value;
@@ -196,9 +219,41 @@ function bindEvents() {
     };
   });
 
+  // Cantidad
   document.querySelectorAll(".inpCantidad").forEach(inp => {
     inp.oninput = e => {
       lineas[e.target.dataset.i].cantidad = toNumber(e.target.value);
+      render();
+    };
+  });
+
+  // Buscador
+  document.querySelectorAll(".buscar-insumo").forEach(input => {
+    input.oninput = e => {
+      const index = e.target.dataset.i;
+      const texto = e.target.value;
+
+      const select = document.querySelector(
+        `.selInsumo[data-i="${index}"]`
+      );
+
+      const filtrados = filtrarInsumos(texto);
+
+      select.innerHTML = filtrados
+        .map(id =>
+          `<option value="${id}">
+            ${insumos[id].nombre}
+          </option>`
+        )
+        .join("");
+
+      if (filtrados.includes(lineas[index].insumoId)) {
+        select.value = lineas[index].insumoId;
+      } else if (filtrados.length) {
+        lineas[index].insumoId = filtrados[0];
+        select.value = filtrados[0];
+      }
+
       render();
     };
   });
