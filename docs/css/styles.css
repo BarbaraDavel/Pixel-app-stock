@@ -1,267 +1,247 @@
-/* ========================================== GOOGLE FONT ========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+// js/costos.js
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-body {
-  font-family: "Poppins", system-ui, -apple-system, sans-serif;
-  font-size: 14px;
+/* ============================================================
+   DOM
+============================================================ */
+const tbody = document.getElementById("lineasCostos");
+const btnAgregar = document.getElementById("btnAgregarLinea");
+const btnAgregarCostosBase = document.getElementById("btnAgregarCostosBase");
+const costoTotalEl = document.getElementById("costoTotal");
+const btnGuardarReceta = document.getElementById("btnGuardarReceta");
+const nombreProductoInput = document.getElementById("nombreProducto");
+
+/* ============================================================
+   STATE
+============================================================ */
+let insumos = {};
+let insumosOrdenados = [];
+let lineas = [];
+
+/* ============================================================
+   COSTOS BASE PIXEL
+============================================================ */
+const COSTOS_BASE_PIXEL = [
+  { nombre: "Tinta y electricidad", costo: 200 },
+  { nombre: "Tiempo y diseño", costo: 200 }
+];
+
+/* ============================================================
+   HELPERS
+============================================================ */
+const toNumber = v => Number.isFinite(+v) ? +v : 0;
+
+function getCostoUnitarioReal(ins) {
+  const cantPack = toNumber(ins.cantidadPaquete);
+  const costoPack = toNumber(ins.costoPaquete);
+  const unit = toNumber(ins.costoUnitario);
+
+  if (costoPack > 0 && cantPack > 0) return costoPack / cantPack;
+  return unit;
 }
 
-/* ========================================== VARIABLES PIXEL ========================================== */
-:root {
-  --pixel-naranja: #ff9f43;
-  --pixel-lila: #a66bff;
-  --pixel-fondo: #f6f3ff;
-  --pixel-texto: #333;
-  --pixel-card: #ffffff;
-  --pixel-borde: #e0ddf5;
-  --blur-bg: rgba(255, 255, 255, 0.60);
+function recalcularTotal() {
+  let total = 0;
+
+  lineas.forEach(l => {
+    if (l.tipo === "base") {
+      total += l.costo;
+    } else {
+      const ins = insumos[l.insumoId];
+      if (!ins) return;
+      total += l.cantidad * getCostoUnitarioReal(ins);
+    }
+  });
+
+  costoTotalEl.textContent = total.toFixed(2);
 }
 
-/* RESET */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ============================================================
+   CARGAR INSUMOS
+============================================================ */
+async function cargarInsumos() {
+  const snap = await getDocs(collection(db, "insumos"));
+  snap.forEach(d => insumos[d.id] = d.data());
+
+  insumosOrdenados = Object.keys(insumos).sort((a, b) =>
+    insumos[a].nombre.localeCompare(insumos[b].nombre, "es", { sensitivity: "base" })
+  );
 }
 
-/* FONDO */
-body {
-  background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
-  min-height: 100vh;
-  color: var(--pixel-texto);
+/* ============================================================
+   AGREGAR INSUMO
+============================================================ */
+btnAgregar.onclick = () => {
+  if (!insumosOrdenados.length) return alert("No hay insumos cargados.");
+
+  lineas.push({
+    tipo: "insumo",
+    insumoId: insumosOrdenados[0],
+    cantidad: 1
+  });
+
+  render();
+};
+
+/* ============================================================
+   AGREGAR COSTOS BASE
+============================================================ */
+btnAgregarCostosBase.onclick = () => {
+  COSTOS_BASE_PIXEL.forEach(base => {
+    if (!lineas.some(l => l.tipo === "base" && l.nombre === base.nombre)) {
+      lineas.push({ tipo: "base", ...base });
+    }
+  });
+  render();
+};
+
+/* ============================================================
+   RENDER
+============================================================ */
+function render() {
+  tbody.innerHTML = "";
+
+  lineas.forEach((l, index) => {
+
+    if (l.tipo === "base") {
+      tbody.innerHTML += `
+        <tr style="background: rgba(255,159,67,0.15);">
+          <td>⚡ ${l.nombre}<div class="hint">Costo fijo</div></td>
+          <td>—</td>
+          <td>$${l.costo.toFixed(2)}</td>
+          <td><button class="btn btn-outline" data-del="${index}">✖</button></td>
+        </tr>
+      `;
+      return;
+    }
+
+    const ins = insumos[l.insumoId];
+    const unit = getCostoUnitarioReal(ins);
+    const subtotal = l.cantidad * unit;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          <input class="buscar-insumo" data-i="${index}" placeholder="Buscar insumo…">
+          <select class="selInsumo" data-i="${index}">
+            ${insumosOrdenados.map(id =>
+              `<option value="${id}" ${id === l.insumoId ? "selected" : ""}>
+                ${insumos[id].nombre}
+              </option>`
+            ).join("")}
+          </select>
+          <div class="hint">Unit: $${unit.toFixed(2)}</div>
+        </td>
+
+        <td>
+          <input type="number" class="inpCantidad" data-i="${index}" value="${l.cantidad}">
+        </td>
+
+        <td>$${subtotal.toFixed(2)}</td>
+
+        <td><button class="btn btn-outline" data-del="${index}">✖</button></td>
+      </tr>
+    `;
+  });
+
+  bindEvents();
+  recalcularTotal();
 }
 
-/* ========================================== HEADER / MENÚ PIXEL + HAMBURGUESA ========================================== */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.7rem 1.2rem;
-  background: var(--blur-bg);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--pixel-borde);
+/* ============================================================
+   EVENTS
+============================================================ */
+function bindEvents() {
+
+  // eliminar
+  tbody.querySelectorAll("[data-del]").forEach(btn => {
+    btn.onclick = () => {
+      lineas.splice(btn.dataset.del, 1);
+      render();
+    };
+  });
+
+  // cambio de insumo
+  tbody.querySelectorAll(".selInsumo").forEach(sel => {
+    sel.onchange = e => {
+      lineas[e.target.dataset.i].insumoId = e.target.value;
+      recalcularTotal();
+    };
+  });
+
+  // cantidad (SIN render)
+  tbody.querySelectorAll(".inpCantidad").forEach(inp => {
+    inp.oninput = e => {
+      lineas[e.target.dataset.i].cantidad = toNumber(e.target.value);
+      recalcularTotal();
+    };
+  });
+
+  // buscador (SIN render)
+  tbody.querySelectorAll(".buscar-insumo").forEach(input => {
+    input.oninput = e => {
+      const i = e.target.dataset.i;
+      const texto = e.target.value.toLowerCase();
+      const select = tbody.querySelector(`.selInsumo[data-i="${i}"]`);
+
+      select.innerHTML = insumosOrdenados
+        .filter(id => insumos[id].nombre.toLowerCase().includes(texto))
+        .map(id => `<option value="${id}">${insumos[id].nombre}</option>`)
+        .join("");
+
+      if (select.options.length) {
+        lineas[i].insumoId = select.value;
+        recalcularTotal();
+      }
+    };
+  });
 }
 
-/* Botón hamburguesa */
-.hamburger {
-  display: none;
-  border: none;
-  background: transparent;
-  font-size: 1.7rem;
-  cursor: pointer;
-  padding: 0.2rem;
-  color: #444;
-}
-
-/* Links escritorio */
-.nav-links {
-  display: flex;
-  gap: 0.7rem;
-  align-items: center;
-}
-
-.nav-links a {
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  text-decoration: none;
-  color: #444;
-  transition: 0.15s ease;
-}
-
-.nav-links a.active,
-.nav-links a:hover {
-  background: var(--pixel-naranja);
-  color: white;
-}
-
-/* ========================================== MOBILE NAV - MENÚ HAMBURGUESA ========================================== */
-@media (max-width: 768px) {
-  .hamburger {
-    display: block;
+/* ============================================================
+   GUARDAR RECETA
+============================================================ */
+btnGuardarReceta.onclick = async () => {
+  if (!nombreProductoInput.value.trim()) {
+    alert("Poné un nombre para la receta");
+    return;
   }
 
-  .nav-links {
-    position: absolute;
-    top: 3.4rem;
-    left: 0.6rem;
-    right: 0.6rem;
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-    padding: 0.8rem;
-    flex-direction: column;
-    align-items: flex-start;
-    opacity: 0;
-    transform: translateY(-12px);
-    pointer-events: none;
-    transition: opacity .25s ease, transform .25s ease;
-  }
+  const items = lineas.map(l =>
+    l.tipo === "base"
+      ? { tipo: "base", nombre: l.nombre, subtotal: l.costo }
+      : {
+          tipo: "insumo",
+          insumoId: l.insumoId,
+          nombre: insumos[l.insumoId].nombre,
+          cantidad: l.cantidad,
+          costoUnit: getCostoUnitarioReal(insumos[l.insumoId]),
+          subtotal: l.cantidad * getCostoUnitarioReal(insumos[l.insumoId])
+        }
+  );
 
-  .nav-links.open {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
+  await addDoc(collection(db, "recetas_borrador"), {
+    nombre: nombreProductoInput.value.trim(),
+    items,
+    costoTotal: items.reduce((a, i) => a + i.subtotal, 0),
+    creadaEn: serverTimestamp()
+  });
 
-  .nav-links a {
-    width: 100%;
-    padding: 0.5rem 0.6rem;
-  }
-}
+  alert("Receta guardada ✔");
+  nombreProductoInput.value = "";
+  lineas = [];
+  render();
+};
 
-/* ========================================== TARJETAS (CARDS) ========================================== */
-.card {
-  background: var(--pixel-card);
-  border-radius: 1.3rem;
-  padding: 1.5rem;
-  margin-top: 1rem;
-  border: 1px solid var(--pixel-borde);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.06);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
-}
-
-/* ========================================== INPUTS / SELECTS ========================================== */
-input,
-select,
-textarea {
-  padding: 0.55rem 0.8rem;
-  border-radius: 0.65rem;
-  border: 1px solid var(--pixel-borde);
-  font-size: 0.95rem;
-  width: 100%;
-  transition: 0.18s ease;
-  background: white;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--pixel-lila);
-  box-shadow: 0 0 0 3px rgba(166, 107, 255, 0.22);
-}
-
-/* ========================================== BOTONES ========================================== */
-.btn {
-  padding: 0.45rem 1.1rem;
-  border-radius: 999px;
-  border: 1px solid var(--pixel-borde);
-  background: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: 0.18s ease;
-}
-
-.btn-primary {
-  background: var(--pixel-naranja);
-  border-color: var(--pixel-naranja);
-  color: white;
-}
-
-.btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-.btn-secondary {
-  background: #eee;
-}
-
-.btn-outline {
-  background: transparent;
-  border-color: var(--pixel-lila);
-  color: var(--pixel-lila);
-}
-
-.btn-outline:hover {
-  background: var(--pixel-lila);
-  color: white;
-}
-
-/* ========================================== GRID PRODUCTOS ========================================== */
-.productos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 1rem;
-}
-
-.producto-card {
-  padding: 1.1rem;
-  border-radius: 1rem;
-  border: 1px solid var(--pixel-borde);
-  background: white;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.producto-nombre {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.producto-precio {
-  color: var(--pixel-naranja);
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-}
-
-/* ========================================== MODALES (Pixel APP) ========================================== */
-.hidden {
-  display: none !important;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal {
-  background: #fff;
-  padding: 1.4rem;
-  border-radius: 1.3rem;
-  width: 360px;
-  max-width: 90%;
-  box-shadow: 0 20px 45px rgba(0,0,0,0.25);
-  animation: modalPop .22s ease-out;
-}
-
-@keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ========================================== TABLAS ========================================== */
-.tabla-stock,
-.tabla-insumos {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1.2rem;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-/* FIN TOTAL DEL CSS */
+/* ============================================================
+   INIT
+============================================================ */
+(async () => {
+  await cargarInsumos();
+  render();
+})();
