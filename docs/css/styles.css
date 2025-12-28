@@ -1,47 +1,35 @@
 /* ==========================================
    GOOGLE FONT
 ========================================== */
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-body {
-  font-family: "Poppins", system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-}
-
-/* ==========================================
-   VARIABLES PIXEL
-========================================== */
-
-:root {
-  --pixel-naranja: #ff9f43;
-  --pixel-lila: #a66bff;
-  --pixel-fondo: #f6f3ff;
-  --pixel-texto: #333;
-  --pixel-card: #ffffff;
-  --pixel-borde: #e0ddf5;
-
-  --blur-bg: rgba(255, 255, 255, 0.60);
-}
-
-/* RESET */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* FONDO */
 body {
-  background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
+  font-family: "Poppins", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
   min-height: 100vh;
-  color: var(--pixel-texto);
+  background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
+  color: #333;
 }
 
 /* ==========================================
-   HEADER / MENÚ PIXEL + HAMBURGUESA
+   VARIABLES PIXEL
 ========================================== */
+:root {
+  --pixel-naranja: #ff9f43;
+  --pixel-lila: #a66bff;
+  --pixel-borde: #e0ddf5;
+  --blur-bg: rgba(255, 255, 255, 0.6);
+}
 
+/* ==========================================
+   HEADER
+========================================== */
 .topbar {
   position: sticky;
   top: 0;
@@ -55,22 +43,9 @@ body {
   border-bottom: 1px solid var(--pixel-borde);
 }
 
-/* Botón hamburguesa */
-.hamburger {
-  display: none;
-  border: none;
-  background: transparent;
-  font-size: 1.7rem;
-  cursor: pointer;
-  padding: 0.2rem;
-  color: #444;
-}
-
-/* Links escritorio */
 .nav-links {
   display: flex;
-  gap: 0.7rem;
-  align-items: center;
+  gap: 0.6rem;
 }
 
 .nav-links a {
@@ -78,121 +53,59 @@ body {
   border-radius: 999px;
   text-decoration: none;
   color: #444;
-  transition: 0.15s ease;
 }
 
 .nav-links a.active,
 .nav-links a:hover {
   background: var(--pixel-naranja);
-  color: white;
+  color: #fff;
 }
 
 /* ==========================================
-   MOBILE NAV - MENÚ HAMBURGUESA
+   CARDS
 ========================================== */
-
-@media (max-width: 768px) {
-
-  .hamburger {
-    display: block;
-  }
-
-  .nav-links {
-    position: absolute;
-    top: 3.4rem;
-    left: 0.6rem;
-    right: 0.6rem;
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-    padding: 0.8rem;
-    flex-direction: column;
-    align-items: flex-start;
-
-    opacity: 0;
-    transform: translateY(-12px);
-    pointer-events: none;
-    transition: opacity .25s ease, transform .25s ease;
-  }
-
-  .nav-links.open {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  .nav-links a {
-    width: 100%;
-    padding: 0.5rem 0.6rem;
-  }
-}
-
-/* ==========================================
-   TARJETAS (CARDS)
-========================================== */
-
 .card {
-  background: var(--pixel-card);
-  border-radius: 1.3rem;
+  background: #fff;
+  border-radius: 1.2rem;
   padding: 1.5rem;
   margin-top: 1rem;
   border: 1px solid var(--pixel-borde);
   box-shadow: 0 12px 28px rgba(0,0,0,0.06);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
 }
 
 /* ==========================================
-   INPUTS / SELECTS
+   INPUTS
 ========================================== */
-
-input, select, textarea {
+input, select {
+  width: 100%;
   padding: 0.55rem 0.8rem;
-  border-radius: 0.65rem;
+  border-radius: 0.6rem;
   border: 1px solid var(--pixel-borde);
   font-size: 0.95rem;
-  width: 100%;
-  transition: 0.18s ease;
-  background: white;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus, select:focus {
   outline: none;
   border-color: var(--pixel-lila);
-  box-shadow: 0 0 0 3px rgba(166, 107, 255, 0.22);
+  box-shadow: 0 0 0 3px rgba(166,107,255,0.2);
 }
 
 /* ==========================================
    BOTONES
 ========================================== */
-
 .btn {
   padding: 0.45rem 1.1rem;
   border-radius: 999px;
   border: 1px solid var(--pixel-borde);
-  background: white;
+  background: #fff;
   cursor: pointer;
-  font-size: 0.9rem;
   font-weight: 600;
-  transition: 0.18s ease;
 }
 
 .btn-primary {
   background: var(--pixel-naranja);
   border-color: var(--pixel-naranja);
-  color: white;
-}
-
-.btn-primary:hover {
-  filter: brightness(1.1);
-}
-
-.btn-secondary {
-  background: #eee;
+  color: #fff;
 }
 
 .btn-outline {
@@ -203,1307 +116,115 @@ input:focus, select:focus, textarea:focus {
 
 .btn-outline:hover {
   background: var(--pixel-lila);
-  color: white;
-}
-
-/* ==========================================
-   GRID PRODUCTOS
-========================================== */
-
-.productos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 1rem;
-}
-
-.producto-card {
-  padding: 1.1rem;
-  border-radius: 1rem;
-  border: 1px solid var(--pixel-borde);
-  background: white;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.producto-nombre {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.producto-precio {
-  color: var(--pixel-naranja);
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-}
-
-/* ==========================================
-   MODALES (Pixel APP)
-========================================== */
-
-.hidden { display: none !important; }
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal {
-  background: #fff;
-  padding: 1.4rem;
-  border-radius: 1.3rem;
-  width: 360px;
-  max-width: 90%;
-  box-shadow: 0 20px 45px rgba(0,0,0,0.25);
-  animation: modalPop .22s ease-out;
-}
-
-@keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  color: #fff;
 }
 
 /* ==========================================
    TABLAS
 ========================================== */
-
-.tabla-stock, .tabla-insumos {
+.tabla-stock,
+.tabla-insumos {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1.2rem;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.tabla-stock thead, .tabla-insumos thead {
-  background: linear-gradient(90deg, #ffe8d6, #fde2ff);
-}
-
-.tabla-stock th, .tabla-insumos th {
-  padding: 14px 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-align: left;
-  color: #444;
-}
-
-.tabla-stock td,
-.tabla-insumos td {
-  padding: 14px 10px;
-  font-size: 0.95rem;
-  color: #444;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.tabla-stock tbody tr:nth-child(even),
-.tabla-insumos tbody tr:nth-child(even) {
-  background: #faf9fb;
-}
-
-.tabla-stock tbody tr:hover,
-.tabla-insumos tbody tr:hover {
-  background: #fff4e6;
-}
-
-/* ==========================================
-   ESTADOS Y BADGES
-========================================== */
-
-.pagado-si { color: #28a745; font-weight: bold; }
-.pagado-no { color: #d33; font-weight: bold; }
-
-.estado.PENDIENTE { color: #d60000; font-weight:bold; }
-.estado.PROCESO { color: #d6b400; font-weight:bold; }
-.estado.LISTO { color: #8a00d6; font-weight:bold; }
-.estado.ENTREGADO { color: #1fa65d; font-weight:bold; }
-
-/* ==========================================
-   HOME PIXEL
-========================================== */
-
-.home-brand-card {
-  text-align: center;
-  padding: 2rem;
-  background: rgba(255,255,255,0.6);
-  border-radius: 1.2rem;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-  border: 1px solid rgba(255,255,255,0.6);
   margin-top: 1rem;
 }
 
-.home-grid {
-  margin-top: 2rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 1.2rem;
+.tabla-stock thead,
+.tabla-insumos thead {
+  background: linear-gradient(90deg, #ffe8d6, #fde2ff);
 }
 
-.home-card {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(12px);
-  border-radius: 1.2rem;
-  padding: 1.6rem 1.1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  border: 1px solid rgba(255,255,255,0.8);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-  color: #333;
-  transition: 0.25s ease;
-}
-
-.home-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(166, 107, 255, 0.25);
-  border-color: var(--pixel-lila);
-}
-/* ==========================================
-   FOOTER HOME
-========================================== */
-
-.home-footer-card {
-  margin-top: 2rem;
-  text-align: center;
-  padding: 1.3rem;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 1rem;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.5);
-}
-
-.home-footer-card .tiny {
-  margin-top: 0.2rem;
-  font-size: 0.8rem;
-  color: #666;
+.tabla-stock th,
+.tabla-insumos th,
+.tabla-stock td,
+.tabla-insumos td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
 /* ==========================================
-   BOTONES VARIOS (PIXEL PREMIUM)
+   BOTONES INSUMOS
 ========================================== */
-
 .btn-pp {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
-  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: 0.25s ease;
 }
 
 .btn-edit-pp {
   background: #f4eaff;
-  border-color: #c59bff;
   color: #7a2ea8;
-}
-.btn-edit-pp:hover {
-  background: #e8d5ff;
 }
 
 .btn-delete-pp {
   background: #ffe8e8;
-  border-color: #ff9b9b;
   color: #d32f2f;
 }
-.btn-delete-pp:hover {
-  background: #ffd6d6;
-}
 
 /* ==========================================
-   POPUP / TOAST PIXEL
+   POPUP PIXEL — DEFINITIVO (EL QUE FUNCIONA)
 ========================================== */
 
-/* ========= POPUP PIXEL (mejor visibilidad) ========= */
-.popup-pixel {
+#popupPixel {
   position: fixed;
-  top: 50%;
+  top: 18px;
   left: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  background: rgba(0, 0, 0, 0.4); /* backdrop suave */
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transform: translateX(-50%);
   z-index: 9999;
-  opacity: 1;
-  transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
-.popup-pixel.hidden {
-  opacity: 0;
+#popupPixel.hidden {
+  display: none;
 }
 
-.popup-box {
-  background: #ffffff;          /* Fondo blanco sólido */
-  color: #333333;               /* Texto bien oscuro */
-  padding: 16px 26px;
+#popupPixel .popup-box {
+  background: #ffffff;
+  color: #222;
+  padding: 10px 20px;
   border-radius: 14px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  font-size: 0.95rem;
+  font-weight: 600;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-  pointer-events: all;
+  gap: 8px;
+
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.25),
+    0 0 10px rgba(166,107,255,0.3);
+
+  animation: popupIn 0.2s ease-out;
 }
 
-.popup-box::after {
+#popupPixel .popup-box::after {
   content: "✔";
-  font-weight: bold;
-  color: #8A2BE2; /* Morado Pixel */
+  color: var(--pixel-lila);
+  font-weight: 900;
 }
 
-
-@keyframes popScale {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
-
-/* Toast */
-
-.toast {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  padding: 0.9rem 1.3rem;
-  background: var(--pixel-naranja);
-  color: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  font-weight: 600;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: 0.3s ease;
-  z-index: 99999;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast.error {
-  background: #ff4d4d;
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ==========================================
-   ANIMACIONES EXTRA
+   RESPONSIVE
 ========================================== */
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* ==========================================
-   RESPONSIVE - MOBILE FIRST (APP MODE)
-========================================== */
-
 @media (max-width: 600px) {
-
-  .topbar {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0.7rem 1rem;
-  }
-
-  .main {
-    padding: 0.6rem;
-  }
-
-  /* Cards */
-  .card {
-    padding: 1.2rem;
-    border-radius: 1.2rem;
-  }
-
-  /* Formularios en una columna */
-  .form-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .form-group {
-    width: 100%;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    font-size: 1rem;
-  }
-
-  /* Botones full width */
-  .btn,
-  .btn-primary,
-  .btn-secondary,
-  .btn-outline {
-    width: 100%;
-    margin-top: 0.7rem;
-    font-size: 1rem;
-  }
-
-  /* Tablas scrolleables */
-  table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  th, td {
-    white-space: nowrap;
-  }
-
-  /* Productos en columna */
-  .productos-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .producto-card {
-    text-align: center;
-    padding: 1rem;
-  }
-
-  /* Modal versión mobile */
-  .modal {
-    width: 92%;
-    padding: 1.2rem;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: 1.3rem;
-    font-size: 1rem;
-  }
-
-  /* Home cards más grandes */
-  .home-card {
-    padding: 1.3rem 0.8rem;
-  }
-
-  .home-card .icon {
-    font-size: 2.3rem;
-  }
-
-  .home-brand-card h1 {
-    font-size: 1.7rem;
-  }
-}
-
-/* FIN TOTAL DEL CSS */
-/* ============================
-   BOTTOM NAV – PIXEL APP
-============================ */
-
-.bottom-nav {
-  display: none; /* se muestra solo en mobile */
-}
-
-.bottom-nav .bn-item {
-  text-decoration: none;
-  color: #555;
-  font-size: 0.8rem;
-}
-
-/* Mobile: muestro bottom nav */
-@media (max-width: 768px) {
-  body {
-    padding-bottom: 60px; /* espacio para la bottom nav */
-  }
-
-  .bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid var(--pixel-borde);
-    justify-content: space-around;
-    align-items: center;
-    padding: 0.4rem 0;
-    z-index: 999;
-  }
-
-  .bn-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    flex: 1;
-  }
-
-  .bn-icon {
-    font-size: 1.2rem;
-  }
-
-  .bn-label {
-    font-size: 0.75rem;
-  }
-
-  .bn-item.active {
-    color: var(--pixel-naranja);
-    font-weight: 600;
-  }
-}
-
-/* ============================
-   TABLAS -> TARJETAS EN MOBILE
-============================ */
-
-@media (max-width: 600px) {
-  .tabla-stock,
-  .tabla-insumos {
-    border: none;
-    box-shadow: none;
-  }
-
-  .tabla-stock thead,
-  .tabla-insumos thead {
+  .nav-links {
     display: none;
   }
 
-  .tabla-stock tbody tr,
-  .tabla-insumos tbody tr {
-    display: block;
-    background: white;
-    margin-bottom: 0.8rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    padding: 0.6rem 0.8rem;
-  }
-
-  .tabla-stock td,
-  .tabla-insumos td {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    border-bottom: none;
-  }
-
-  .tabla-stock td::before,
-  .tabla-insumos td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    margin-right: 8px;
-    color: #666;
+  .card {
+    padding: 1.2rem;
   }
 }
-/* ============================
-   DARK MODE (según sistema)
-============================ */
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: radial-gradient(circle at top, #2b1b39, #120e1f);
-    color: #f5f5f5;
-  }
-
-  .card,
-  .modal,
-  .bottom-nav {
-    background: #1f1b2b;
-    color: #f5f5f5;
-  }
-
-  .topbar {
-    background: rgba(18, 14, 31, 0.85);
-    border-bottom-color: #3b3455;
-  }
-
-  .nav-links a {
-    color: #ddd;
-  }
-
-  .nav-links a.active,
-  .nav-links a:hover {
-    background: var(--pixel-naranja);
-    color: #111;
-  }
-
-  .tabla-stock,
-  .tabla-insumos {
-    background: #221c32;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.6);
-  }
-
-  .tabla-stock tbody tr:nth-child(even),
-  .tabla-insumos tbody tr:nth-child(even) {
-    background: #261f3b;
-  }
-
-  .tabla-stock tbody tr:hover,
-  .tabla-insumos tbody tr:hover {
-    background: #332552;
-  }
-
-  input, select, textarea {
-    background: #181421;
-    color: #f5f5f5;
-    border-color: #3f345d;
-  }
-
-  .bottom-nav {
-    background: rgba(20, 16, 34, 0.95);
-    border-top-color: #3b3455;
-  }
-}
-/* ===========================================
-   FIX: TARJETAS PIXEL SOBRE FONDO OSCURO
-=========================================== */
-
-.card,
-.producto-card,
-.home-brand-card,
-.home-card {
-  background: rgba(255, 255, 255, 0.14) !important;
-  backdrop-filter: blur(14px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  color: #fff !important;
-}
-
-/* textos internos */
-.card h1,
-.card h2,
-.card h3,
-.home-card p,
-.producto-nombre,
-.producto-precio {
-  color: #fff !important;
-}
-
-/* inputs */
-input, select, textarea {
-  background: rgba(30, 19, 49, 0.55) !important;
-  color: #fff !important;
-  border: 1px solid #a66bff !important;
-}
-
-/* botones */
-.btn,
-.btn-primary,
-.btn-outline,
-.vender-btn,
-.boton-accion {
-  color: #fff !important;
-  border-color: #a66bff !important;
-  background: rgba(166, 107, 255, 0.25) !important;
-}
-
-.btn-primary {
-  background: #ff9f43 !important;
-  border-color: #ff9f43 !important;
-  color: #000 !important;
-}
-
-.btn-outline:hover {
-  background: #a66bff !important;
-  color: #fff !important;
-}
-
-/* tarjetas Hogar */
-.home-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
-  border-color: #a66bff !important;
-}
-/* ============================================
-   FIX VISIBILIDAD TABLA PEDIDOS (Dark Mode)
-============================================ */
-
-@media (prefers-color-scheme: dark) {
-
-  /* Texto general de las tablas */
-  .tabla-stock td,
-  .tabla-stock th {
-    color: #f4f1ff !important;  /* blanco suave Pixel */
-  }
-
-  /* Columna Cliente más fuerte */
-  .tabla-stock td:first-child {
-    color: #ffffff !important;
-    font-weight: 600;
-  }
-
-  /* Estado */
-  .estado {
-    font-weight: 700 !important;
-    letter-spacing: 0.3px;
-  }
-
-  /* Pagado / No pagado */
-  .pagado-si {
-    color: #46ff9b !important;
-    font-weight: 700;
-  }
-  .pagado-no {
-    color: #ff6b6b !important;
-    font-weight: 600;
-  }
-
-  /* Ajustar fondo rosa/lila del header */
-  .tabla-stock thead {
-    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
-  }
-
-  /* Celdas */
-  .tabla-stock tbody tr {
-    background: rgba(255,255,255,0.04) !important;
-  }
-  .tabla-stock tbody tr:nth-child(even) {
-    background: rgba(255,255,255,0.07) !important;
-  }
-
-  /* Hover */
-  .tabla-stock tbody tr:hover {
-    background: rgba(255,255,255,0.13) !important;
-  }
-}
-/* ============================
-      MODAL RECETAS
-============================ */
-
-.modal-receta {
-  width: 90%;
-  max-width: 550px;
-  background: #2a203aee;
-  border-radius: 18px;
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease;
-  box-shadow: 0 0 20px #0004;
-}
-
-.modal-title {
-  margin-bottom: 1rem;
-  text-align: center;
-  font-size: 1.4rem;
-  color: #fff;
-}
-
-.tabla-modal {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-}
-
-.tabla-modal th {
-  font-weight: 600;
-  padding-bottom: 6px;
-  color: #e3caff;
-  border-bottom: 1px solid #5e3f83;
-}
-
-.tabla-modal td {
-  padding: 8px 0;
-  text-align: center;
-}
-
-.modal-receta select,
-.modal-receta input {
-  width: 90%;
-  background: #3a2952;
-  border: 1px solid #7d5bb3;
-  padding: 6px;
-  color: #fff;
-  border-radius: 8px;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 10px;
-}
-
-.modal-buttons .btn {
-  flex: 1 1 auto;
-}
-
-.modal-backdrop {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: #0008;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-}
-
-.hidden { display: none !important; }
-
-/* Animación */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-/* --- FIX: Asegurar popup bien visible incluso en modo oscuro --- */
-
-.popup-box {
-  background: #ffffff !important;
-  color: #222 !important;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.35) !important;
-}
-
-.popup-pixel {
-  background: rgba(0,0,0,0.55) !important; /* fondo oscuro real */
-}
-/* ============================================
-   FIX REAL PARA EL POPUP PIXEL
-============================================ */
-
-/* Fondo oscuro detrás del popup */
-.popup {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55) !important;
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-  opacity: 1 !important;
-}
-
-/* Caja del popup */
-.popup-contenido {
-  background: #ffffff !important;
-  color: #222 !important;
-  padding: 18px 30px;
-  font-size: 1.15rem;
-  border-radius: 14px;
-  font-weight: 600;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.45) !important;
-  animation: popupScale 0.22s ease-out;
-}
-
-/* Animación */
-@keyframes popupScale {
-  0%   { transform: scale(0.7); opacity: 0; }
-  70%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); }
-}
-/* ============================================
-   FIX DEFINITIVO POPUP PIXEL — FONDO SÓLIDO
-============================================ */
-#popupPixel {
-  background: rgba(0,0,0,0.55) !important;
-  backdrop-filter: blur(6px) !important;
-}
-
-#popupPixel .popup-box {
-  background: #ffffff !important;
-  color: #222 !important;
-  border: none !important;
-  backdrop-filter: none !important;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.45) !important;
-
-  /* Mejor contraste */
-  font-size: 1.2rem;
-  font-weight: 600;
-
-  /* Animación */
-  animation: popupReal .22s ease-out;
-}
-
-@keyframes popupReal {
-  0%   { transform: scale(0.75); opacity: 0; }
-  70%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); }
-}
-/* ============================================
-   POPUP PREMIUM PIXEL — iOS Glass + Glow
-============================================ */
-
-/* Capa completa */
-#popupPixel {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 0, 20, 0.55) !important; /* oscurece suave */
-  backdrop-filter: blur(10px) !important;        /* blur real */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-  opacity: 1;
-  transition: opacity .25s ease-out;
-}
-
-#popupPixel.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Caja central estilo iOS */
-#popupPixel .popup-box {
-  background: rgba(255, 255, 255, 0.22) !important;
-  backdrop-filter: blur(25px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
-
-  padding: 18px 32px;
-  border-radius: 18px;
-
-  border: 1px solid rgba(255,255,255,0.38) !important;
-
-  /* Sombras iOS */
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.35),
-    0 0 25px rgba(166, 107, 255, 0.55);  /* glow Pixel */
-
-  color: #fff !important;
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  animation: popupPixelShow .35s cubic-bezier(.25,.9,.35,1.2);
-}
-
-/* Check Pixel violeta */
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.35rem;
-  font-weight: 900;
-  color: #c59bff !important;  /* violeta Pixel */
-  text-shadow: 0 0 8px rgba(166,107,255,0.9);
-}
-
-/* ANIMACIÓN */
-@keyframes popupPixelShow {
-  0%   { transform: scale(.75) translateY(40px); opacity: 0; }
-  60%  { transform: scale(1.08) translateY(-6px); opacity: 1; }
-  100% { transform: scale(1) translateY(0); }
-}
-/* ============================================
-   POPUP PERFECT PIXEL (sin capa gigante)
-============================================ */
-
-/* Contenedor chico flotante */
-#popupPixel {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 99999;
-
-  /* NO ocupa toda la pantalla */
-  width: auto;
-  height: auto;
-
-  opacity: 1;
-  transition: opacity .25s ease-out;
-  pointer-events: none;
-}
-
-#popupPixel.hidden {
-  opacity: 0;
-}
-
-/* Caja estilo iOS */
-#popupPixel .popup-box {
-  background: rgba(255, 255, 255, 0.18) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-
-  padding: 12px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.35) !important;
-
-  color: #fff !important;
-  font-size: 1.05rem;
-  font-weight: 600;
-
-  box-shadow:
-    0 6px 25px rgba(0,0,0,0.35),
-    0 0 15px rgba(166, 107, 255, 0.5);
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  animation: pixelPop .35s cubic-bezier(.25,.9,.35,1.2);
-}
-
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #c59bff !important;
-  text-shadow: 0 0 6px rgba(166,107,255,0.8);
-}
-
-/* animación elegante */
-@keyframes pixelPop {
-  0%   { transform: scale(.75); opacity: 0; }
-  60%  { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-/* ============================================
-   POPUP PIXEL — ALERTA CENTRADA PREMIUM
-============================================ */
-
-#popupPixel {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(0,0,0,0.45);          /* fondo suave */
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
-  z-index: 99999;
-
-  opacity: 1;
-  transition: opacity .25s ease-out;
-}
-
-#popupPixel.hidden {
-  opacity: 0;
-  pointer-events: none;  /* no bloquea clics al ocultarse */
-}
-
-/* Caja del popup */
-#popupPixel .popup-box {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(22px) saturate(170%);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-
-  padding: 20px 32px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.35);
-
-  color: #fff;
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  box-shadow:
-    0 12px 35px rgba(0,0,0,0.35),
-    0 0 20px rgba(166, 107, 255, 0.4);  /* glow Pixel */
-
-  animation: popupCenterIn .35s cubic-bezier(.25,.9,.35,1.2);
-}
-
-/* icono check */
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.45rem;
-  font-weight: 900;
-  color: #c59bff;
-  text-shadow: 0 0 8px rgba(166,107,255,0.9);
-}
-
-/* Animación */
-@keyframes popupCenterIn {
-  0%   { transform: scale(.7) translateY(20px); opacity: 0; }
-  60%  { transform: scale(1.08) translateY(-6px); opacity: 1; }
-  100% { transform: scale(1) translateY(0); }
-}
-/* ============================================
-   POPUP PIXEL — VERSIÓN FINAL LIMPIA
-============================================ */
-
-/* Capa que ocupa la pantalla (pero sin descontrolarse) */
-#popupPixel {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(0,0,0,0.35);     /* sombra suave */
-  backdrop-filter: blur(6px);
-
-  z-index: 99999;
-  opacity: 1;
-  transition: opacity .25s ease-out;
-  pointer-events: none;             /* no bloquea clicks */
-}
-
-#popupPixel.hidden {
-  opacity: 0;
-}
-
-/* Caja del popup */
-#popupPixel .popup-box {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(20px) saturate(160%);
-  padding: 14px 26px;
-  border-radius: 14px;
-  
-  border: 1px solid rgba(255,255,255,0.28);
-
-  color: #fff;
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  box-shadow:
-    0 10px 28px rgba(0,0,0,0.35),
-    0 0 14px rgba(166, 107, 255, 0.45);
-
-  animation: popupFadeIn .28s cubic-bezier(.25,.9,.35,1.2);
-  pointer-events: all;
-}
-
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #c59bff;
-  text-shadow: 0 0 6px rgba(166,107,255,0.7);
-}
-
-@keyframes popupFadeIn {
-  0%   { transform: scale(.7) translateY(20px); opacity: 0; }
-  60%  { transform: scale(1.05) translateY(-6px); opacity: 1; }
-  100% { transform: scale(1) translateY(0); }
-}
-/* FIX HEADER TABLAS EN DARK MODE */
-@media (prefers-color-scheme: dark) {
-
-  .tabla-insumos thead,
-  .tabla-stock thead {
-    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
-    color: #fff !important;
-  }
-
-  .tabla-insumos th,
-  .tabla-stock th {
-    color: #fff !important;
-  }
-}
-/* ==========================================================
-   FIX DEFINITIVO — STOCK OSCURO PIXEL (forzado)
-========================================================== */
-
-body.dark-mode .tabla-insumos thead,
-body.dark-mode .tabla-stock thead,
-@media (prefers-color-scheme: dark) {
-  .tabla-insumos thead,
-  .tabla-stock thead {
-    background: linear-gradient(90deg, #2f2542, #4b3a68) !important;
-    color: #ffffff !important;
-  }
-
-  .tabla-insumos th,
-  .tabla-stock th {
-    color: #ffffff !important;
-    font-weight: 600 !important;
-  }
-
-  .tabla-insumos tbody tr,
-  .tabla-stock tbody tr {
-    background: rgba(255,255,255,0.03) !important;
-  }
-
-  .tabla-insumos tbody tr:nth-child(even),
-  .tabla-stock tbody tr:nth-child(even) {
-    background: rgba(255,255,255,0.07) !important;
-  }
-
-  .tabla-insumos tbody tr:hover,
-  .tabla-stock tbody tr:hover {
-    background: rgba(255,255,255,0.13) !important;
-  }
-}
-/* ============================================
-   FIX FINAL Y REAL — TABLAS OSCURAS PIXEL
-============================================ */
-
-@media (prefers-color-scheme: dark) {
-
-  /* Header */
-  .tabla-insumos thead,
-  .tabla-stock thead {
-    background: linear-gradient(90deg, #392c54, #4e3a6b) !important;
-  }
-
-  .tabla-insumos th,
-  .tabla-stock th {
-    color: #ffffff !important;
-  }
-
-  /* Filas */
-  .tabla-insumos tbody tr,
-  .tabla-stock tbody tr {
-    background: rgba(255,255,255,0.05) !important;
-  }
-
-  .tabla-insumos tbody tr:nth-child(even),
-  .tabla-stock tbody tr:nth-child(even) {
-    background: rgba(255,255,255,0.09) !important;
-  }
-
-  /* Hover */
-  .tabla-insumos tbody tr:hover,
-  .tabla-stock tbody tr:hover {
-    background: rgba(255,255,255,0.15) !important;
-  }
-
-  /* Texto */
-  .tabla-insumos td,
-  .tabla-stock td {
-    color: #eee !important;
-  }
-}
-#popupPixel.hidden {
-  display: none !important;
-}
-/* ============================================
-   POPUP PIXEL — SIMPLE, CENTRADO Y ELEGANTE
-============================================ */
-
-#popupPixel {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 99999;
-
-  width: auto;
-  height: auto;
-
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity .25s ease-out;
-}
-
-#popupPixel.hidden {
-  opacity: 0;
-}
-
-/* Caja */
-#popupPixel .popup-box {
-  background: rgba(255, 255, 255, 0.95);
-  color: #222;
-
-  padding: 12px 24px;
-  border-radius: 14px;
-
-  font-size: 1.05rem;
-  font-weight: 600;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  box-shadow:
-    0 8px 25px rgba(0,0,0,0.25),
-    0 0 12px rgba(166, 107, 255, 0.35);
-
-  animation: pixelPop .25s ease-out;
-  pointer-events: all;
-}
-
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #a66bff;
-}
-
-/* Animación */
-@keyframes pixelPop {
-  from { transform: scale(.85); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
-/* ============================================
-   POPUP PIXEL — VERSIÓN FINAL LIMPIA
-============================================ */
-
-#popupPixel {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 99999;
-
-  width: auto;
-  height: auto;
-
-  pointer-events: none;
-}
-
-#popupPixel.hidden {
-  display: none !important;
-}
-
-#popupPixel .popup-box {
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  padding: 12px 22px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.35);
-
-  color: #fff;
-  font-size: 1.05rem;
-  font-weight: 600;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  box-shadow:
-    0 6px 22px rgba(0,0,0,0.35),
-    0 0 12px rgba(166, 107, 255, 0.4);
-
-  animation: popupIn .25s ease-out;
-}
-
-#popupPixel .popup-box::after {
-  content: "✔";
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #c59bff;
-}
-
-/* Animación */
-@keyframes popupIn {
-  from {
-    transform: translateY(-10px) scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-
