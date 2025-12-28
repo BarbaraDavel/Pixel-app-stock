@@ -1443,4 +1443,67 @@ body.dark-mode .tabla-stock thead,
   from { transform: scale(.85); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
+/* ============================================
+   POPUP PIXEL — VERSIÓN FINAL LIMPIA
+============================================ */
+
+#popupPixel {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+
+  width: auto;
+  height: auto;
+
+  pointer-events: none;
+}
+
+#popupPixel.hidden {
+  display: none !important;
+}
+
+#popupPixel .popup-box {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  padding: 12px 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.35);
+
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  box-shadow:
+    0 6px 22px rgba(0,0,0,0.35),
+    0 0 12px rgba(166, 107, 255, 0.4);
+
+  animation: popupIn .25s ease-out;
+}
+
+#popupPixel .popup-box::after {
+  content: "✔";
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #c59bff;
+}
+
+/* Animación */
+@keyframes popupIn {
+  from {
+    transform: translateY(-10px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
 
