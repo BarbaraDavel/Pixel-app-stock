@@ -121,7 +121,6 @@ btnAgregarCostosBase.onclick = () => {
 ============================================================ */
 function render() {
   tbody.innerHTML = "";
-  let total = 0;
 
   lineas.forEach((l, index) => {
 
@@ -129,8 +128,6 @@ function render() {
        COSTO BASE
     ========================== */
     if (l.tipo === "base") {
-      total += l.costo;
-
       tbody.innerHTML += `
         <tr style="background: rgba(255,159,67,0.15);">
           <td>
@@ -156,7 +153,6 @@ function render() {
     const unit = getCostoUnitarioReal(ins);
     const cant = toNumber(l.cantidad);
     const subtotal = cant * unit;
-    total += subtotal;
 
     let hint = `Unit: $${unit.toFixed(2)}`;
     if (ins.costoPaquete && ins.cantidadPaquete) {
@@ -193,7 +189,9 @@ function render() {
                  value="${cant}">
         </td>
 
-        <td>$${subtotal.toFixed(2)}</td>
+        <td class="subtotal" data-i="${index}">
+          $${subtotal.toFixed(2)}
+        </td>
 
         <td>
           <button class="btn btn-outline" onclick="eliminarLinea(${index})">✖</button>
@@ -202,8 +200,30 @@ function render() {
     `;
   });
 
-  costoTotalEl.textContent = total.toFixed(2);
   bindEvents();
+  actualizarTotal();
+}
+
+/* ============================================================
+   ACTUALIZAR TOTAL (SIN RENDER)
+============================================================ */
+function actualizarTotal() {
+  let total = 0;
+
+  lineas.forEach(l => {
+    if (l.tipo === "base") {
+      total += l.costo;
+      return;
+    }
+
+    const ins = insumos[l.insumoId];
+    if (!ins) return;
+
+    const unit = getCostoUnitarioReal(ins);
+    total += toNumber(l.cantidad) * unit;
+  });
+
+  costoTotalEl.textContent = total.toFixed(2);
 }
 
 /* ============================================================
@@ -214,37 +234,42 @@ function bindEvents() {
   // Cambio de insumo
   document.querySelectorAll(".selInsumo").forEach(sel => {
     sel.onchange = e => {
-      lineas[e.target.dataset.i].insumoId = e.target.value;
-      render();
+      const i = e.target.dataset.i;
+      lineas[i].insumoId = e.target.value;
+      render(); // acá sí hace falta
     };
   });
 
-  // Cantidad
+  // Cantidad (NO render)
   document.querySelectorAll(".inpCantidad").forEach(inp => {
     inp.oninput = e => {
-      lineas[e.target.dataset.i].cantidad = toNumber(e.target.value);
-      render();
+      const i = e.target.dataset.i;
+      lineas[i].cantidad = toNumber(e.target.value);
+
+      const ins = insumos[lineas[i].insumoId];
+      const unit = getCostoUnitarioReal(ins);
+      const subtotal = lineas[i].cantidad * unit;
+
+      const subtotalCell = document.querySelector(`.subtotal[data-i="${i}"]`);
+      if (subtotalCell) {
+        subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+      }
+
+      actualizarTotal();
     };
   });
 
-  // Buscador
+  // Buscador (NO render)
   document.querySelectorAll(".buscar-insumo").forEach(input => {
     input.oninput = e => {
       const index = e.target.dataset.i;
       const texto = e.target.value;
 
-      const select = document.querySelector(
-        `.selInsumo[data-i="${index}"]`
-      );
-
+      const select = document.querySelector(`.selInsumo[data-i="${index}"]`);
       const filtrados = filtrarInsumos(texto);
 
       select.innerHTML = filtrados
-        .map(id =>
-          `<option value="${id}">
-            ${insumos[id].nombre}
-          </option>`
-        )
+        .map(id => `<option value="${id}">${insumos[id].nombre}</option>`)
         .join("");
 
       if (filtrados.includes(lineas[index].insumoId)) {
@@ -254,7 +279,7 @@ function bindEvents() {
         select.value = filtrados[0];
       }
 
-      render();
+      actualizarTotal();
     };
   });
 }
