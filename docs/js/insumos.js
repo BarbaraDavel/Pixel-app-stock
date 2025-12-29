@@ -51,11 +51,8 @@ function normalizar(txt = "") {
    CARGAR INSUMOS
 ============================================================ */
 async function cargarInsumos() {
-  lista.innerHTML = "";
-
   const snap = await getDocs(collection(db, "insumos"));
   insumosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
   renderLista(insumosCache);
 }
 
@@ -78,14 +75,14 @@ function renderLista(arr) {
 
     lista.innerHTML += `
       <tr>
-        <td>${ins.nombre || "(sin nombre)"}</td>
+        <td>${ins.nombre}</td>
         <td>
           <div><strong>Pack:</strong> $${costoPaquete}</div>
           <div class="hint"><strong>Unit:</strong> $${costoUnitario.toFixed(2)}</div>
         </td>
         <td>${cantidadPaquete}</td>
         <td>
-          <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${ins.id}')">✏️ Editar</button>
+          <button class="btn-pp" onclick="editarInsumo('${ins.id}')">✏️ Editar</button>
           <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${ins.id}')">🗑️ Eliminar</button>
         </td>
       </tr>
@@ -100,82 +97,54 @@ inputBuscar?.addEventListener("input", () => {
   const q = normalizar(inputBuscar.value);
   if (!q) return renderLista(insumosCache);
 
-  const filtrados = insumosCache.filter(i =>
-    normalizar(i.nombre).includes(q)
+  renderLista(
+    insumosCache.filter(i => normalizar(i.nombre).includes(q))
   );
-
-  renderLista(filtrados);
 });
 
 /* ============================================================
-   AVISO DE DUPLICADO (FASE 1 ⭐)
+   VALIDACIÓN DUPLICADO (FASE 1 ⭐)
 ============================================================ */
-    inputNombre.addEventListener("input", () => {
-      const valor = normalizar(inputNombre.value);
-      nombreDuplicado = false;
+inputNombre.addEventListener("input", () => {
+  const valor = normalizar(inputNombre.value);
+  nombreDuplicado = false;
 
-      if (!valor) {
-        avisoDuplicado.style.display = "none";
-        inputNombre.setCustomValidity("");
-        return;
-      }
+  if (!valor) {
+    avisoDuplicado.style.display = "none";
+    return;
+  }
 
-      const encontrado = insumosCache.find(ins =>
-        normalizar(ins.nombre) === valor && ins.id !== editId
-      );
+  const existe = insumosCache.some(ins =>
+    normalizar(ins.nombre) === valor && ins.id !== editId
+  );
 
-      if (encontrado) {
-        nombreDuplicado = true;
-        avisoDuplicado.style.display = "block";
-        inputNombre.setCustomValidity("Este insumo ya existe");
-      } else {
-        avisoDuplicado.style.display = "none";
-        inputNombre.setCustomValidity("");
-      }
-    });
+  if (existe) {
+    nombreDuplicado = true;
+    avisoDuplicado.style.display = "block";
+  } else {
+    avisoDuplicado.style.display = "none";
+  }
+});
 
 /* ============================================================
-   EDITAR INSUMO
+   EDITAR
 ============================================================ */
-window.editarInsumo = async function (id) {
+window.editarInsumo = async id => {
   editId = id;
-
   const snap = await getDoc(doc(db, "insumos", id));
   if (!snap.exists()) return;
 
   const ins = snap.data();
-
-  inputNombre.value = ins.nombre ?? "";
-  inputCostoPaquete.value = toNumber(ins.costoPaquete ?? 0);
-  inputCantidadPaquete.value = toNumber(ins.cantidadPaquete ?? 0);
+  inputNombre.value = ins.nombre;
+  inputCostoPaquete.value = toNumber(ins.costoPaquete);
+  inputCantidadPaquete.value = toNumber(ins.cantidadPaquete);
 
   window.scrollTo({ top: 0, behavior: "smooth" });
   setTimeout(() => inputNombre.focus(), 300);
-
-  mostrarPopup("Editando insumo ✏️");
 };
 
 /* ============================================================
-   ELIMINAR INSUMO
-============================================================ */
-window.eliminarInsumo = async function (id) {
-  if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
-
-  await deleteDoc(doc(db, "insumos", id));
-
-  const stockSnap = await getDocs(collection(db, "stock"));
-  for (const s of stockSnap.docs) {
-    if (s.data().insumoId === id) {
-      await deleteDoc(doc(db, "stock", s.id));
-    }
-  }
-
-  cargarInsumos();
-  mostrarPopup("Insumo eliminado 🗑️");
-};
-
-/* ============================================================
-   GUARDAR / EDITAR
+   GUARDAR
 ============================================================ */
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
@@ -184,8 +153,7 @@ btnGuardar.onclick = async () => {
 
   if (!nombre) return alert("El insumo necesita nombre");
   if (nombreDuplicado) return alert("Este insumo ya existe");
-  if (!cantidadPaquete || cantidadPaquete <= 0)
-    return alert("La cantidad debe ser mayor a 0");
+  if (cantidadPaquete <= 0) return alert("La cantidad debe ser mayor a 0");
 
   const costoUnitario = calcCostoUnitario(costoPaquete, cantidadPaquete);
 
@@ -202,8 +170,6 @@ btnGuardar.onclick = async () => {
       stockActual: cantidadPaquete,
       stockMinimo: 5
     });
-
-    mostrarPopup("Insumo agregado ✔️");
   } else {
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
@@ -211,30 +177,16 @@ btnGuardar.onclick = async () => {
       cantidadPaquete,
       costoUnitario
     });
-
-    mostrarPopup("Insumo actualizado ✔️");
     editId = null;
   }
 
   inputNombre.value = "";
   inputCostoPaquete.value = "";
   inputCantidadPaquete.value = "";
+  avisoDuplicado.style.display = "none";
 
   cargarInsumos();
 };
-
-/* ============================================================
-   POPUP
-============================================================ */
-function mostrarPopup(msg = "Guardado") {
-  const popup = document.getElementById("popupPixel");
-  const texto = document.getElementById("popupText");
-  if (!popup || !texto) return;
-
-  texto.textContent = msg;
-  popup.classList.remove("hidden");
-  setTimeout(() => popup.classList.add("hidden"), 1500);
-}
 
 /* ============================================================
    INIT
