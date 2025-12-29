@@ -83,9 +83,8 @@ function debeDescontarStock(p) {
   return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
 }
 
-// 🔥 prioridad visual / lógica
 function prioridadPedido(p) {
-  if (p.estado !== "ENTREGADO" && !p.pagado) return 1; // urgente
+  if (p.estado !== "ENTREGADO" && !p.pagado) return 1;
   if (p.estado !== "ENTREGADO" && p.pagado)  return 2;
   if (p.estado === "ENTREGADO" && !p.pagado) return 3;
   return 4;
@@ -103,7 +102,6 @@ async function cargarClientes() {
     const c = d.data();
     clientesPorNombre[c.nombre] = {
       id: d.id,
-      apodo: c.apodo || "",
       telefono: c.whatsapp || c.telefono || "",
       red: c.instagram || c.red || ""
     };
@@ -208,7 +206,7 @@ btnLimpiar.addEventListener("click", e => {
 });
 
 /* =====================================================
-   GUARDAR PEDIDO
+   GUARDAR PEDIDO (con creación automática de cliente)
 ===================================================== */
 btnGuardar.addEventListener("click", async e => {
   e.preventDefault();
@@ -216,13 +214,25 @@ btnGuardar.addEventListener("click", async e => {
   if (!inputClienteNombre.value || !itemsPedido.length)
     return alert("Faltan datos");
 
+  const nombreCliente = inputClienteNombre.value.trim();
+
+  // 👉 crear cliente si no existe
+  if (!clientesPorNombre[nombreCliente]) {
+    await addDoc(collection(db, "clientes"), {
+      nombre: nombreCliente,
+      telefono: inputClienteTelefono.value || "",
+      instagram: inputClienteRed.value || "",
+      createdAt: serverTimestamp()
+    });
+  }
+
   const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
   const fechaIso = inputFecha.value
     ? new Date(inputFecha.value + "T00:00:00").toISOString()
     : new Date().toISOString();
 
   const pedido = {
-    clienteNombre: inputClienteNombre.value,
+    clienteNombre: nombreCliente,
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
     fecha: fechaIso,
@@ -242,6 +252,7 @@ btnGuardar.addEventListener("click", async e => {
 
   alert("Pedido guardado ✔");
   limpiarFormulario();
+  cargarClientes();
   cargarPedidos();
 });
 
@@ -284,11 +295,7 @@ function renderLista() {
           <td>${p.clienteNombre}</td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
           <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${p.pagado
-              ? `<span class="badge badge-pagado">✔ Pagado</span>`
-              : `<span class="badge badge-nopagado">✖ No pagado</span>`}
-          </td>
+          <td>${p.pagado ? "✔" : "✖"}</td>
           <td>$${p.total}</td>
           <td>
             <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
@@ -304,24 +311,58 @@ filtroEstado.addEventListener("change", renderLista);
 filtroBusqueda.addEventListener("input", renderLista);
 
 /* =====================================================
-   MODALES
+   MODALES + WHATSAPP
 ===================================================== */
 window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
+
   pedidoModalActual = p;
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
   modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
   modalEstado.textContent = `Estado: ${p.estado}`;
   modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `${i.cantidad}× ${i.nombre}`).join("<br>");
+  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
   modalNota.textContent = p.nota || "";
   modalTotal.textContent = `Total: $${p.total}`;
+
   modal.classList.remove("hidden");
 };
 
 modalCerrar.onclick = () => modal.classList.add("hidden");
 
+modalWhats.onclick = () => {
+  if (!pedidoModalActual) return;
+
+  const p = pedidoModalActual;
+  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
+
+  const items = p.items
+    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
+    .join("\n");
+
+  const mensaje = `
+Hola ${p.clienteNombre} 👋
+Te paso el detalle de tu pedido:
+
+${items}
+
+💰 Total: $${p.total}
+📦 Estado: ${p.estado}
+
+Gracias 💜 Pixel
+`.trim();
+
+  const url = telefono
+    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
+    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+
+  window.open(url, "_blank");
+};
+
+/* =====================================================
+   EDITAR / DUPLICAR / BORRAR
+===================================================== */
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   pedidoEditandoId = id;
