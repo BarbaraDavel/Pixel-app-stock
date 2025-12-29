@@ -393,3 +393,57 @@ select:focus {
     transform: translateY(0);
   }
 }
+/* ==========================================
+   PRIORIDAD PEDIDOS
+========================================== */
+
+.tr-urgente {
+  background: linear-gradient(90deg, rgba(255,80,80,.25), rgba(255,80,80,.05));
+}
+
+.tr-atencion {
+  background: linear-gradient(90deg, rgba(255,180,80,.22), rgba(255,180,80,.05));
+}
+
+.tr-ok {
+  opacity: .65;
+}
+
+/* badges */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-pendiente {
+  background: #ff4d4d;
+  color: #000;
+}
+
+.badge-proceso {
+  background: #ffb347;
+  color: #000;
+}
+
+.badge-listo {
+  background: #a66bff;
+  color: #000;
+}
+
+.badge-entregado {
+  background: #4caf50;
+  color: #000;
+}
+
+.badge-nopagado {
+  background: #ff6b6b;
+  color: #000;
+}
+
+.badge-pagado {
+  background: #6dff9e;
+  color: #000;
+}
