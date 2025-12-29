@@ -447,3 +447,21 @@ select:focus {
   background: #6dff9e;
   color: #000;
 }
+.modal-receta-wide {
+  max-width: 600px;
+}
+
+.modal-section {
+  margin-bottom: 0.6rem;
+}
+
+.modal-section h4 {
+  margin-bottom: 0.4rem;
+}
+
+#modalInsumos p {
+  padding: .45rem .6rem;
+  border-radius: .6rem;
+  background: rgba(255,255,255,.06);
+  margin-bottom: .4rem;
+}
