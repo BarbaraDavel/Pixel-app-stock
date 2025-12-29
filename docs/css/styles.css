@@ -10,14 +10,11 @@ body {
 :root {
   --pixel-naranja: #ff9f43;
   --pixel-lila: #a66bff;
-
   --pixel-fondo: radial-gradient(circle at top, #2b1b39, #120e1f);
   --pixel-texto: #ffffff;
   --pixel-texto-soft: #e5dbff;
-
   --pixel-card: rgba(90, 75, 115, 0.85);
-  --pixel-borde: rgba(255,255,255,0.15);
-
+  --pixel-borde: rgba(255, 255, 255, 0.15);
   --blur-bg: rgba(20, 14, 40, 0.85);
 }
 
@@ -109,7 +106,7 @@ body {
     right: 1rem;
     background: #1d1530;
     border-radius: 1rem;
-    box-shadow: 0 12px 24px rgba(0,0,0,.6);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, .6);
     flex-direction: column;
     padding: .8rem;
     opacity: 0;
@@ -132,7 +129,7 @@ body {
   padding: 1.6rem;
   margin-top: 1rem;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 20px 45px rgba(0,0,0,.45);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, .45);
 }
 
 .card h1,
@@ -156,7 +153,7 @@ textarea {
   border: 1px solid var(--pixel-lila);
   width: 100%;
   font-size: .95rem;
-  background: rgba(30,20,50,.9);
+  background: rgba(30, 20, 50, .9);
   color: white;
 }
 
@@ -168,7 +165,7 @@ input:focus,
 select:focus {
   outline: none;
   border-color: var(--pixel-naranja);
-  box-shadow: 0 0 0 3px rgba(255,159,67,.25);
+  box-shadow: 0 0 0 3px rgba(255, 159, 67, .25);
 }
 
 /* ========================================== BOTONES ========================================== */
@@ -176,7 +173,7 @@ select:focus {
   padding: .45rem 1.1rem;
   border-radius: 999px;
   border: 1px solid var(--pixel-borde);
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, .08);
   font-weight: 600;
   cursor: pointer;
   color: white;
@@ -189,7 +186,7 @@ select:focus {
 }
 
 .btn-secondary {
-  background: rgba(255,255,255,.15);
+  background: rgba(255, 255, 255, .15);
 }
 
 .btn-outline {
@@ -208,7 +205,7 @@ select:focus {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, .08);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -229,13 +226,13 @@ select:focus {
 .tabla-stock td,
 .tabla-insumos td {
   padding: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.12);
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
   color: #eee;
 }
 
 .tabla-stock tbody tr:hover,
 .tabla-insumos tbody tr:hover {
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, .08);
 }
 
 /* ========================================== HOME / INICIO ========================================== */
@@ -247,7 +244,7 @@ select:focus {
 .home-grid {
   margin-top: 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 1.2rem;
 }
 
@@ -259,7 +256,7 @@ select:focus {
   border: 1px solid var(--pixel-borde);
   text-decoration: none;
   color: white;
-  box-shadow: 0 14px 35px rgba(0,0,0,.4);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, .4);
 }
 
 /* ========================================== MOBILE CONTENT ========================================== */
@@ -278,6 +275,7 @@ select:focus {
     margin-top: .5rem;
   }
 }
+
 /* ========================================== BOTTOM NAV (SOLO MOBILE) ========================================== */
 .bottom-nav {
   display: none;
@@ -289,7 +287,7 @@ select:focus {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(20,14,40,.95);
+    background: rgba(20, 14, 40, .95);
     backdrop-filter: blur(10px);
     border-top: 1px solid var(--pixel-borde);
     display: flex;
@@ -312,6 +310,7 @@ select:focus {
     font-size: 1.2rem;
   }
 }
+
 /* ========================================== MODALES ========================================== */
 .hidden {
   display: none !important;
@@ -320,7 +319,7 @@ select:focus {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
+  background: rgba(0, 0, 0, .55);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -335,7 +334,7 @@ select:focus {
   border-radius: 1.4rem;
   width: 420px;
   max-width: 92%;
-  box-shadow: 0 25px 60px rgba(0,0,0,.6);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, .6);
   animation: modalPop .25s ease;
 }
 
@@ -344,11 +343,13 @@ select:focus {
     opacity: 0;
     transform: translateY(20px) scale(.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
+
 .home-footer-card p {
   margin: 0;
 }
@@ -359,14 +360,17 @@ select:focus {
 }
 
 .home-footer-card {
-  margin: 2rem auto 0;      /* centra horizontalmente */
+  margin: 2rem auto 0;
+  /* centra horizontalmente */
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: .3rem;
-  max-width: 600px;         /* opcional, queda más prolijo */
+  max-width: 600px;
+  /* opcional, queda más prolijo */
 }
+
 /* ========================================== FOOTER FADE IN ========================================== */
 .home-footer-card {
   margin: 2rem auto 0;
@@ -376,11 +380,11 @@ select:focus {
   align-items: center;
   gap: .3rem;
   max-width: 600px;
-
   /* animación */
   opacity: 0;
   animation: footerFadeIn 1.2s ease forwards;
-  animation-delay: .6s; /* aparece después de las cards */
+  animation-delay: .6s;
+  /* aparece después de las cards */
 }
 
 @keyframes footerFadeIn {
@@ -388,21 +392,20 @@ select:focus {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-/* ==========================================
-   PRIORIDAD PEDIDOS
-========================================== */
 
+/* ========================================== PRIORIDAD PEDIDOS ========================================== */
 .tr-urgente {
-  background: linear-gradient(90deg, rgba(255,80,80,.25), rgba(255,80,80,.05));
+  background: linear-gradient(90deg, rgba(255, 80, 80, .25), rgba(255, 80, 80, .05));
 }
 
 .tr-atencion {
-  background: linear-gradient(90deg, rgba(255,180,80,.22), rgba(255,180,80,.05));
+  background: linear-gradient(90deg, rgba(255, 180, 80, .22), rgba(255, 180, 80, .05));
 }
 
 .tr-ok {
@@ -447,6 +450,7 @@ select:focus {
   background: #6dff9e;
   color: #000;
 }
+
 .modal-receta-wide {
   max-width: 600px;
 }
@@ -462,13 +466,11 @@ select:focus {
 #modalInsumos p {
   padding: .45rem .6rem;
   border-radius: .6rem;
-  background: rgba(255,255,255,.06);
+  background: rgba(255, 255, 255, .06);
   margin-bottom: .4rem;
 }
-/* ===============================
-   RECETAS GUARDADAS
-=============================== */
 
+/* =============================== RECETAS GUARDADAS =============================== */
 .recetas-lista {
   margin-top: 1.5rem;
   display: flex;
@@ -481,7 +483,7 @@ select:focus {
   border-radius: 1.4rem;
   padding: 1.4rem 1.6rem;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 16px 40px rgba(0,0,0,.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -532,8 +534,9 @@ select:focus {
     justify-content: flex-end;
   }
 }
+
 .producto-card {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 16px;
   padding: 1rem 1.2rem;
   display: flex;
@@ -585,11 +588,12 @@ select:focus {
 .btn-danger {
   color: #ff6b6b;
 }
+
 .producto-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 14px;
   padding: 0.8rem 1rem;
   margin-bottom: 0.6rem;
@@ -632,10 +636,8 @@ select:focus {
   padding: 0.25rem 0.6rem;
   font-size: 0.75rem;
 }
-/* ===============================
-   PRODUCTOS – TARJETAS LIMPIAS
-=============================== */
 
+/* =============================== PRODUCTOS – TARJETAS LIMPIAS =============================== */
 .productos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -644,11 +646,11 @@ select:focus {
 }
 
 .producto-tarjeta {
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 1.2rem;
   padding: 1.2rem;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 14px 35px rgba(0,0,0,.35);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, .35);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -684,10 +686,8 @@ select:focus {
   gap: .4rem;
   justify-content: flex-end;
 }
-/* ===============================
-   PRODUCTOS – LISTA LIMPIA
-=============================== */
 
+/* =============================== PRODUCTOS – LISTA LIMPIA =============================== */
 .productos-grid {
   display: flex;
   flex-direction: column;
@@ -696,7 +696,7 @@ select:focus {
 }
 
 .producto-simple {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--pixel-borde);
   border-radius: 1rem;
   padding: .9rem 1.1rem;
@@ -708,7 +708,7 @@ select:focus {
 }
 
 .producto-simple:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateY(-1px);
 }
 
@@ -722,20 +722,21 @@ select:focus {
   color: var(--pixel-naranja);
   font-size: .9rem;
 }
+
 .producto-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.8rem 1rem;
   border-radius: 14px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   margin-bottom: 0.5rem;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .producto-item:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .producto-nombre {
@@ -753,4 +754,32 @@ select:focus {
   color: var(--pixel-lila);
   font-size: 1rem;
   cursor: pointer;
+}
+
+.producto-simple {
+  display: grid;
+  grid-template-columns: 1fr 120px 32px;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 0.45rem;
+  cursor: pointer;
+}
+
+.ps-nombre {
+  font-weight: 500;
+}
+
+.ps-precio {
+  text-align: right;
+  font-weight: 700;
+  color: var(--pixel-naranja);
+  font-variant-numeric: tabular-nums;
+  /* 🔥 clave */
+}
+
+.ps-edit {
+  text-align: right;
+  opacity: 0.6;
 }
