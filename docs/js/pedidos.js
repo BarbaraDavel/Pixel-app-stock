@@ -295,7 +295,14 @@ function renderLista() {
           <td>${p.clienteNombre}</td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
           <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>${p.pagado ? "✔" : "✖"}</td>
+          <td>
+            ${
+              p.pagado
+                ? `<span class="badge badge-pagado">Pagado</span>`
+                : `<span class="badge badge-nopagado">No pagado</span>`
+            }
+          </td>
+
           <td>$${p.total}</td>
           <td>
             <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
