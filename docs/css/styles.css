@@ -349,3 +349,11 @@ select:focus {
     transform: translateY(0) scale(1);
   }
 }
+.home-footer-card p {
+  margin: 0;
+}
+
+.home-footer-card .tiny {
+  font-size: .8rem;
+  opacity: .85;
+}
