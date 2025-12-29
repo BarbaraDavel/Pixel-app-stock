@@ -103,19 +103,23 @@ async function cargarProductos() {
 
     grid.innerHTML += `
       <div class="producto-card">
-        <div>
+        <div class="producto-header">
           <div class="producto-nombre">${p.nombre}</div>
           <div class="producto-precio">${money(p.precio)}</div>
-          <div class="producto-receta hint">Receta: ${recetaTxt}</div>
+        </div>
+
+        <div class="producto-receta hint">
+          🧾 Receta: ${recetaTxt}
         </div>
 
         <div class="producto-actions">
-          <button class="btn" onclick="verProducto('${d.id}')">👁 Ver</button>
-          <button class="btn btn-outline" onclick="editarProducto('${d.id}')">Editar</button>
-          <button class="btn btn-delete-pp" onclick="eliminarProducto('${d.id}')">✕</button>
+          <button class="btn btn-sm" onclick="verProducto('${d.id}')">👁 Ver</button>
+          <button class="btn btn-outline btn-sm" onclick="editarProducto('${d.id}')">Editar</button>
+          <button class="btn-icon btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
         </div>
       </div>
     `;
+
   });
 }
 

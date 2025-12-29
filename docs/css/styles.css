@@ -532,3 +532,56 @@ select:focus {
     justify-content: flex-end;
   }
 }
+.producto-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.producto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.producto-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.producto-precio {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffb454;
+}
+
+.producto-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  opacity: 1;
+}
+
+.btn-danger {
+  color: #ff6b6b;
+}
