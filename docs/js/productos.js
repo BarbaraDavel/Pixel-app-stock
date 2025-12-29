@@ -99,26 +99,39 @@ async function cargarProductos() {
       : "Sin receta";
 
     grid.innerHTML += `
-      <div class="producto-fila">
-        <div class="pf-nombre">
-          ${p.nombre}
+      <div class="producto-panel">
+        <div class="pp-header">
+          <div class="pp-nombre">${p.nombre}</div>
         </div>
 
-        <div class="pf-receta hint">
-          ${recetaTxt}
+        <div class="pp-body">
+          <div class="pp-line">
+            <span class="label">Costo</span>
+            <span class="value muted">calculado</span>
+          </div>
+
+          <div class="pp-line">
+            <span class="label">Venta</span>
+            <span class="value">${money(p.precio)}</span>
+          </div>
+
+          <div class="pp-line ganancia">
+            <span class="label">Ganancia</span>
+            <span class="value">ver detalle</span>
+          </div>
+
+          <div class="pp-line hint">
+            🧾 Receta: ${recetaTxt}
+          </div>
         </div>
 
-        <div class="pf-precio">
-          ${money(p.precio)}
-        </div>
-
-        <div class="pf-acciones">
-          <button class="btn btn-xs" onclick="verProducto('${d.id}')">Ver</button>
-          <button class="btn btn-outline btn-xs" onclick="editarProducto('${d.id}')">Editar</button>
-          <button class="btn-icon btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
+        <div class="pp-actions">
+          <button class="btn btn-sm" onclick="verProducto('${d.id}')">Ver detalle</button>
+          <button class="btn btn-outline btn-sm" onclick="editarProducto('${d.id}')">Editar</button>
         </div>
       </div>
     `;
+
   });
 }
 
