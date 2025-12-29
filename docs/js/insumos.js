@@ -17,6 +17,7 @@ const lista = document.getElementById("listaInsumos");
 const btnGuardar = document.getElementById("guardarInsumo");
 
 const inputNombre = document.getElementById("nombreInsumo");
+const avisoDuplicado = document.getElementById("avisoDuplicado");
 const inputCostoPaquete = document.getElementById("costoInsumo");
 const inputCantidadPaquete = document.getElementById("cantidadPaquete");
 const inputBuscar = document.getElementById("buscarInsumo");
@@ -109,26 +110,29 @@ inputBuscar?.addEventListener("input", () => {
 /* ============================================================
    AVISO DE DUPLICADO (FASE 1 ⭐)
 ============================================================ */
-inputNombre.addEventListener("input", () => {
-  const valor = normalizar(inputNombre.value);
-  nombreDuplicado = false;
+    inputNombre.addEventListener("input", () => {
+      const valor = normalizar(inputNombre.value);
+      nombreDuplicado = false;
 
-  if (!valor) {
-    inputNombre.setCustomValidity("");
-    return;
-  }
+      if (!valor) {
+        avisoDuplicado.style.display = "none";
+        inputNombre.setCustomValidity("");
+        return;
+      }
 
-  const encontrado = insumosCache.find(ins =>
-    normalizar(ins.nombre) === valor && ins.id !== editId
-  );
+      const encontrado = insumosCache.find(ins =>
+        normalizar(ins.nombre) === valor && ins.id !== editId
+      );
 
-  if (encontrado) {
-    nombreDuplicado = true;
-    inputNombre.setCustomValidity("Este insumo ya existe");
-  } else {
-    inputNombre.setCustomValidity("");
-  }
-});
+      if (encontrado) {
+        nombreDuplicado = true;
+        avisoDuplicado.style.display = "block";
+        inputNombre.setCustomValidity("Este insumo ya existe");
+      } else {
+        avisoDuplicado.style.display = "none";
+        inputNombre.setCustomValidity("");
+      }
+    });
 
 /* ============================================================
    EDITAR INSUMO

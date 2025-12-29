@@ -43,12 +43,21 @@
     <h1>Insumos</h1>
     <h3>Agregar / Editar Insumo</h3>
 
-    <div class="form-grid">
+        <div class="form-grid">
       <input
         id="nombreInsumo"
         class="input-pixel"
         placeholder="Nombre del insumo"
       >
+
+      <!-- 👇 AVISO DUPLICADO -->
+      <div
+        id="avisoDuplicado"
+        class="hint"
+        style="display:none; color:#ffb4b4;"
+      >
+        ⚠️ Este insumo ya existe
+      </div>
 
       <input
         id="costoInsumo"
@@ -68,6 +77,7 @@
         Guardar
       </button>
     </div>
+
   </div>
 
   <br>
