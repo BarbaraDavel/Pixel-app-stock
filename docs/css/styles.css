@@ -684,3 +684,41 @@ select:focus {
   gap: .4rem;
   justify-content: flex-end;
 }
+/* ===============================
+   PRODUCTOS – LISTA LIMPIA
+=============================== */
+
+.productos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: 1rem;
+}
+
+.producto-simple {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--pixel-borde);
+  border-radius: 1rem;
+  padding: .9rem 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.producto-simple:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+}
+
+.ps-nombre {
+  font-weight: 500;
+  font-size: .95rem;
+}
+
+.ps-precio {
+  font-weight: 600;
+  color: var(--pixel-naranja);
+  font-size: .9rem;
+}

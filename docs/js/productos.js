@@ -99,25 +99,11 @@ async function cargarProductos() {
       : "Sin receta";
 
     grid.innerHTML += `
-  <div class="producto-tarjeta">
-    
-    <div class="pt-header">
-      <span class="pt-nombre">${p.nombre}</span>
-      <span class="pt-precio">${money(p.precio)}</span>
-    </div>
-
-    <div class="pt-meta">
-      🧾 ${recetaTxt}
-    </div>
-
-    <div class="pt-actions">
-      <button class="btn btn-sm" onclick="verProducto('${d.id}')">Ver</button>
-      <button class="btn btn-outline btn-sm" onclick="editarProducto('${d.id}')">Editar</button>
-    </div>
-
-  </div>
-`;
-
+      <div class="producto-simple" onclick="verProducto('${d.id}')">
+        <span class="ps-nombre">${p.nombre}</span>
+        <span class="ps-precio">${money(p.precio)}</span>
+      </div>
+    `;
 
   });
 }
