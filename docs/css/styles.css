@@ -754,3 +754,29 @@ select:focus {
   font-size: 1rem;
   cursor: pointer;
 }
+.producto-simple {
+  display: grid;
+  grid-template-columns: 1fr 120px 32px;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255,255,255,0.05);
+  margin-bottom: 0.45rem;
+  cursor: pointer;
+}
+
+.ps-nombre {
+  font-weight: 500;
+}
+
+.ps-precio {
+  text-align: right;
+  font-weight: 700;
+  color: var(--pixel-naranja);
+  font-variant-numeric: tabular-nums; /* 🔥 clave */
+}
+
+.ps-edit {
+  text-align: right;
+  opacity: 0.6;
+}
