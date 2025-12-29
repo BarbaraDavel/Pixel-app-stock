@@ -722,3 +722,35 @@ select:focus {
   color: var(--pixel-naranja);
   font-size: .9rem;
 }
+.producto-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.producto-item:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.producto-nombre {
+  font-weight: 500;
+}
+
+.producto-precio {
+  color: var(--pixel-naranja);
+  font-weight: 600;
+}
+
+.btn-icon.editar {
+  border: none;
+  background: transparent;
+  color: var(--pixel-lila);
+  font-size: 1rem;
+  cursor: pointer;
+}

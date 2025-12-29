@@ -17,6 +17,7 @@ const grid = document.getElementById("productosLista");
 const btnGuardar = document.getElementById("guardarProd");
 const inputNombre = document.getElementById("prodNombre");
 const inputPrecio = document.getElementById("prodPrecio");
+const inputBuscar = document.getElementById("buscarProducto");
 
 // Modal ver
 const modalVer = document.getElementById("verProductoModal");
@@ -37,7 +38,11 @@ const gananciaBox = document.getElementById("gananciaBox");
 const btnCancelarEdicion = document.getElementById("cancelarEdicion");
 const btnGuardarEdicion = document.getElementById("guardarEdicion");
 
+/* ============================================================
+   STATE
+============================================================ */
 let productosCache = {};
+let productosArray = [];
 let productoEditandoId = null;
 
 /* ============================================================
@@ -56,7 +61,7 @@ function getCostoUnitarioInsumo(ins) {
   const cu = toNumber(ins?.costoUnitario);
   if (cu > 0) return cu;
 
-  const pack = toNumber(ins?.costoPaquete ?? ins?.costoUnitario ?? 0);
+  const pack = toNumber(ins?.costoPaquete ?? 0);
   const qty = toNumber(ins?.cantidadPaquete ?? 0);
   if (pack > 0 && qty > 0) return pack / qty;
 
@@ -75,36 +80,72 @@ function popup(msg) {
 }
 
 /* ============================================================
-   CARGAR PRODUCTOS (LISTADO COMPACTO)
+   CARGAR PRODUCTOS
 ============================================================ */
 async function cargarProductos() {
   grid.innerHTML = "";
   productosCache = {};
+  productosArray = [];
 
   const productosSnap = await getDocs(collection(db, "productos"));
   const recetasSnap = await getDocs(collection(db, "recetas"));
 
   const recetasMap = {};
-  recetasSnap.forEach(r => {
-    recetasMap[r.id] = r.data(); // r.id === productoId
-  });
+  recetasSnap.forEach(r => recetasMap[r.id] = r.data());
 
   productosSnap.forEach(d => {
     const p = d.data();
     productosCache[d.id] = p;
 
-    const receta = recetasMap[d.id];
-    const recetaTxt = receta?.items?.length
-      ? `${receta.items.length} insumos`
-      : "Sin receta";
+    productosArray.push({
+      id: d.id,
+      ...p,
+      receta: recetasMap[d.id]
+    });
+  });
 
+  renderProductos(productosArray);
+}
+
+/* ============================================================
+   RENDER LISTADO
+============================================================ */
+function renderProductos(arr) {
+  grid.innerHTML = "";
+
+  arr.forEach(p => {
     grid.innerHTML += `
-      <div class="producto-simple" onclick="verProducto('${d.id}')">
-        <span class="ps-nombre">${p.nombre}</span>
-        <span class="ps-precio">${money(p.precio)}</span>
+      <div class="producto-item" onclick="verProducto('${p.id}')">
+        <span class="producto-nombre">${p.nombre}</span>
+        <span class="producto-precio">${money(p.precio)}</span>
+
+        <button
+          class="btn-icon editar"
+          title="Editar"
+          onclick="event.stopPropagation(); editarProducto('${p.id}')"
+        >✏️</button>
       </div>
     `;
+  });
+}
 
+/* ============================================================
+   BUSCADOR
+============================================================ */
+if (inputBuscar) {
+  inputBuscar.addEventListener("input", () => {
+    const q = inputBuscar.value.toLowerCase().trim();
+
+    if (!q) {
+      renderProductos(productosArray);
+      return;
+    }
+
+    const filtrados = productosArray.filter(p =>
+      p.nombre.toLowerCase().includes(q)
+    );
+
+    renderProductos(filtrados);
   });
 }
 
@@ -117,43 +158,40 @@ window.verProducto = async function (id) {
 
   verNombre.textContent = p.nombre;
   verPrecio.textContent = money(p.precio);
-
   verReceta.innerHTML = "Cargando...";
-  verCosto.innerHTML = "";
-  verGanancia.innerHTML = "";
+  verCosto.textContent = "";
+  verGanancia.textContent = "";
 
   const recetaSnap = await getDoc(doc(db, "recetas", id));
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
-  insumosSnap.forEach(i => (insumosMap[i.id] = i.data()));
+  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
 
-  let html = "";
   let costoTotal = 0;
+  let html = "";
 
   if (recetaSnap.exists()) {
-    const receta = recetaSnap.data();
-
-    receta.items?.forEach(item => {
+    recetaSnap.data().items?.forEach(item => {
       const ins = insumosMap[item.insumoId];
       if (!ins) return;
 
       const usado = toNumber(item.cantidad);
-      const costoUnit = getCostoUnitarioInsumo(ins);
-      const costo = usado * costoUnit;
+      const unit = getCostoUnitarioInsumo(ins);
+      const subtotal = usado * unit;
 
-      costoTotal += costo;
+      costoTotal += subtotal;
 
-      html += `<p>• ${usado}× ${ins.nombre} — ${money(costo)}</p>`;
-      html += `<p class="hint" style="margin-top:-6px;">
-        Unit: ${money(costoUnit)}
-      </p>`;
+      html += `
+        <p>• ${usado}× ${ins.nombre} — ${money(subtotal)}</p>
+        <p class="hint" style="margin-top:-6px;">Unit: ${money(unit)}</p>
+      `;
     });
   }
 
   verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
   verCosto.textContent = `Costo unitario: ${money(costoTotal)}`;
-  verGanancia.textContent = `Ganancia estimada: ${money(toNumber(p.precio) - costoTotal)}`;
+  verGanancia.textContent = `Ganancia estimada: ${money(p.precio - costoTotal)}`;
 
   modalVer.classList.remove("hidden");
 };
@@ -188,28 +226,26 @@ btnCancelarEdicion.onclick = () => {
 ============================================================ */
 async function cargarRecetaYCostos(productoId) {
   recetaDetalle.innerHTML = "Cargando...";
-  costoBox.innerHTML = "";
-  gananciaBox.innerHTML = "";
+  costoBox.textContent = "";
+  gananciaBox.textContent = "";
 
   const recetaSnap = await getDoc(doc(db, "recetas", productoId));
   const insumosSnap = await getDocs(collection(db, "insumos"));
 
   const insumosMap = {};
-  insumosSnap.forEach(i => (insumosMap[i.id] = i.data()));
+  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
 
-  let html = "";
   let costoTotal = 0;
+  let html = "";
 
   if (recetaSnap.exists()) {
-    const receta = recetaSnap.data();
-
-    receta.items?.forEach(item => {
+    recetaSnap.data().items?.forEach(item => {
       const ins = insumosMap[item.insumoId];
       if (!ins) return;
 
       const usado = toNumber(item.cantidad);
-      const costoUnit = getCostoUnitarioInsumo(ins);
-      const subtotal = usado * costoUnit;
+      const unit = getCostoUnitarioInsumo(ins);
+      const subtotal = usado * unit;
 
       costoTotal += subtotal;
       html += `<p>• ${usado}× ${ins.nombre} — ${money(subtotal)}</p>`;
@@ -218,9 +254,7 @@ async function cargarRecetaYCostos(productoId) {
 
   recetaDetalle.innerHTML = html || `<p class="hint">Sin receta.</p>`;
   costoBox.innerHTML = `<strong>${money(costoTotal)}</strong>`;
-
-  const precio = toNumber(editPrecio.value);
-  gananciaBox.innerHTML = `<strong>${money(precio - costoTotal)}</strong>`;
+  gananciaBox.innerHTML = `<strong>${money(editPrecio.value - costoTotal)}</strong>`;
 }
 
 /* ============================================================
@@ -237,17 +271,6 @@ btnGuardarEdicion.onclick = async () => {
   popup("Producto actualizado ✔");
   modalEditar.classList.add("hidden");
   productoEditandoId = null;
-  cargarProductos();
-};
-
-/* ============================================================
-   ELIMINAR PRODUCTO
-============================================================ */
-window.eliminarProducto = async function (id) {
-  if (!confirm("¿Eliminar producto?")) return;
-
-  await deleteDoc(doc(db, "productos", id));
-  popup("Producto eliminado 🗑️");
   cargarProductos();
 };
 
