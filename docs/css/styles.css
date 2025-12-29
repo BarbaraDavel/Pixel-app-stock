@@ -758,3 +758,51 @@ select:focus {
   max-width: 92%;
   box-shadow: 0 25px 60px rgba(0,0,0,.6);
 }
+/* ===============================
+   PRODUCTOS – LISTA ALINEADA FINAL
+   (NO afecta otros módulos)
+=============================== */
+
+.productos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: 1rem;
+}
+
+.producto-simple {
+  display: grid;
+  grid-template-columns: 1fr 120px 32px;
+  align-items: center;
+  padding: .75rem 1rem;
+  border-radius: .9rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--pixel-borde);
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.producto-simple:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Nombre del producto */
+.ps-nombre {
+  font-weight: 500;
+  font-size: .95rem;
+}
+
+/* Precio perfectamente alineado */
+.ps-precio {
+  text-align: right;
+  font-weight: 700;
+  color: var(--pixel-naranja);
+  font-size: .95rem;
+  font-variant-numeric: tabular-nums; /* clave */
+}
+
+/* Icono editar */
+.ps-edit {
+  text-align: right;
+  opacity: .6;
+}
