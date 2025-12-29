@@ -684,9 +684,9 @@ select:focus {
   gap: .4rem;
   justify-content: flex-end;
 }
-/* ===============================
-   PRODUCTOS – LISTA LIMPIA
-=============================== */
+/* ==========================================
+   PRODUCTOS – LISTA FINAL (ALINEADA)
+========================================== */
 
 .productos-grid {
   display: flex;
@@ -695,88 +695,66 @@ select:focus {
   margin-top: 1rem;
 }
 
+/* 🔥 FILA */
 .producto-simple {
+  display: grid;
+  grid-template-columns: 1fr 120px 32px;
+  align-items: center;
+  padding: .75rem 1rem;
+  border-radius: .9rem;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--pixel-borde);
-  border-radius: 1rem;
-  padding: .9rem 1.1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   cursor: pointer;
   transition: .15s ease;
 }
 
 .producto-simple:hover {
   background: rgba(255,255,255,0.12);
-  transform: translateY(-1px);
 }
 
+/* Nombre */
 .ps-nombre {
   font-weight: 500;
   font-size: .95rem;
 }
 
-.ps-precio {
-  font-weight: 600;
-  color: var(--pixel-naranja);
-  font-size: .9rem;
-}
-.producto-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.8rem 1rem;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  margin-bottom: 0.5rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.producto-item:hover {
-  background: rgba(255,255,255,0.12);
-}
-
-.producto-nombre {
-  font-weight: 500;
-}
-
-.producto-precio {
-  color: var(--pixel-naranja);
-  font-weight: 600;
-}
-
-.btn-icon.editar {
-  border: none;
-  background: transparent;
-  color: var(--pixel-lila);
-  font-size: 1rem;
-  cursor: pointer;
-}
-.producto-simple {
-  display: grid;
-  grid-template-columns: 1fr 120px 32px;
-  align-items: center;
-  padding: 0.7rem 1rem;
-  border-radius: 0.9rem;
-  background: rgba(255,255,255,0.05);
-  margin-bottom: 0.45rem;
-  cursor: pointer;
-}
-
-.ps-nombre {
-  font-weight: 500;
-}
-
+/* Precio */
 .ps-precio {
   text-align: right;
   font-weight: 700;
   color: var(--pixel-naranja);
-  font-variant-numeric: tabular-nums; /* 🔥 clave */
+  font-size: .95rem;
+  font-variant-numeric: tabular-nums;
 }
 
+/* Icono editar */
 .ps-edit {
   text-align: right;
-  opacity: 0.6;
+  opacity: .6;
+}
+
+/* ========================================== MODALES ========================================== */
+.hidden {
+  display: none !important;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal {
+  background: #2b1b39;
+  color: white;
+  padding: 1.6rem;
+  border-radius: 1.4rem;
+  width: 420px;
+  max-width: 92%;
+  box-shadow: 0 25px 60px rgba(0,0,0,.6);
 }
