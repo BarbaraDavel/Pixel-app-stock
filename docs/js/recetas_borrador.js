@@ -61,20 +61,28 @@ async function cargarRecetas() {
     const r = d.data();
 
     grid.innerHTML += `
-      <div class="producto-card">
-        <div>
-          <div class="producto-nombre">${r.nombre || "Sin nombre"}</div>
-          <div class="producto-precio">
-            Costo: $${n(r.costoTotal).toFixed(2)}
+      <div class="receta-card">
+        <div class="receta-info">
+          <div class="receta-nombre">
+            📄 ${r.nombre || "Receta sin nombre"}
           </div>
-          <div class="hint">
+
+          <div class="receta-meta">
             ${(r.items || []).length} insumos
+          </div>
+
+          <div class="receta-costo">
+            Costo total: $${n(r.costoTotal).toFixed(2)}
           </div>
         </div>
 
-        <div class="producto-actions">
-          <button class="btn" onclick="verReceta('${d.id}')">👁 Ver</button>
-          <button class="btn btn-delete-pp" onclick="eliminarReceta('${d.id}')">✕</button>
+        <div class="receta-actions">
+          <button class="btn btn-outline" onclick="verReceta('${d.id}')">
+            👁 Ver
+          </button>
+          <button class="btn btn-delete-pp" onclick="eliminarReceta('${d.id}')">
+            ✖
+          </button>
         </div>
       </div>
     `;

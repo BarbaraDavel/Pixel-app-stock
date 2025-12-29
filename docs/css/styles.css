@@ -465,3 +465,70 @@ select:focus {
   background: rgba(255,255,255,.06);
   margin-bottom: .4rem;
 }
+/* ===============================
+   RECETAS GUARDADAS
+=============================== */
+
+.recetas-lista {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.receta-card {
+  background: var(--pixel-card);
+  border-radius: 1.4rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--pixel-borde);
+  box-shadow: 0 16px 40px rgba(0,0,0,.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.receta-info {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.receta-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.receta-meta {
+  font-size: .85rem;
+  color: var(--pixel-texto-soft);
+}
+
+.receta-costo {
+  font-weight: 600;
+  margin-top: .2rem;
+}
+
+.receta-actions {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+.receta-actions .btn {
+  padding: .35rem .9rem;
+  font-size: .85rem;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .receta-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .receta-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
