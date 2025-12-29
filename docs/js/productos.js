@@ -57,6 +57,12 @@ function money(n) {
   return `$${toNumber(n).toFixed(2)}`;
 }
 
+function ordenarProductosAZ(arr) {
+  return arr.sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+  );
+}
+
 function getCostoUnitarioInsumo(ins) {
   const cu = toNumber(ins?.costoUnitario);
   if (cu > 0) return cu;
@@ -104,6 +110,7 @@ async function cargarProductos() {
     });
   });
 
+  ordenarProductosAZ(productosArray);
   renderProductos(productosArray);
 }
 
@@ -137,6 +144,7 @@ if (inputBuscar) {
     const q = inputBuscar.value.toLowerCase().trim();
 
     if (!q) {
+      ordenarProductosAZ(productosArray);
       renderProductos(productosArray);
       return;
     }
@@ -145,6 +153,7 @@ if (inputBuscar) {
       p.nombre.toLowerCase().includes(q)
     );
 
+    ordenarProductosAZ(filtrados);
     renderProductos(filtrados);
   });
 }
