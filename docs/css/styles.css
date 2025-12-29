@@ -6,15 +6,19 @@ body {
   font-size: 14px;
 }
 
-/* ========================================== VARIABLES PIXEL ========================================== */
+/* ========================================== VARIABLES PIXEL (TEMA OSCURO GLOBAL) ========================================== */
 :root {
   --pixel-naranja: #ff9f43;
   --pixel-lila: #a66bff;
-  --pixel-fondo: #f6f3ff;
-  --pixel-texto: #333;
-  --pixel-card: #ffffff;
-  --pixel-borde: #e0ddf5;
-  --blur-bg: rgba(255, 255, 255, 0.6);
+
+  --pixel-fondo: radial-gradient(circle at top, #2b1b39, #120e1f);
+  --pixel-texto: #ffffff;
+  --pixel-texto-soft: #e5dbff;
+
+  --pixel-card: rgba(90, 75, 115, 0.85);
+  --pixel-borde: rgba(255,255,255,0.15);
+
+  --blur-bg: rgba(20, 14, 40, 0.85);
 }
 
 /* RESET */
@@ -26,7 +30,7 @@ body {
 
 /* FONDO */
 body {
-  background: radial-gradient(circle at top, #ffe9d6, #f6f3ff);
+  background: var(--pixel-fondo);
   min-height: 100vh;
   color: var(--pixel-texto);
 }
@@ -73,14 +77,14 @@ body {
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
   text-decoration: none;
-  color: #444;
+  color: var(--pixel-texto-soft);
   transition: 0.15s ease;
 }
 
 .nav-links a.active,
 .nav-links a:hover {
   background: var(--pixel-naranja);
-  color: #fff;
+  color: #000;
 }
 
 /* ========================================== MOBILE NAV ========================================== */
@@ -90,6 +94,7 @@ body {
   background: none;
   font-size: 1.6rem;
   cursor: pointer;
+  color: white;
 }
 
 @media (max-width: 768px) {
@@ -102,9 +107,9 @@ body {
     top: 3.5rem;
     left: 1rem;
     right: 1rem;
-    background: #fff;
+    background: #1d1530;
     border-radius: 1rem;
-    box-shadow: 0 12px 24px rgba(0,0,0,.15);
+    box-shadow: 0 12px 24px rgba(0,0,0,.6);
     flex-direction: column;
     padding: .8rem;
     opacity: 0;
@@ -123,11 +128,11 @@ body {
 /* ========================================== CARDS ========================================== */
 .card {
   background: var(--pixel-card);
-  border-radius: 1.3rem;
-  padding: 1.5rem;
+  border-radius: 1.4rem;
+  padding: 1.6rem;
   margin-top: 1rem;
   border: 1px solid var(--pixel-borde);
-  box-shadow: 0 12px 28px rgba(0,0,0,.06);
+  box-shadow: 0 20px 45px rgba(0,0,0,.45);
 }
 
 .card h1,
@@ -139,7 +144,7 @@ body {
 /* ========================================== TEXTOS AUX ========================================== */
 .hint {
   font-size: .85rem;
-  color: #666;
+  color: #d3c8ff;
 }
 
 /* ========================================== INPUTS ========================================== */
@@ -148,16 +153,22 @@ select,
 textarea {
   padding: .55rem .8rem;
   border-radius: .65rem;
-  border: 1px solid var(--pixel-borde);
+  border: 1px solid var(--pixel-lila);
   width: 100%;
   font-size: .95rem;
+  background: rgba(30,20,50,.9);
+  color: white;
+}
+
+input::placeholder {
+  color: #bdaeff;
 }
 
 input:focus,
 select:focus {
   outline: none;
-  border-color: var(--pixel-lila);
-  box-shadow: 0 0 0 3px rgba(166,107,255,.22);
+  border-color: var(--pixel-naranja);
+  box-shadow: 0 0 0 3px rgba(255,159,67,.25);
 }
 
 /* ========================================== BOTONES ========================================== */
@@ -165,24 +176,30 @@ select:focus {
   padding: .45rem 1.1rem;
   border-radius: 999px;
   border: 1px solid var(--pixel-borde);
-  background: #fff;
+  background: rgba(255,255,255,.08);
   font-weight: 600;
   cursor: pointer;
+  color: white;
 }
 
 .btn-primary {
   background: var(--pixel-naranja);
-  color: #fff;
+  color: #000;
   border-color: var(--pixel-naranja);
 }
 
 .btn-secondary {
-  background: #eee;
+  background: rgba(255,255,255,.15);
 }
 
 .btn-outline {
   border-color: var(--pixel-lila);
   color: var(--pixel-lila);
+}
+
+.btn-outline:hover {
+  background: var(--pixel-lila);
+  color: #000;
 }
 
 /* ========================================== TABLAS ========================================== */
@@ -191,14 +208,14 @@ select:focus {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
-  background: #fff;
+  background: rgba(255,255,255,.08);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .tabla-stock thead,
 .tabla-insumos thead {
-  background: linear-gradient(90deg, #ffe8d6, #fde2ff);
+  background: linear-gradient(90deg, #3b2a55, #2a1d3d);
 }
 
 .tabla-stock th,
@@ -206,23 +223,25 @@ select:focus {
   padding: 12px;
   font-weight: 600;
   text-align: left;
+  color: #fff;
 }
 
 .tabla-stock td,
 .tabla-insumos td {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  color: #eee;
 }
 
 .tabla-stock tbody tr:hover,
 .tabla-insumos tbody tr:hover {
-  background: #fff4e6;
+  background: rgba(255,255,255,.08);
 }
 
 /* ========================================== HOME / INICIO ========================================== */
 .home-brand-card {
   text-align: center;
-  padding: 2rem;
+  padding: 2.2rem;
 }
 
 .home-grid {
@@ -233,13 +252,14 @@ select:focus {
 }
 
 .home-card {
-  background: #fff;
-  border-radius: 1.2rem;
-  padding: 1.4rem;
+  background: var(--pixel-card);
+  border-radius: 1.4rem;
+  padding: 1.6rem;
   text-align: center;
   border: 1px solid var(--pixel-borde);
   text-decoration: none;
-  color: inherit;
+  color: white;
+  box-shadow: 0 14px 35px rgba(0,0,0,.4);
 }
 
 /* ========================================== MOBILE CONTENT ========================================== */
