@@ -31,36 +31,60 @@
      <a href="./costos.html">Costos</a>
      <a href="./recetas_borrador.html">Recetas guardadas</a>
      <a href="./pedidos.html">Pedidos</a>
-
    </div>
 </div>
 
-
 <div class="main">
 
+  <!-- =========================
+        FORM INSUMO
+  ========================= -->
   <div class="card">
     <h1>Insumos</h1>
-
     <h3>Agregar / Editar Insumo</h3>
 
     <div class="form-grid">
-      <input id="nombreInsumo" class="input-pixel" placeholder="Nombre del insumo">
+      <input
+        id="nombreInsumo"
+        class="input-pixel"
+        placeholder="Nombre del insumo"
+      >
 
-      <!-- antes decía Costo unitario: ahora es costo del paquete -->
-      <input id="costoInsumo" class="input-pixel" type="number"
-            placeholder="Costo del paquete (ej: 13000)">
+      <input
+        id="costoInsumo"
+        class="input-pixel"
+        type="number"
+        placeholder="Costo del paquete (ej: 13000)"
+      >
 
-      <input id="cantidadPaquete" class="input-pixel" type="number"
-            placeholder="Unidades que trae (ej: 500)">
+      <input
+        id="cantidadPaquete"
+        class="input-pixel"
+        type="number"
+        placeholder="Unidades que trae (ej: 500)"
+      >
 
-      <button id="guardarInsumo" class="btn btn-primary">Guardar</button>
+      <button id="guardarInsumo" class="btn btn-primary">
+        Guardar
+      </button>
     </div>
   </div>
 
   <br>
 
+  <!-- =========================
+        LISTADO
+  ========================= -->
   <div class="card">
     <h3>Listado de Insumos</h3>
+
+    <!-- 🔍 BUSCADOR -->
+    <input
+      id="buscarInsumo"
+      class="input-pixel"
+      placeholder="🔍 Buscar insumo por nombre..."
+      style="margin-bottom:1rem;"
+    >
 
     <table class="tabla-stock">
       <thead>
@@ -86,7 +110,8 @@
     <span id="popupText">Guardado</span>
   </div>
 </div>
-<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
+
+<!-- BOTTOM NAV (solo mobile) -->
 <nav class="bottom-nav">
   <a href="index.html" class="bn-item">
     <span class="bn-icon">🏠</span>
@@ -106,13 +131,16 @@
   </a>
 </nav>
 
+<!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/insumos.js"></script>
+
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
 </script>
+
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 

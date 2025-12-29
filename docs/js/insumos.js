@@ -10,21 +10,28 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// =============================
-// DOM
-// =============================
+/* ============================================================
+   DOM
+============================================================ */
 const lista = document.getElementById("listaInsumos");
 const btnGuardar = document.getElementById("guardarInsumo");
 
 const inputNombre = document.getElementById("nombreInsumo");
-const inputCostoPaquete = document.getElementById("costoInsumo");      // ahora: costo del paquete
-const inputCantidadPaquete = document.getElementById("cantidadPaquete"); // unidades que trae el pack
+const inputCostoPaquete = document.getElementById("costoInsumo");
+const inputCantidadPaquete = document.getElementById("cantidadPaquete");
+const inputBuscar = document.getElementById("buscarInsumo");
 
 let editId = null;
 
-// =============================
-// HELPERS
-// =============================
+/* ============================================================
+   STATE
+============================================================ */
+let insumosCache = [];
+let nombreDuplicado = false;
+
+/* ============================================================
+   HELPERS
+============================================================ */
 function toNumber(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -35,117 +42,150 @@ function calcCostoUnitario(costoPaquete, cantidadPaquete) {
   return costoPaquete / cantidadPaquete;
 }
 
-// =============================
-// CARGAR LISTA DE INSUMOS
-// =============================
+function normalizar(txt = "") {
+  return txt.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+/* ============================================================
+   CARGAR INSUMOS
+============================================================ */
 async function cargarInsumos() {
   lista.innerHTML = "";
 
-const snap = await getDocs(collection(db, "insumos"));
+  const snap = await getDocs(collection(db, "insumos"));
+  insumosCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-// 👉 ordenar por nombre
-const docsOrdenados = snap.docs.sort((a, b) => {
-  const na = (a.data().nombre || "").toLowerCase();
-  const nb = (b.data().nombre || "").toLowerCase();
-  return na.localeCompare(nb);
-});
-
-docsOrdenados.forEach((d) => {
-  const ins = d.data();
-
-  const nombre = ins.nombre ?? "(sin nombre)";
-  const cantidadPaquete = toNumber(ins.cantidadPaquete ?? 0);
-  const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
-  const costoUnitario =
-    toNumber(ins.costoUnitario) ||
-    calcCostoUnitario(costoPaquete, cantidadPaquete);
-
-  lista.innerHTML += `
-    <tr>
-      <td>${nombre}</td>
-      <td>
-        <div><strong>Pack:</strong> $${costoPaquete}</div>
-        <div class="hint"><strong>Unit:</strong> $${costoUnitario.toFixed(2)}</div>
-      </td>
-      <td>${cantidadPaquete}</td>
-      <td>
-        <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${d.id}')">✏️ Editar</button>
-        <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${d.id}')">🗑️ Eliminar</button>
-      </td>
-    </tr>
-  `;
-});
+  renderLista(insumosCache);
 }
 
-// =============================
-// EDITAR INSUMO
-// =============================
+/* ============================================================
+   RENDER LISTA
+============================================================ */
+function renderLista(arr) {
+  lista.innerHTML = "";
+
+  const ordenados = [...arr].sort((a, b) =>
+    (a.nombre || "").localeCompare(b.nombre || "")
+  );
+
+  ordenados.forEach(ins => {
+    const costoPaquete = toNumber(ins.costoPaquete ?? 0);
+    const cantidadPaquete = toNumber(ins.cantidadPaquete ?? 0);
+    const costoUnitario =
+      toNumber(ins.costoUnitario) ||
+      calcCostoUnitario(costoPaquete, cantidadPaquete);
+
+    lista.innerHTML += `
+      <tr>
+        <td>${ins.nombre || "(sin nombre)"}</td>
+        <td>
+          <div><strong>Pack:</strong> $${costoPaquete}</div>
+          <div class="hint"><strong>Unit:</strong> $${costoUnitario.toFixed(2)}</div>
+        </td>
+        <td>${cantidadPaquete}</td>
+        <td>
+          <button class="btn-pp btn-edit-pp" onclick="editarInsumo('${ins.id}')">✏️ Editar</button>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarInsumo('${ins.id}')">🗑️ Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ============================================================
+   BUSCADOR
+============================================================ */
+inputBuscar?.addEventListener("input", () => {
+  const q = normalizar(inputBuscar.value);
+  if (!q) return renderLista(insumosCache);
+
+  const filtrados = insumosCache.filter(i =>
+    normalizar(i.nombre).includes(q)
+  );
+
+  renderLista(filtrados);
+});
+
+/* ============================================================
+   AVISO DE DUPLICADO (FASE 1 ⭐)
+============================================================ */
+inputNombre.addEventListener("input", () => {
+  const valor = normalizar(inputNombre.value);
+  nombreDuplicado = false;
+
+  if (!valor) {
+    inputNombre.setCustomValidity("");
+    return;
+  }
+
+  const encontrado = insumosCache.find(ins =>
+    normalizar(ins.nombre) === valor && ins.id !== editId
+  );
+
+  if (encontrado) {
+    nombreDuplicado = true;
+    inputNombre.setCustomValidity("Este insumo ya existe");
+  } else {
+    inputNombre.setCustomValidity("");
+  }
+});
+
+/* ============================================================
+   EDITAR INSUMO
+============================================================ */
 window.editarInsumo = async function (id) {
   editId = id;
 
-  const ref = doc(db, "insumos", id);
-  const snap = await getDoc(ref);
+  const snap = await getDoc(doc(db, "insumos", id));
   if (!snap.exists()) return;
 
   const ins = snap.data();
 
   inputNombre.value = ins.nombre ?? "";
-
-  const costoPaquete = toNumber(ins.costoPaquete ?? ins.costoUnitario ?? 0);
-  inputCostoPaquete.value = costoPaquete;
+  inputCostoPaquete.value = toNumber(ins.costoPaquete ?? 0);
   inputCantidadPaquete.value = toNumber(ins.cantidadPaquete ?? 0);
 
-  // 👉 UX: subir automático y enfocar
   window.scrollTo({ top: 0, behavior: "smooth" });
   setTimeout(() => inputNombre.focus(), 300);
 
   mostrarPopup("Editando insumo ✏️");
 };
 
-
-// =============================
-// ELIMINAR INSUMO + STOCK
-// =============================
+/* ============================================================
+   ELIMINAR INSUMO
+============================================================ */
 window.eliminarInsumo = async function (id) {
   if (!confirm("¿Eliminar insumo y su stock asociado?")) return;
 
   await deleteDoc(doc(db, "insumos", id));
 
-  // Borrar stock asociado
   const stockSnap = await getDocs(collection(db, "stock"));
   for (const s of stockSnap.docs) {
-    const data = s.data();
-    if (data.insumoId === id) {
+    if (s.data().insumoId === id) {
       await deleteDoc(doc(db, "stock", s.id));
     }
   }
 
-  await cargarInsumos();
+  cargarInsumos();
   mostrarPopup("Insumo eliminado 🗑️");
 };
 
-// =============================
-// GUARDAR / EDITAR INSUMO
-// =============================
+/* ============================================================
+   GUARDAR / EDITAR
+============================================================ */
 btnGuardar.onclick = async () => {
   const nombre = inputNombre.value.trim();
-
   const costoPaquete = toNumber(inputCostoPaquete.value);
   const cantidadPaquete = toNumber(inputCantidadPaquete.value);
 
-  if (!nombre) {
-    alert("El insumo necesita nombre");
-    return;
-  }
-  if (!cantidadPaquete || cantidadPaquete <= 0) {
-    alert("La cantidad por paquete debe ser mayor a 0");
-    return;
-  }
+  if (!nombre) return alert("El insumo necesita nombre");
+  if (nombreDuplicado) return alert("Este insumo ya existe");
+  if (!cantidadPaquete || cantidadPaquete <= 0)
+    return alert("La cantidad debe ser mayor a 0");
 
   const costoUnitario = calcCostoUnitario(costoPaquete, cantidadPaquete);
 
   if (!editId) {
-    // NUEVO INSUMO
     const ref = await addDoc(collection(db, "insumos"), {
       nombre,
       costoPaquete,
@@ -153,7 +193,6 @@ btnGuardar.onclick = async () => {
       costoUnitario
     });
 
-    // Stock inicial = unidades del paquete (podés cambiarlo luego)
     await addDoc(collection(db, "stock"), {
       insumoId: ref.id,
       stockActual: cantidadPaquete,
@@ -162,7 +201,6 @@ btnGuardar.onclick = async () => {
 
     mostrarPopup("Insumo agregado ✔️");
   } else {
-    // EDITAR INSUMO
     await updateDoc(doc(db, "insumos", editId), {
       nombre,
       costoPaquete,
@@ -174,7 +212,6 @@ btnGuardar.onclick = async () => {
     editId = null;
   }
 
-  // Limpiar form
   inputNombre.value = "";
   inputCostoPaquete.value = "";
   inputCantidadPaquete.value = "";
@@ -182,9 +219,9 @@ btnGuardar.onclick = async () => {
   cargarInsumos();
 };
 
-// =============================
-// POPUP PIXEL
-// =============================
+/* ============================================================
+   POPUP
+============================================================ */
 function mostrarPopup(msg = "Guardado") {
   const popup = document.getElementById("popupPixel");
   const texto = document.getElementById("popupText");
@@ -192,11 +229,10 @@ function mostrarPopup(msg = "Guardado") {
 
   texto.textContent = msg;
   popup.classList.remove("hidden");
-
   setTimeout(() => popup.classList.add("hidden"), 1500);
 }
 
-// =============================
-// INICIO
-// =============================
+/* ============================================================
+   INIT
+============================================================ */
 cargarInsumos();
