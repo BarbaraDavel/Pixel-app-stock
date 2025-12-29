@@ -357,3 +357,39 @@ select:focus {
   font-size: .8rem;
   opacity: .85;
 }
+
+.home-footer-card {
+  margin: 2rem auto 0;      /* centra horizontalmente */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  max-width: 600px;         /* opcional, queda más prolijo */
+}
+/* ========================================== FOOTER FADE IN ========================================== */
+.home-footer-card {
+  margin: 2rem auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  max-width: 600px;
+
+  /* animación */
+  opacity: 0;
+  animation: footerFadeIn 1.2s ease forwards;
+  animation-delay: .6s; /* aparece después de las cards */
+}
+
+@keyframes footerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
