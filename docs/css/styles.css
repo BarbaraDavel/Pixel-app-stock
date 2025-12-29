@@ -585,3 +585,50 @@ select:focus {
 .btn-danger {
   color: #ff6b6b;
 }
+.producto-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.producto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.producto-nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.producto-meta {
+  font-size: 0.8rem;
+}
+
+.producto-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.producto-precio {
+  font-weight: 700;
+  color: #ffb454;
+  font-size: 0.95rem;
+}
+
+.producto-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}

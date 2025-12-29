@@ -53,11 +53,9 @@ function money(n) {
 }
 
 function getCostoUnitarioInsumo(ins) {
-  // esquema nuevo
   const cu = toNumber(ins?.costoUnitario);
   if (cu > 0) return cu;
 
-  // compat: esquema viejo o mezclado
   const pack = toNumber(ins?.costoPaquete ?? ins?.costoUnitario ?? 0);
   const qty = toNumber(ins?.cantidadPaquete ?? 0);
   if (pack > 0 && qty > 0) return pack / qty;
@@ -77,7 +75,7 @@ function popup(msg) {
 }
 
 /* ============================================================
-   CARGAR PRODUCTOS (cards)
+   CARGAR PRODUCTOS (LISTADO COMPACTO)
 ============================================================ */
 async function cargarProductos() {
   grid.innerHTML = "";
@@ -86,7 +84,6 @@ async function cargarProductos() {
   const productosSnap = await getDocs(collection(db, "productos"));
   const recetasSnap = await getDocs(collection(db, "recetas"));
 
-  // recetasMap[productoId] = docData
   const recetasMap = {};
   recetasSnap.forEach(r => {
     recetasMap[r.id] = r.data(); // r.id === productoId
@@ -102,24 +99,23 @@ async function cargarProductos() {
       : "Sin receta";
 
     grid.innerHTML += `
-      <div class="producto-card">
-        <div class="producto-header">
+      <div class="producto-row">
+        <div class="producto-info">
           <div class="producto-nombre">${p.nombre}</div>
+          <div class="producto-meta hint">📄 Receta: ${recetaTxt}</div>
+        </div>
+
+        <div class="producto-side">
           <div class="producto-precio">${money(p.precio)}</div>
-        </div>
 
-        <div class="producto-receta hint">
-          🧾 Receta: ${recetaTxt}
-        </div>
-
-        <div class="producto-actions">
-          <button class="btn btn-sm" onclick="verProducto('${d.id}')">👁 Ver</button>
-          <button class="btn btn-outline btn-sm" onclick="editarProducto('${d.id}')">Editar</button>
-          <button class="btn-icon btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
+          <div class="producto-actions">
+            <button class="btn btn-xs" onclick="verProducto('${d.id}')">👁 Ver</button>
+            <button class="btn btn-outline btn-xs" onclick="editarProducto('${d.id}')">Editar</button>
+            <button class="btn-icon btn-danger" onclick="eliminarProducto('${d.id}')">✕</button>
+          </div>
         </div>
       </div>
     `;
-
   });
 }
 
@@ -149,7 +145,6 @@ window.verProducto = async function (id) {
   if (recetaSnap.exists()) {
     const receta = recetaSnap.data();
 
-    // Items
     receta.items?.forEach(item => {
       const ins = insumosMap[item.insumoId];
       if (!ins) return;
@@ -161,21 +156,10 @@ window.verProducto = async function (id) {
       costoTotal += costo;
 
       html += `<p>• ${usado}× ${ins.nombre} — ${money(costo)}</p>`;
-      html += `<p class="hint" style="margin-top:-6px;">Unit: ${money(costoUnit)} (pack: ${money(ins.costoPaquete ?? ins.costoUnitario ?? 0)} / ${toNumber(ins.cantidadPaquete) || "?"})</p>`;
+      html += `<p class="hint" style="margin-top:-6px;">
+        Unit: ${money(costoUnit)}
+      </p>`;
     });
-
-    // Ficha técnica
-    if (receta.ficha) {
-      html += `<hr>`;
-      if (receta.ficha.materiales)
-        html += `<p><strong>Materiales:</strong> ${receta.ficha.materiales}</p>`;
-      if (receta.ficha.impresion)
-        html += `<p><strong>Impresión:</strong> ${receta.ficha.impresion}</p>`;
-      if (receta.ficha.corte)
-        html += `<p><strong>Corte:</strong> ${receta.ficha.corte}</p>`;
-      if (receta.ficha.notas)
-        html += `<p><strong>Notas:</strong> ${receta.ficha.notas}</p>`;
-    }
   }
 
   verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
@@ -211,7 +195,7 @@ btnCancelarEdicion.onclick = () => {
 };
 
 /* ============================================================
-   COSTOS EN MODO EDICIÓN
+   COSTOS EN EDICIÓN
 ============================================================ */
 async function cargarRecetaYCostos(productoId) {
   recetaDetalle.innerHTML = "Cargando...";
@@ -247,7 +231,7 @@ async function cargarRecetaYCostos(productoId) {
   costoBox.innerHTML = `<strong>${money(costoTotal)}</strong>`;
 
   const precio = toNumber(editPrecio.value);
-  gananciaBox.innerHTML = `<strong>${money(precio - costoTotal)}</strong> (por unidad)`;
+  gananciaBox.innerHTML = `<strong>${money(precio - costoTotal)}</strong>`;
 }
 
 /* ============================================================
