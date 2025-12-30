@@ -196,7 +196,11 @@ window.verProducto = async function (id) {
   modalVer.classList.remove("hidden");
 };
 
-verCerrar.onclick = () => modalVer.classList.add("hidden");
+/* 🔐 PROTECCIÓN CRÍTICA (NO rompe nada si el botón no existe) */
+if (verCerrar) {
+  verCerrar.onclick = () => modalVer.classList.add("hidden");
+}
+
 modalVer.addEventListener("click", e => {
   if (e.target === modalVer) modalVer.classList.add("hidden");
 });
