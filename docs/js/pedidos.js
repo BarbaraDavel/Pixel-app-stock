@@ -348,7 +348,8 @@ modalWhats.onclick = () => {
     .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
     .join("\n");
 
-  const mensaje = `
+  
+const mensaje = `
 Hola ${p.clienteNombre} 👋
 Te paso el detalle de tu pedido:
 
@@ -357,14 +358,19 @@ ${items}
 💰 Total: $${p.total}
 📦 Estado: ${p.estado}
 
+💳 Podés pagar por transferencia al alias:
+👉 barbi-d
+📸 Enviame el comprobante cuando puedas
+
 Gracias 💜 Pixel
 `.trim();
 
-  const url = telefono
-    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+const url = telefono
+  ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
+  : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
 
-  window.open(url, "_blank");
+window.open(url, "_blank");
+
 };
 
 /* =====================================================
@@ -416,3 +422,4 @@ window.borrarPedido = async id => {
   await cargarPedidos();
   renderPedido();
 })();
+
