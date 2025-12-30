@@ -49,6 +49,259 @@ const modalFecha   = document.getElementById("modalFecha");
 const modalItems   = document.getElementById("modalItems");
 const modalNota    = document.getElementById("modalNota");
 const modalTotal   = document.getElementById("modalTotal");
+const modalWhats   = document.getElementById("modalWhatsApp");
+const modalCerrar  = document.getElementById("modalCerrar");
+
+// Modal editar
+const modalEdit   = document.getElementById("editarPedidoModal");
+const editEstado  = document.getElementById("editEstado");
+const editNota    = document.getElementById("editNota");
+const editFecha   = document.getElementById("editFecha");
+const editPagado  = document.getElementById("editPagado");
+const editGuardar = document.getElementById("editGuardar");
+const editCerrar  = document.getElementById("editCerrar");
+
+/* =====================================================
+   ESTADO
+===================================================== */
+let clientesPorNombre = {};
+let productos = [];
+let itemsPedido = [];
+let pedidosCache = [];
+let pedidoEditandoId = null;
+let pedidoModalActual = null;
+
+/* =====================================================
+   HELPERS
+===================================================== */
+function esEstadoFinal(e) {
+  return e === "LISTO" || e === "ENTREGADO";
+}
+
+function debeDescontarStock(p) {
+  return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
+}
+
+function prioridadPedido(p) {
+  if (p.estado !== "ENTREGADO" && !p.pagado) return 1;
+  if (p.estado !== "ENTREGADO" && p.pagado)  return 2;
+  if (p.estado === "ENTREGADO" && !p.pagado) return 3;
+  return 4;
+}
+
+/* =====================================================
+   CLIENTES
+===================================================== */
+async function cargarClientes() {
+  datalistClientes.innerHTML = "";
+  clientesPorNombre = {};
+
+  const snap = await getDocs(collection(db, "clientes"));
+  snap.forEach(d => {
+    const c = d.data();
+    clientesPorNombre[c.nombre] = {
+      telefono: c.whatsapp || c.telefono || "",
+      red: c.instagram || c.red || ""
+    };
+    datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
+  });
+}
+
+function syncClienteDesdeNombre() {
+  const c = clientesPorNombre[inputClienteNombre.value.trim()];
+  if (!c) return;
+  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
+  if (!inputClienteRed.value) inputClienteRed.value = c.red;
+}
+
+inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
+inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
+
+/* =====================================================
+   PRODUCTOS
+===================================================== */
+async function cargarProductos() {
+  selProducto.innerHTML = `<option value="">Cargando...</option>`;
+  productos = [];
+
+  const snap = await getDocs(collection(db, "productos"));
+  snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
+
+  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
+  productos.forEach(p => {
+    selProducto.innerHTML += `<option value="${p.id}">
+      ${p.nombre} — $${Number(p.precio || 0)}
+    </option>`;
+  });
+}
+
+/* =====================================================
+   ITEMS PEDIDO
+===================================================== */
+function renderPedido() {
+  tbodyItems.innerHTML = "";
+  let total = 0;
+
+  itemsPedido.forEach((i, idx) => {
+    total += i.subtotal;
+    tbodyItems.innerHTML += `
+      <tr>
+        <td>${i.nombre}</td>
+        <td>$${i.precio}</td>
+        <td>${i.cantidad}</td>
+        <td>$${i.subtotal}</td>
+        <td>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+        </td>
+      </tr>`;
+  });
+
+  spanTotal.textContent = total;
+}
+
+window.eliminarItem = idx => {
+  itemsPedido.splice(idx, 1);
+  renderPedido();
+};
+
+btnAgregar.addEventListener("click", e => {
+  e.preventDefault();
+  const prod = productos.find(p => p.id === selProducto.value);
+  const cant = Number(inputCantidad.value);
+  if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
+
+  itemsPedido.push({
+    productoId: prod.id,
+    nombre: prod.nombre,
+    precio: Number(prod.precio || 0),
+    cantidad: cant,
+    subtotal: cant * Number(prod.precio || 0)
+  });
+
+  renderPedido();
+});
+
+/* =====================================================
+   GUARDAR PEDIDO
+===================================================== */
+btnGuardar.addEventListener("click", async e => {
+  e.preventDefault();
+
+  if (!inputClienteNombre.value || !itemsPedido.length)
+    return alert("Faltan datos");
+
+  const nombreCliente = inputClienteNombre.value.trim();
+
+  if (!clientesPorNombre[nombreCliente]) {
+    await addDoc(collection(db, "clientes"), {
+      nombre: nombreCliente,
+      telefono: inputClienteTelefono.value || "",
+      instagram: inputClienteRed.value || "",
+      createdAt: serverTimestamp()
+    });
+  }
+
+  const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
+
+  const pedido = {
+    clienteNombre: nombreCliente,
+    clienteTelefono: inputClienteTelefono.value,
+    clienteRed: inputClienteRed.value,
+    fecha: new Date().toISOString(),
+    fechaServer: serverTimestamp(),
+    estado: selectEstado.value,
+    nota: inputNota.value,
+    pagado: inputPagado.checked,
+    total,
+    stockDescontado: false,
+    items: itemsPedido
+  };
+
+  const ref = await addDoc(collection(db, "pedidos"), pedido);
+  if (debeDescontarStock({ ...pedido, id: ref.id })) {
+    await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
+  }
+
+  alert("Pedido guardado ✔");
+  itemsPedido = [];
+  renderPedido();
+  cargarClientes();
+  cargarPedidos();
+});
+
+/* =====================================================
+   LISTA + MODAL + WHATSAPP
+===================================================== */
+window.verPedido = id => {
+  const p = pedidosCache.find(x => x.id === id);
+  pedidoModalActual = p;
+
+  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
+  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
+  modalEstado.textContent = `Estado: ${p.estado}`;
+  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
+  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
+  modalNota.textContent = p.nota || "";
+  modalTotal.textContent = `Total: $${p.total}`;
+
+  modal.classList.remove("hidden");
+};
+
+modalWhats.onclick = () => {
+  const p = pedidoModalActual;
+  if (!p) return;
+
+  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
+
+  const items = p.items
+    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
+    .join("\n");
+
+  const mensaje = `
+Hola ${p.clienteNombre} 👋
+Te paso el detalle de tu pedido:
+
+${items}
+
+💰 Total: $${p.total}
+📦 Estado: ${p.estado}
+
+💳 Podés pagar por transferencia al alias:
+👉 barbi-d
+📸 Enviame el comprobante cuando puedas
+
+Gracias 💜 Pixel
+`.trim();
+
+  const url = telefono
+    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
+    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+
+  window.open(url, "_blank");
+};
+
+/* =====================================================
+   INIT
+===================================================== */
+(async function init(){
+  await cargarClientes();
+  await cargarProductos();
+  await cargarPedidos();
+})();
+// Lista
+const listaPedidosBody = document.getElementById("listaPedidos");
+const filtroEstado   = document.getElementById("filtroEstado");
+const filtroBusqueda = document.getElementById("filtroBusqueda");
+
+// Modal ver
+const modal        = document.getElementById("pedidoModal");
+const modalTitulo  = document.getElementById("modalTitulo");
+const modalCliente = document.getElementById("modalCliente");
+const modalEstado  = document.getElementById("modalEstado");
+const modalFecha   = document.getElementById("modalFecha");
+const modalItems   = document.getElementById("modalItems");
+const modalNota    = document.getElementById("modalNota");
+const modalTotal   = document.getElementById("modalTotal");
 const modalPdf     = document.getElementById("modalPdf");
 const modalWhats   = document.getElementById("modalWhatsApp");
 const modalCerrar  = document.getElementById("modalCerrar");
@@ -422,4 +675,5 @@ window.borrarPedido = async id => {
   await cargarPedidos();
   renderPedido();
 })();
+
 
