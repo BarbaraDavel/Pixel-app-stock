@@ -1,798 +1,298 @@
-// js/pedidos.js
+// js/productos.js
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs,
   addDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   doc,
-  serverTimestamp
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-/* =====================================================
+/* ============================================================
    DOM
-===================================================== */
-// Cliente
-const inputClienteNombre   = document.getElementById("clienteNombre");
-const inputClienteTelefono = document.getElementById("clienteTelefono");
-const inputClienteRed      = document.getElementById("clienteRed");
-const datalistClientes     = document.getElementById("clientesDatalist");
-
-// Productos / items
-const selProducto   = document.getElementById("productoSelect");
-const inputCantidad = document.getElementById("cantidadInput");
-const tbodyItems    = document.getElementById("pedidoItems");
-const spanTotal     = document.getElementById("totalPedido");
-
-const btnAgregar = document.getElementById("agregarItemBtn");
-const btnGuardar = document.getElementById("guardarPedidoBtn");
-const btnLimpiar = document.getElementById("limpiarPedidoBtn");
-
-// Datos pedido
-const inputFecha   = document.getElementById("pedidoFecha");
-const selectEstado = document.getElementById("pedidoEstado");
-const inputNota    = document.getElementById("pedidoNota");
-const inputPagado  = document.getElementById("pedidoPagado");
-
-// Lista
-const listaPedidosBody = document.getElementById("listaPedidos");
-const filtroEstado   = document.getElementById("filtroEstado");
-const filtroBusqueda = document.getElementById("filtroBusqueda");
+============================================================ */
+const grid = document.getElementById("productosLista");
+const btnGuardar = document.getElementById("guardarProd");
+const inputNombre = document.getElementById("prodNombre");
+const inputPrecio = document.getElementById("prodPrecio");
+const inputBuscar = document.getElementById("buscarProducto");
 
 // Modal ver
-const modal        = document.getElementById("pedidoModal");
-const modalTitulo  = document.getElementById("modalTitulo");
-const modalCliente = document.getElementById("modalCliente");
-const modalEstado  = document.getElementById("modalEstado");
-const modalFecha   = document.getElementById("modalFecha");
-const modalItems   = document.getElementById("modalItems");
-const modalNota    = document.getElementById("modalNota");
-const modalTotal   = document.getElementById("modalTotal");
-const modalPdf     = document.getElementById("modalPdf");
-const modalWhats   = document.getElementById("modalWhatsApp");
-const modalCerrar  = document.getElementById("modalCerrar");
+const modalVer = document.getElementById("verProductoModal");
+const verNombre = document.getElementById("verNombre");
+const verPrecio = document.getElementById("verPrecio");
+const verReceta = document.getElementById("verReceta");
+const verCosto = document.getElementById("verCosto");
+const verGanancia = document.getElementById("verGanancia");
+const verCerrar = document.getElementById("cerrarVerModal");
 
 // Modal editar
-const modalEdit   = document.getElementById("editarPedidoModal");
-const editEstado  = document.getElementById("editEstado");
-const editNota    = document.getElementById("editNota");
-const editFecha   = document.getElementById("editFecha");
-const editPagado  = document.getElementById("editPagado");
-const editGuardar = document.getElementById("editGuardar");
-const editCerrar  = document.getElementById("editCerrar");
+const modalEditar = document.getElementById("editarProductoModal");
+const editNombre = document.getElementById("editNombre");
+const editPrecio = document.getElementById("editPrecio");
+const recetaDetalle = document.getElementById("recetaProductoDetalle");
+const costoBox = document.getElementById("costoProduccionBox");
+const gananciaBox = document.getElementById("gananciaBox");
+const btnCancelarEdicion = document.getElementById("cancelarEdicion");
+const btnGuardarEdicion = document.getElementById("guardarEdicion");
 
-/* =====================================================
-   ESTADO
-===================================================== */
-let clientesPorNombre = {};
-let productos = [];
-let itemsPedido = [];
-let pedidosCache = [];
-let pedidoEditandoId = null;
-let pedidoModalActual = null;
+/* ============================================================
+   STATE
+============================================================ */
+let productosCache = {};
+let productosArray = [];
+let productoEditandoId = null;
 
-/* =====================================================
+/* ============================================================
    HELPERS
-===================================================== */
-function esEstadoFinal(e) {
-  return e === "LISTO" || e === "ENTREGADO";
+============================================================ */
+function toNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
 }
 
-function debeDescontarStock(p) {
-  return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
+function money(n) {
+  return `$${toNumber(n).toFixed(2)}`;
 }
 
-function prioridadPedido(p) {
-  if (p.estado !== "ENTREGADO" && !p.pagado) return 1;
-  if (p.estado !== "ENTREGADO" && p.pagado)  return 2;
-  if (p.estado === "ENTREGADO" && !p.pagado) return 3;
-  return 4;
+function getCostoUnitarioInsumo(ins) {
+  const cu = toNumber(ins?.costoUnitario);
+  if (cu > 0) return cu;
+
+  const pack = toNumber(ins?.costoPaquete ?? 0);
+  const qty = toNumber(ins?.cantidadPaquete ?? 0);
+  if (pack > 0 && qty > 0) return pack / qty;
+
+  return 0;
 }
 
-/* =====================================================
-   CLIENTES
-===================================================== */
-async function cargarClientes() {
-  datalistClientes.innerHTML = "";
-  clientesPorNombre = {};
-
-  const snap = await getDocs(collection(db, "clientes"));
-  snap.forEach(d => {
-    const c = d.data();
-    clientesPorNombre[c.nombre] = {
-      id: d.id,
-      telefono: c.whatsapp || c.telefono || "",
-      red: c.instagram || c.red || ""
-    };
-    datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
-  });
+/* ============================================================
+   POPUP
+============================================================ */
+function popup(msg) {
+  const box = document.getElementById("popupPixel");
+  const txt = document.getElementById("popupText");
+  txt.textContent = msg;
+  box.classList.remove("hidden");
+  setTimeout(() => box.classList.add("hidden"), 2000);
 }
 
-function syncClienteDesdeNombre() {
-  const c = clientesPorNombre[inputClienteNombre.value.trim()];
-  if (!c) return;
-  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-  if (!inputClienteRed.value) inputClienteRed.value = c.red;
-}
-
-inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
-inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
-
-/* =====================================================
-   PRODUCTOS
-===================================================== */
+/* ============================================================
+   CARGAR PRODUCTOS
+============================================================ */
 async function cargarProductos() {
-  selProducto.innerHTML = `<option value="">Cargando...</option>`;
-  productos = [];
+  grid.innerHTML = "";
+  productosCache = {};
+  productosArray = [];
 
-  const snap = await getDocs(collection(db, "productos"));
-  snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
+  const productosSnap = await getDocs(collection(db, "productos"));
+  const recetasSnap = await getDocs(collection(db, "recetas"));
 
-  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
-  productos.forEach(p => {
-    selProducto.innerHTML += `<option value="${p.id}">
-      ${p.nombre} — $${Number(p.precio || 0)}
-    </option>`;
-  });
-}
+  const recetasMap = {};
+  recetasSnap.forEach(r => recetasMap[r.id] = r.data());
 
-/* =====================================================
-   ITEMS PEDIDO
-===================================================== */
-function renderPedido() {
-  tbodyItems.innerHTML = "";
-  let total = 0;
+  productosSnap.forEach(d => {
+    const p = d.data();
+    productosCache[d.id] = p;
 
-  itemsPedido.forEach((i, idx) => {
-    total += i.subtotal;
-    tbodyItems.innerHTML += `
-      <tr>
-        <td>${i.nombre}</td>
-        <td>$${i.precio}</td>
-        <td>${i.cantidad}</td>
-        <td>$${i.subtotal}</td>
-        <td>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
-        </td>
-      </tr>`;
-  });
-
-  spanTotal.textContent = total;
-}
-
-window.eliminarItem = idx => {
-  itemsPedido.splice(idx, 1);
-  renderPedido();
-};
-
-btnAgregar.addEventListener("click", e => {
-  e.preventDefault();
-  const prod = productos.find(p => p.id === selProducto.value);
-  const cant = Number(inputCantidad.value);
-  if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
-
-  itemsPedido.push({
-    productoId: prod.id,
-    nombre: prod.nombre,
-    precio: Number(prod.precio || 0),
-    cantidad: cant,
-    subtotal: cant * Number(prod.precio || 0)
-  });
-
-  renderPedido();
-});
-
-/* =====================================================
-   FORM
-===================================================== */
-function limpiarFormulario() {
-  itemsPedido = [];
-  renderPedido();
-  inputClienteNombre.value = "";
-  inputClienteTelefono.value = "";
-  inputClienteRed.value = "";
-  inputNota.value = "";
-  inputCantidad.value = 1;
-  selProducto.value = "";
-  inputFecha.value = "";
-  inputPagado.checked = false;
-  selectEstado.value = "PENDIENTE";
-}
-
-btnLimpiar.addEventListener("click", e => {
-  e.preventDefault();
-  limpiarFormulario();
-});
-
-/* =====================================================
-   GUARDAR PEDIDO (con creación automática de cliente)
-===================================================== */
-btnGuardar.addEventListener("click", async e => {
-  e.preventDefault();
-
-  if (!inputClienteNombre.value || !itemsPedido.length)
-    return alert("Faltan datos");
-
-  const nombreCliente = inputClienteNombre.value.trim();
-
-  // 👉 crear cliente si no existe
-  if (!clientesPorNombre[nombreCliente]) {
-    await addDoc(collection(db, "clientes"), {
-      nombre: nombreCliente,
-      telefono: inputClienteTelefono.value || "",
-      instagram: inputClienteRed.value || "",
-      createdAt: serverTimestamp()
+    productosArray.push({
+      id: d.id,
+      ...p,
+      receta: recetasMap[d.id]
     });
-  }
-
-  const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
-  const fechaIso = inputFecha.value
-    ? new Date(inputFecha.value + "T00:00:00").toISOString()
-    : new Date().toISOString();
-
-  const pedido = {
-    clienteNombre: nombreCliente,
-    clienteTelefono: inputClienteTelefono.value,
-    clienteRed: inputClienteRed.value,
-    fecha: fechaIso,
-    fechaServer: serverTimestamp(),
-    estado: selectEstado.value,
-    nota: inputNota.value,
-    pagado: inputPagado.checked,
-    total,
-    stockDescontado: false,
-    items: itemsPedido
-  };
-
-  const ref = await addDoc(collection(db, "pedidos"), pedido);
-  if (debeDescontarStock({ ...pedido, id: ref.id })) {
-    await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
-  }
-
-  alert("Pedido guardado ✔");
-  limpiarFormulario();
-  cargarClientes();
-  cargarPedidos();
-});
-
-/* =====================================================
-   LISTA PEDIDOS
-===================================================== */
-async function cargarPedidos() {
-  pedidosCache = [];
-  listaPedidosBody.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "pedidos"));
-  snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
-
-  pedidosCache.sort((a, b) => {
-    const pa = prioridadPedido(a);
-    const pb = prioridadPedido(b);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.fecha || 0) - new Date(a.fecha || 0);
   });
 
-  renderLista();
+  renderProductos(productosArray);
 }
 
-function renderLista() {
-  const est = filtroEstado.value;
-  const txt = filtroBusqueda.value.toLowerCase();
+/* ============================================================
+   RENDER LISTADO
+============================================================ */
+function renderProductos(arr) {
+  grid.innerHTML = "";
 
-  listaPedidosBody.innerHTML = "";
+  arr.forEach(p => {
+    grid.innerHTML += `
+      <div class="producto-item" onclick="verProducto('${p.id}')">
+        <span class="producto-nombre">${p.nombre}</span>
+        <span class="producto-precio">${money(p.precio)}</span>
 
-  pedidosCache
-    .filter(p => (!est || p.estado === est) &&
-      (!txt || p.clienteNombre.toLowerCase().includes(txt)))
-    .forEach(p => {
-      const fila =
-        prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" : "tr-ok";
-
-      listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
-          <td>${p.clienteNombre}</td>
-          <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${
-              p.pagado
-                ? `<span class="badge badge-pagado">Pagado</span>`
-                : `<span class="badge badge-nopagado">No pagado</span>`
-            }
-          </td>
-
-          <td>$${p.total}</td>
-          <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕</button>
-            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
-          </td>
-        </tr>`;
-    });
+        <button
+          class="btn-icon editar"
+          title="Editar"
+          onclick="event.stopPropagation(); editarProducto('${p.id}')"
+        >✏️</button>
+      </div>
+    `;
+  });
 }
 
-filtroEstado.addEventListener("change", renderLista);
-filtroBusqueda.addEventListener("input", renderLista);
+/* ============================================================
+   BUSCADOR
+============================================================ */
+if (inputBuscar) {
+  inputBuscar.addEventListener("input", () => {
+    const q = inputBuscar.value.toLowerCase().trim();
 
-/* =====================================================
-   MODALES + WHATSAPP
-===================================================== */
-window.verPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
+    if (!q) {
+      renderProductos(productosArray);
+      return;
+    }
+
+    const filtrados = productosArray.filter(p =>
+      p.nombre.toLowerCase().includes(q)
+    );
+
+    renderProductos(filtrados);
+  });
+}
+
+/* ============================================================
+   VER PRODUCTO
+============================================================ */
+window.verProducto = async function (id) {
+  const p = productosCache[id];
   if (!p) return;
 
-  pedidoModalActual = p;
-  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
-  modalEstado.textContent = `Estado: ${p.estado}`;
-  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
-  modalNota.textContent = p.nota || "";
-  modalTotal.textContent = `Total: $${p.total}`;
+  verNombre.textContent = p.nombre;
+  verPrecio.textContent = money(p.precio);
+  verReceta.innerHTML = "Cargando...";
+  verCosto.textContent = "";
+  verGanancia.textContent = "";
 
-  modal.classList.remove("hidden");
-};
+  const recetaSnap = await getDoc(doc(db, "recetas", id));
+  const insumosSnap = await getDocs(collection(db, "insumos"));
 
-modalCerrar.onclick = () => modal.classList.add("hidden");
+  const insumosMap = {};
+  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
 
-modalWhats.onclick = () => {
-  if (!pedidoModalActual) return;
+  let costoTotal = 0;
+  let html = "";
 
-  const p = pedidoModalActual;
-  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
+  if (recetaSnap.exists()) {
+    recetaSnap.data().items?.forEach(item => {
+      const ins = insumosMap[item.insumoId];
+      if (!ins) return;
 
-  const items = p.items
-    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
-    .join("\n");
+      const usado = toNumber(item.cantidad);
+      const unit = getCostoUnitarioInsumo(ins);
+      const subtotal = usado * unit;
 
-  
-const mensaje = `
-Hola ${p.clienteNombre} 👋
-Te paso el detalle de tu pedido:
+      costoTotal += subtotal;
 
-${items}
-
-💰 Total: $${p.total}
-📦 Estado: ${p.estado}
-
-💳 Podés pagar por transferencia al alias:
-👉 barbi-d
-📸 Enviame el comprobante cuando puedas
-
-Gracias 💜 Pixel
-`.trim();
-
-const url = telefono
-  ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-  : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-
-window.open(url, "_blank");
-
-};
-
-/* =====================================================
-   EDITAR / DUPLICAR / BORRAR
-===================================================== */
-window.editarPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  pedidoEditandoId = id;
-  editEstado.value = p.estado;
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha.slice(0,10);
-  editPagado.checked = p.pagado;
-  modalEdit.classList.remove("hidden");
-};
-
-editCerrar.onclick = () => modalEdit.classList.add("hidden");
-
-editGuardar.onclick = async () => {
-  await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-    estado: editEstado.value,
-    nota: editNota.value,
-    fecha: editFecha.value + "T00:00:00",
-    pagado: editPagado.checked
-  });
-  modalEdit.classList.add("hidden");
-  cargarPedidos();
-};
-
-window.duplicarPedido = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  const nuevo = { ...p, fecha: new Date().toISOString(), pagado:false, estado:"PENDIENTE" };
-  delete nuevo.id;
-  await addDoc(collection(db,"pedidos"), nuevo);
-  cargarPedidos();
-};
-
-window.borrarPedido = async id => {
-  if (!confirm("¿Eliminar pedido?")) return;
-  await deleteDoc(doc(db,"pedidos",id));
-  cargarPedidos();
-};
-
-/* =====================================================
-   INIT
-===================================================== */
-(async function init(){
-  await cargarClientes();
-  await cargarProductos();
-  await cargarPedidos();
-  renderPedido();
-})();
-rrar");
-
-// Modal editar
-const modalEdit   = document.getElementById("editarPedidoModal");
-const editEstado  = document.getElementById("editEstado");
-const editNota    = document.getElementById("editNota");
-const editFecha   = document.getElementById("editFecha");
-const editPagado  = document.getElementById("editPagado");
-const editGuardar = document.getElementById("editGuardar");
-const editCerrar  = document.getElementById("editCerrar");
-
-/* =====================================================
-   ESTADO
-===================================================== */
-let clientesPorNombre = {};
-let productos = [];
-let itemsPedido = [];
-let pedidosCache = [];
-let pedidoEditandoId = null;
-let pedidoModalActual = null;
-
-/* =====================================================
-   HELPERS
-===================================================== */
-function esEstadoFinal(e) {
-  return e === "LISTO" || e === "ENTREGADO";
-}
-
-function debeDescontarStock(p) {
-  return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
-}
-
-function prioridadPedido(p) {
-  if (p.estado !== "ENTREGADO" && !p.pagado) return 1;
-  if (p.estado !== "ENTREGADO" && p.pagado)  return 2;
-  if (p.estado === "ENTREGADO" && !p.pagado) return 3;
-  return 4;
-}
-
-/* =====================================================
-   CLIENTES
-===================================================== */
-async function cargarClientes() {
-  datalistClientes.innerHTML = "";
-  clientesPorNombre = {};
-
-  const snap = await getDocs(collection(db, "clientes"));
-  snap.forEach(d => {
-    const c = d.data();
-    clientesPorNombre[c.nombre] = {
-      id: d.id,
-      telefono: c.whatsapp || c.telefono || "",
-      red: c.instagram || c.red || ""
-    };
-    datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
-  });
-}
-
-function syncClienteDesdeNombre() {
-  const c = clientesPorNombre[inputClienteNombre.value.trim()];
-  if (!c) return;
-  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-  if (!inputClienteRed.value) inputClienteRed.value = c.red;
-}
-
-inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
-inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
-
-/* =====================================================
-   PRODUCTOS
-===================================================== */
-async function cargarProductos() {
-  selProducto.innerHTML = `<option value="">Cargando...</option>`;
-  productos = [];
-
-  const snap = await getDocs(collection(db, "productos"));
-  snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
-
-  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
-  productos.forEach(p => {
-    selProducto.innerHTML += `<option value="${p.id}">
-      ${p.nombre} — $${Number(p.precio || 0)}
-    </option>`;
-  });
-}
-
-/* =====================================================
-   ITEMS PEDIDO
-===================================================== */
-function renderPedido() {
-  tbodyItems.innerHTML = "";
-  let total = 0;
-
-  itemsPedido.forEach((i, idx) => {
-    total += i.subtotal;
-    tbodyItems.innerHTML += `
-      <tr>
-        <td>${i.nombre}</td>
-        <td>$${i.precio}</td>
-        <td>${i.cantidad}</td>
-        <td>$${i.subtotal}</td>
-        <td>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
-        </td>
-      </tr>`;
-  });
-
-  spanTotal.textContent = total;
-}
-
-window.eliminarItem = idx => {
-  itemsPedido.splice(idx, 1);
-  renderPedido();
-};
-
-btnAgregar.addEventListener("click", e => {
-  e.preventDefault();
-  const prod = productos.find(p => p.id === selProducto.value);
-  const cant = Number(inputCantidad.value);
-  if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
-
-  itemsPedido.push({
-    productoId: prod.id,
-    nombre: prod.nombre,
-    precio: Number(prod.precio || 0),
-    cantidad: cant,
-    subtotal: cant * Number(prod.precio || 0)
-  });
-
-  renderPedido();
-});
-
-/* =====================================================
-   FORM
-===================================================== */
-function limpiarFormulario() {
-  itemsPedido = [];
-  renderPedido();
-  inputClienteNombre.value = "";
-  inputClienteTelefono.value = "";
-  inputClienteRed.value = "";
-  inputNota.value = "";
-  inputCantidad.value = 1;
-  selProducto.value = "";
-  inputFecha.value = "";
-  inputPagado.checked = false;
-  selectEstado.value = "PENDIENTE";
-}
-
-btnLimpiar.addEventListener("click", e => {
-  e.preventDefault();
-  limpiarFormulario();
-});
-
-/* =====================================================
-   GUARDAR PEDIDO (con creación automática de cliente)
-===================================================== */
-btnGuardar.addEventListener("click", async e => {
-  e.preventDefault();
-
-  if (!inputClienteNombre.value || !itemsPedido.length)
-    return alert("Faltan datos");
-
-  const nombreCliente = inputClienteNombre.value.trim();
-
-  // 👉 crear cliente si no existe
-  if (!clientesPorNombre[nombreCliente]) {
-    await addDoc(collection(db, "clientes"), {
-      nombre: nombreCliente,
-      telefono: inputClienteTelefono.value || "",
-      instagram: inputClienteRed.value || "",
-      createdAt: serverTimestamp()
+      html += `
+        <p>• ${usado}× ${ins.nombre} — ${money(subtotal)}</p>
+        <p class="hint" style="margin-top:-6px;">Unit: ${money(unit)}</p>
+      `;
     });
   }
 
-  const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
-  const fechaIso = inputFecha.value
-    ? new Date(inputFecha.value + "T00:00:00").toISOString()
-    : new Date().toISOString();
+  verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
+  verCosto.textContent = `Costo unitario: ${money(costoTotal)}`;
+  verGanancia.textContent = `Ganancia estimada: ${money(p.precio - costoTotal)}`;
 
-  const pedido = {
-    clienteNombre: nombreCliente,
-    clienteTelefono: inputClienteTelefono.value,
-    clienteRed: inputClienteRed.value,
-    fecha: fechaIso,
-    fechaServer: serverTimestamp(),
-    estado: selectEstado.value,
-    nota: inputNota.value,
-    pagado: inputPagado.checked,
-    total,
-    stockDescontado: false,
-    items: itemsPedido
-  };
+  modalVer.classList.remove("hidden");
+};
 
-  const ref = await addDoc(collection(db, "pedidos"), pedido);
-  if (debeDescontarStock({ ...pedido, id: ref.id })) {
-    await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
-  }
-
-  alert("Pedido guardado ✔");
-  limpiarFormulario();
-  cargarClientes();
-  cargarPedidos();
+verCerrar.onclick = () => modalVer.classList.add("hidden");
+modalVer.addEventListener("click", e => {
+  if (e.target === modalVer) modalVer.classList.add("hidden");
 });
 
-/* =====================================================
-   LISTA PEDIDOS
-===================================================== */
-async function cargarPedidos() {
-  pedidosCache = [];
-  listaPedidosBody.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "pedidos"));
-  snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
-
-  pedidosCache.sort((a, b) => {
-    const pa = prioridadPedido(a);
-    const pb = prioridadPedido(b);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.fecha || 0) - new Date(a.fecha || 0);
-  });
-
-  renderLista();
-}
-
-function renderLista() {
-  const est = filtroEstado.value;
-  const txt = filtroBusqueda.value.toLowerCase();
-
-  listaPedidosBody.innerHTML = "";
-
-  pedidosCache
-    .filter(p => (!est || p.estado === est) &&
-      (!txt || p.clienteNombre.toLowerCase().includes(txt)))
-    .forEach(p => {
-      const fila =
-        prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" : "tr-ok";
-
-      listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
-          <td>${p.clienteNombre}</td>
-          <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${
-              p.pagado
-                ? `<span class="badge badge-pagado">Pagado</span>`
-                : `<span class="badge badge-nopagado">No pagado</span>`
-            }
-          </td>
-
-          <td>$${p.total}</td>
-          <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕</button>
-            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
-          </td>
-        </tr>`;
-    });
-}
-
-filtroEstado.addEventListener("change", renderLista);
-filtroBusqueda.addEventListener("input", renderLista);
-
-/* =====================================================
-   MODALES + WHATSAPP
-===================================================== */
-window.verPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
+/* ============================================================
+   EDITAR PRODUCTO
+============================================================ */
+window.editarProducto = async function (id) {
+  const p = productosCache[id];
   if (!p) return;
 
-  pedidoModalActual = p;
-  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
-  modalEstado.textContent = `Estado: ${p.estado}`;
-  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
-  modalNota.textContent = p.nota || "";
-  modalTotal.textContent = `Total: $${p.total}`;
+  productoEditandoId = id;
+  editNombre.value = p.nombre;
+  editPrecio.value = p.precio;
 
-  modal.classList.remove("hidden");
+  modalEditar.classList.remove("hidden");
+  await cargarRecetaYCostos(id);
 };
 
-modalCerrar.onclick = () => modal.classList.add("hidden");
-
-modalWhats.onclick = () => {
-  if (!pedidoModalActual) return;
-
-  const p = pedidoModalActual;
-  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
-
-  const items = p.items
-    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
-    .join("\n");
-
-  
-const mensaje = `
-Hola ${p.clienteNombre} 👋
-Te paso el detalle de tu pedido:
-
-${items}
-
-💰 Total: $${p.total}
-📦 Estado: ${p.estado}
-
-💳 Podés pagar por transferencia al alias:
-👉 barbi-d
-📸 Enviame el comprobante cuando puedas
-
-Gracias 💜 Pixel
-`.trim();
-
-const url = telefono
-  ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-  : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-
-window.open(url, "_blank");
-
+btnCancelarEdicion.onclick = () => {
+  modalEditar.classList.add("hidden");
+  productoEditandoId = null;
 };
 
-/* =====================================================
-   EDITAR / DUPLICAR / BORRAR
-===================================================== */
-window.editarPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  pedidoEditandoId = id;
-  editEstado.value = p.estado;
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha.slice(0,10);
-  editPagado.checked = p.pagado;
-  modalEdit.classList.remove("hidden");
-};
+/* ============================================================
+   COSTOS EN EDICIÓN
+============================================================ */
+async function cargarRecetaYCostos(productoId) {
+  recetaDetalle.innerHTML = "Cargando...";
+  costoBox.textContent = "";
+  gananciaBox.textContent = "";
 
-editCerrar.onclick = () => modalEdit.classList.add("hidden");
+  const recetaSnap = await getDoc(doc(db, "recetas", productoId));
+  const insumosSnap = await getDocs(collection(db, "insumos"));
 
-editGuardar.onclick = async () => {
-  await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-    estado: editEstado.value,
-    nota: editNota.value,
-    fecha: editFecha.value + "T00:00:00",
-    pagado: editPagado.checked
+  const insumosMap = {};
+  insumosSnap.forEach(i => insumosMap[i.id] = i.data());
+
+  let costoTotal = 0;
+  let html = "";
+
+  if (recetaSnap.exists()) {
+    recetaSnap.data().items?.forEach(item => {
+      const ins = insumosMap[item.insumoId];
+      if (!ins) return;
+
+      const usado = toNumber(item.cantidad);
+      const unit = getCostoUnitarioInsumo(ins);
+      const subtotal = usado * unit;
+
+      costoTotal += subtotal;
+      html += `<p>• ${usado}× ${ins.nombre} — ${money(subtotal)}</p>`;
+    });
+  }
+
+  recetaDetalle.innerHTML = html || `<p class="hint">Sin receta.</p>`;
+  costoBox.innerHTML = `<strong>${money(costoTotal)}</strong>`;
+  gananciaBox.innerHTML = `<strong>${money(editPrecio.value - costoTotal)}</strong>`;
+}
+
+/* ============================================================
+   GUARDAR EDICIÓN
+============================================================ */
+btnGuardarEdicion.onclick = async () => {
+  if (!productoEditandoId) return;
+
+  await updateDoc(doc(db, "productos", productoEditandoId), {
+    nombre: editNombre.value.trim(),
+    precio: toNumber(editPrecio.value)
   });
-  modalEdit.classList.add("hidden");
-  cargarPedidos();
+
+  popup("Producto actualizado ✔");
+  modalEditar.classList.add("hidden");
+  productoEditandoId = null;
+  cargarProductos();
 };
 
-window.duplicarPedido = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  const nuevo = { ...p, fecha: new Date().toISOString(), pagado:false, estado:"PENDIENTE" };
-  delete nuevo.id;
-  await addDoc(collection(db,"pedidos"), nuevo);
-  cargarPedidos();
+/* ============================================================
+   AGREGAR PRODUCTO
+============================================================ */
+btnGuardar.onclick = async () => {
+  const nombre = inputNombre.value.trim();
+  const precio = toNumber(inputPrecio.value);
+
+  if (!nombre) return alert("Ingresá un nombre");
+
+  await addDoc(collection(db, "productos"), { nombre, precio });
+
+  popup("Producto agregado ✔");
+  inputNombre.value = "";
+  inputPrecio.value = "";
+
+  cargarProductos();
 };
 
-window.borrarPedido = async id => {
-  if (!confirm("¿Eliminar pedido?")) return;
-  await deleteDoc(doc(db,"pedidos",id));
-  cargarPedidos();
-};
-
-/* =====================================================
+/* ============================================================
    INIT
-===================================================== */
-(async function init(){
-  await cargarClientes();
-  await cargarProductos();
-  await cargarPedidos();
-  renderPedido();
-})();
-
-
-
+============================================================ */
+cargarProductos();
