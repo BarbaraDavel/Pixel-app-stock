@@ -356,11 +356,16 @@ ${items}
 
 💰 Total: $${p.total}
 📦 Estado: ${p.estado}
+
 💳 Podés pagar por transferencia al alias:
 👉 barbi-d
 📸 Enviame el comprobante cuando puedas
 
-Gracias 💜 Pixel
+✨Si te gustó tu pedido, podés ver más diseños
+y novedades en nuestro Instagram:
+👉 https://www.instagram.com/pixel.stickerss/
+
+Gracias 🤍 Pixel
 `.trim();
 
   const url = telefono
@@ -418,4 +423,5 @@ window.borrarPedido = async id => {
   await cargarProductos();
   await cargarPedidos();
   renderPedido();
+
 })();
