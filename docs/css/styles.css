@@ -783,3 +783,35 @@ select:focus {
   text-align: right;
   opacity: 0.6;
 }
+/* ==========================================
+   HOME – FONDO BRANDING PIXEL SUAVE
+   (solo Inicio)
+========================================== */
+
+body.home-bg {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* capa decorativa */
+body.home-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  /* pattern sutil */
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 1px, transparent 1px);
+
+  background-size: 120px 120px;
+  opacity: 0.35;
+}
+
+/* aseguramos que el contenido quede arriba */
+body.home-bg > * {
+  position: relative;
+  z-index: 1;
+}
