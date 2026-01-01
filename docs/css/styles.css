@@ -784,7 +784,7 @@ select:focus {
   text-align: right;
   opacity: 0.6;
 }
- ===============================
+ /*===============================
    HOME – FONDO BRANDING PIXEL
    (solo Inicio)
 ================================ */
@@ -810,10 +810,10 @@ select:focus {
 /* Mobile */
 @media (max-width: 768px) {
   body.home-bg {
-    background-position: center, bottom center;
-    background-size: cover, 260px auto;
+    background-position: center 70%;
   }
 }
+
 /* ===============================
    HOME – FONDO SUAVE ILUSTRADO
    (la imagen ES el fondo)
@@ -824,7 +824,7 @@ body.home-bg {
 
   background-image: url("../imagenes/fondo-home-pixel.png");
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: center bottom;
   background-size: cover;
 
   background-attachment: fixed; /* opcional */
