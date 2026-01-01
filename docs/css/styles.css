@@ -27,11 +27,11 @@ body {
 
 /* FONDO */
 body {
-  background: #120e1f
-  /*background: var(--pixel-fondo);
+  background: #120e1f;
   min-height: 100vh;
   color: var(--pixel-texto);
-}*/
+}
+
 
 /* ========================================== LAYOUT BASE ========================================== */
 .main {
@@ -826,7 +826,7 @@ body.home-bg::after {
   z-index: 0;
   pointer-events: none;
 
-  background-image: url("/Pixel-app-stock/imagenes/fondo-home-pixel.png");
+  background-image: url("../imagenes/fondo-home-pixel.png");
   background-repeat: no-repeat;
   background-position: bottom right;
   background-size: 420px auto;
