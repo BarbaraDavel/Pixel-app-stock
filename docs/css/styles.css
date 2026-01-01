@@ -815,36 +815,34 @@ select:focus {
   }
 }
 /* ===============================
-   HOME – FONDO ILUSTRADO PIXEL
-   método seguro (capa fija)
+   HOME – FONDO SUAVE ILUSTRADO
+   (la imagen ES el fondo)
 ================================ */
 
-body.home-bg::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+body.home-bg {
+  min-height: 100vh;
 
   background-image: url("../imagenes/fondo-home-pixel.png");
   background-repeat: no-repeat;
-  background-position: bottom right;
-  background-size: 420px auto;
+  background-position: center;
+  background-size: cover;
 
-  opacity: 0.45;
+  background-attachment: fixed; /* opcional */
+  color: var(--pixel-texto);
 }
-
-/* aseguramos contenido arriba */
+body.home-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 14, 31, 0.25); /* ajuste fino */
+  pointer-events: none;
+  z-index: 0;
+}
 body.home-bg > * {
   position: relative;
   z-index: 1;
 }
-
-/* mobile */
-@media (max-width: 768px) {
-  body.home-bg::after {
-    background-size: 260px auto;
-    background-position: bottom center;
-    opacity: 0.25;
-  }
+body.home-bg > * {
+  position: relative;
+  z-index: 1;
 }
