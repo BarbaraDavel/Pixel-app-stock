@@ -27,10 +27,11 @@ body {
 
 /* FONDO */
 body {
-  background: var(--pixel-fondo);
+  background: #120e1f
+  /*background: var(--pixel-fondo);
   min-height: 100vh;
   color: var(--pixel-texto);
-}
+}*/
 
 /* ========================================== LAYOUT BASE ========================================== */
 .main {
@@ -811,5 +812,39 @@ body.home-bg {
   body.home-bg {
     background-position: center, bottom center;
     background-size: cover, 260px auto;
+  }
+}
+/* ===============================
+   HOME – FONDO ILUSTRADO PIXEL
+   método seguro (capa fija)
+================================ */
+
+body.home-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background-image: url("/Pixel-app-stock/imagenes/fondo-home-pixel.png");
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  background-size: 420px auto;
+
+  opacity: 0.35;
+}
+
+/* aseguramos contenido arriba */
+body.home-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  body.home-bg::after {
+    background-size: 260px auto;
+    background-position: bottom center;
+    opacity: 0.25;
   }
 }
