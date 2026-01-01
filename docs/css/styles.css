@@ -783,60 +783,33 @@ select:focus {
   text-align: right;
   opacity: 0.6;
 }
-/* ==========================================
-   HOME – FONDO BRANDING PIXEL SUAVE
+//* ===============================
+   HOME – FONDO BRANDING PIXEL
    (solo Inicio)
-========================================== */
+================================ */
 
 body.home-bg {
-  position: relative;
-  overflow-x: hidden;
-}
+  min-height: 100vh;
+  background-color: #120e1f;
 
-/* capa decorativa */
-body.home-bg::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-
-  /* pattern sutil */
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 1px, transparent 1px);
-
-  background-size: 120px 120px;
-  opacity: 0.35;
-}
-
-/* aseguramos que el contenido quede arriba */
-body.home-bg > * {
-  position: relative;
-  z-index: 1;
-}
-/* ==========================================
-   HOME – FONDO BRANDING PIXEL
-========================================== */
-
-.home-bg {
-  background:
-    radial-gradient(circle at center,
-      rgba(20,14,40,0.65),
-      rgba(10,6,20,0.85)
+    radial-gradient(
+      circle at center,
+      rgba(20,14,40,0.75),
+      rgba(10,6,20,0.95)
     ),
     url("../imagenes/fondo-home-pixel.png");
 
-  background-repeat: no-repeat;
-  background-position: bottom right; /* zorrito abajo a la derecha */
-  background-size: 420px auto;        /* tamaño del zorrito */
-  background-attachment: fixed;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, bottom right;
+  background-size: cover, 420px auto;
+  background-attachment: fixed, fixed;
 }
 
-/* En pantallas chicas, más chico aún */
+/* Mobile */
 @media (max-width: 768px) {
-  .home-bg {
-    background-size: 260px auto;
-    background-position: bottom center;
+  body.home-bg {
+    background-position: center, bottom center;
+    background-size: cover, 260px auto;
   }
 }
