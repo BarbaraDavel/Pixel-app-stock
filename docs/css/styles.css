@@ -815,3 +815,28 @@ body.home-bg > * {
   position: relative;
   z-index: 1;
 }
+/* ==========================================
+   HOME – FONDO BRANDING PIXEL
+========================================== */
+
+.home-bg {
+  background:
+    radial-gradient(circle at center,
+      rgba(20,14,40,0.65),
+      rgba(10,6,20,0.85)
+    ),
+    url("../imagenes/fondo-home-pixel.png");
+
+  background-repeat: no-repeat;
+  background-position: bottom right; /* zorrito abajo a la derecha */
+  background-size: 420px auto;        /* tamaño del zorrito */
+  background-attachment: fixed;
+}
+
+/* En pantallas chicas, más chico aún */
+@media (max-width: 768px) {
+  .home-bg {
+    background-size: 260px auto;
+    background-position: bottom center;
+  }
+}
