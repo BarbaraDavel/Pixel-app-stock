@@ -798,7 +798,7 @@ body.home-bg {
       rgba(20,14,40,0.75),
       rgba(10,6,20,0.95)
     ),
-    url("../imagenes/fondo-home-pixel.png");
+    url("/Pixel-app-stock/imagenes/fondo-home-pixel.png");
 
   background-repeat: no-repeat, no-repeat;
   background-position: center, bottom right;
