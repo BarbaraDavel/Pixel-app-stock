@@ -200,7 +200,10 @@ window.verProducto = async function (id) {
 
   verReceta.innerHTML = html || `<p class="hint">Sin receta asignada.</p>`;
   verCosto.textContent = `Costo unitario: ${money(costoTotal)}`;
-  verGanancia.textContent = `Ganancia estimada: ${money(p.precio - costoTotal)}`;
+    const precioVenta = toNumber(p.precio);
+  verGanancia.textContent =
+    `Ganancia estimada: ${money(precioVenta - costoTotal)}`;
+
 
   modalVer.classList.remove("hidden");
 };
@@ -263,7 +266,10 @@ async function cargarRecetaYCostos(productoId) {
 
   recetaDetalle.innerHTML = html || `<p class="hint">Sin receta.</p>`;
   costoBox.innerHTML = `<strong>${money(costoTotal)}</strong>`;
-  gananciaBox.innerHTML = `<strong>${money(editPrecio.value - costoTotal)}</strong>`;
+    const precioVenta = toNumber(editPrecio.value);
+  gananciaBox.innerHTML =
+    `<strong>${money(precioVenta - costoTotal)}</strong>`;
+
 }
 
 /* ============================================================
