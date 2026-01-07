@@ -307,7 +307,6 @@ function renderLista() {
           <td>
             <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp" onclick="duplicarPedido('${p.id}')">➕</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>
         </tr>`;
