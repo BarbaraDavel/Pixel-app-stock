@@ -129,13 +129,21 @@ async function cargarProductos() {
   const snap = await getDocs(collection(db, "productos"));
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
+  // 🔠 ORDEN ALFABÉTICO POR NOMBRE
+  productos.sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+  );
+
   selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
   productos.forEach(p => {
-    selProducto.innerHTML += `<option value="${p.id}">
-      ${p.nombre} — $${Number(p.precio || 0)}
-    </option>`;
+    selProducto.innerHTML += `
+      <option value="${p.id}">
+        ${p.nombre} — $${Number(p.precio || 0)}
+      </option>
+    `;
   });
 }
+
 
 /* =====================================================
    ITEMS PEDIDO
