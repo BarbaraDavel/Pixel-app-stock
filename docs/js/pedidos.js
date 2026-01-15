@@ -40,6 +40,11 @@ const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado   = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
 
+// Resumen simple
+const resumenActivosEl  = document.getElementById("resumenActivos");
+const resumenNoPagadoEl = document.getElementById("resumenNoPagado");
+
+
 // Modal ver
 const modal        = document.getElementById("pedidoModal");
 const modalTitulo  = document.getElementById("modalTitulo");
@@ -301,7 +306,9 @@ async function cargarPedidos() {
   });
 
   renderLista();
+  renderResumenSimple();
 }
+
 
 function renderLista() {
   const est = filtroEstado.value;
@@ -445,3 +452,28 @@ window.borrarPedido = async id => {
   await cargarPedidos();
   renderPedido();
 })();
+
+function renderResumenSimple() {
+  let activos = 0;
+  let noPagado = 0;
+
+  pedidosCache.forEach(p => {
+    // 📦 NO entregados
+    if (p.estado !== "ENTREGADO") {
+      activos++;
+    }
+
+    // 💰 No pagados
+    if (!p.pagado) {
+      noPagado += Number(p.total || 0);
+    }
+  });
+
+  if (resumenActivosEl) {
+    resumenActivosEl.textContent = activos;
+  }
+
+  if (resumenNoPagadoEl) {
+    resumenNoPagadoEl.textContent = noPagado;
+  }
+}
