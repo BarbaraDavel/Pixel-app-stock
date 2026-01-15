@@ -45,16 +45,13 @@ const filtroBusqueda   = document.getElementById("filtroBusqueda");
 const resumenActivosEl  = document.getElementById("resumenActivos");
 const resumenNoPagadoEl = document.getElementById("resumenNoPagado");
 
-// Modal ver
+// Modal
 const modal        = document.getElementById("pedidoModal");
 const modalTitulo  = document.getElementById("modalTitulo");
-const modalCliente = document.getElementById("modalCliente");
 const modalEstado  = document.getElementById("modalEstado");
 const modalFecha   = document.getElementById("modalFecha");
 const modalItems   = document.getElementById("modalItems");
-const modalNota    = document.getElementById("modalNota");
 const modalTotal   = document.getElementById("modalTotal");
-const modalWhats   = document.getElementById("modalWhatsApp");
 const modalCerrar  = document.getElementById("modalCerrar");
 const modalHistorial = document.getElementById("modalHistorial");
 
@@ -66,7 +63,6 @@ let productos = [];
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
-let pedidoModalActual = null;
 
 const ordenEstados = {
   PENDIENTE: 1,
@@ -79,8 +75,8 @@ const ordenEstados = {
    CLIENTES
 ===================================================== */
 async function cargarClientes() {
-  datalistClientes.innerHTML = "";
   clientesPorNombre = {};
+  datalistClientes.innerHTML = "";
 
   const snap = await getDocs(collection(db, "clientes"));
   snap.forEach(d => {
@@ -97,12 +93,9 @@ async function cargarClientes() {
 function syncClienteDesdeNombre() {
   const c = clientesPorNombre[inputClienteNombre.value.trim()];
   if (!c) return;
-
   if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
   if (!inputClienteRed.value) inputClienteRed.value = c.red;
-  if (inputClienteApodo && c.apodo && !inputClienteApodo.value) {
-    inputClienteApodo.value = c.apodo;
-  }
+  if (!inputClienteApodo.value) inputClienteApodo.value = c.apodo;
 }
 
 inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
@@ -122,15 +115,14 @@ async function cargarProductos() {
 
   selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
   productos.forEach(p => {
-    selProducto.innerHTML += `
-      <option value="${p.id}">
-        ${p.nombre} — $${Number(p.precio || 0)}
-      </option>`;
+    selProducto.innerHTML += `<option value="${p.id}">
+      ${p.nombre} — $${Number(p.precio || 0)}
+    </option>`;
   });
 }
 
 /* =====================================================
-   ITEMS PEDIDO
+   ITEMS
 ===================================================== */
 function renderPedido() {
   tbodyItems.innerHTML = "";
@@ -190,7 +182,6 @@ function limpiarFormulario() {
   inputPagado.checked = false;
   selectEstado.value = "PENDIENTE";
   pedidoEditandoId = null;
-  btnGuardar.textContent = "Guardar pedido";
 }
 
 btnLimpiar.onclick = e => {
@@ -199,24 +190,19 @@ btnLimpiar.onclick = e => {
 };
 
 /* =====================================================
-   GUARDAR / EDITAR
+   GUARDAR
 ===================================================== */
 btnGuardar.onclick = async e => {
   e.preventDefault();
-
-  if (!inputClienteNombre.value || !itemsPedido.length) {
-    alert("Faltan datos");
-    return;
-  }
 
   const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
   const fechaIso = inputFecha.value
     ? new Date(inputFecha.value + "T00:00:00").toISOString()
     : new Date().toISOString();
 
-  const baseData = {
+  const data = {
     clienteNombre: inputClienteNombre.value.trim(),
-    clienteApodo: inputClienteApodo?.value?.trim() || "",
+    clienteApodo: inputClienteApodo.value || "",
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
     fecha: fechaIso,
@@ -228,22 +214,11 @@ btnGuardar.onclick = async e => {
   };
 
   if (pedidoEditandoId) {
-    const p = pedidosCache.find(x => x.id === pedidoEditandoId);
-    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-      ...baseData,
-      historial: [...(p.historial || []), {
-        fecha: new Date().toISOString(),
-        accion: "EDITADO"
-      }]
-    });
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), data);
   } else {
     await addDoc(collection(db, "pedidos"), {
-      ...baseData,
-      fechaServer: serverTimestamp(),
-      historial: [{
-        fecha: new Date().toISOString(),
-        accion: "CREADO"
-      }]
+      ...data,
+      fechaServer: serverTimestamp()
     });
   }
 
@@ -252,7 +227,7 @@ btnGuardar.onclick = async e => {
 };
 
 /* =====================================================
-   LISTA + RESUMEN
+   LISTA + COLORES
 ===================================================== */
 async function cargarPedidos() {
   pedidosCache = [];
@@ -265,13 +240,12 @@ async function cargarPedidos() {
   });
 
   renderLista();
-  renderResumenSimple();
+  renderResumen();
 }
 
 function renderLista() {
   const est = filtroEstado.value;
   const txt = filtroBusqueda.value.toLowerCase();
-
   listaPedidosBody.innerHTML = "";
 
   pedidosCache
@@ -280,12 +254,24 @@ function renderLista() {
       (!txt || p.clienteNombre.toLowerCase().includes(txt))
     )
     .forEach(p => {
+
+      let fila = "tr-ok";
+      if (p.estado === "PENDIENTE") fila = "tr-urgente";
+      else if (p.estado === "PROCESO") fila = "tr-atencion";
+      else if (p.estado === "LISTO") fila = "tr-listo";
+
       listaPedidosBody.innerHTML += `
-        <tr>
+        <tr class="${fila}">
           <td onclick="verPedido('${p.id}')" style="cursor:pointer">${p.clienteNombre}</td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td>${p.estado}</td>
-          <td>${p.pagado ? "Pagado" : "No pagado"}</td>
+          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
+          <td onclick="togglePagado('${p.id}')" style="cursor:pointer">
+            ${
+              p.pagado
+                ? `<span class="badge badge-pagado">Pagado</span>`
+                : `<span class="badge badge-nopagado">No pagado</span>`
+            }
+          </td>
           <td>$${p.total}</td>
           <td>
             <button onclick="editarPedido('${p.id}')">✏️</button>
@@ -301,7 +287,7 @@ filtroBusqueda.oninput = renderLista;
 /* =====================================================
    RESUMEN
 ===================================================== */
-function renderResumenSimple() {
+function renderResumen() {
   let activos = 0;
   let noPagado = 0;
 
@@ -310,35 +296,25 @@ function renderResumenSimple() {
     if (!p.pagado) noPagado += Number(p.total || 0);
   });
 
-  if (resumenActivosEl) resumenActivosEl.textContent = activos;
-  if (resumenNoPagadoEl) resumenNoPagadoEl.textContent = `$${noPagado}`;
+  resumenActivosEl.textContent = activos;
+  resumenNoPagadoEl.textContent = `$${noPagado}`;
 }
 
 /* =====================================================
-   MODAL
+   MODAL / ACCIONES
 ===================================================== */
 window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  pedidoModalActual = p;
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
   modalEstado.textContent = p.estado;
   modalFecha.textContent = new Date(p.fecha).toLocaleString();
   modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre}`).join("<br>");
   modalTotal.textContent = `Total: $${p.total}`;
-  modalHistorial.innerHTML = (p.historial || [])
-    .map(h => `• ${new Date(h.fecha).toLocaleString()} – ${traducirAccion(h.accion)}`)
-    .join("<br>");
-
   modal.classList.remove("hidden");
 };
 
 modalCerrar.onclick = () => modal.classList.add("hidden");
 
-/* =====================================================
-   BORRAR / EDITAR
-===================================================== */
 window.borrarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
   await deleteDoc(doc(db, "pedidos", id));
@@ -348,7 +324,6 @@ window.borrarPedido = async id => {
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   pedidoEditandoId = id;
-
   inputClienteNombre.value = p.clienteNombre;
   inputClienteTelefono.value = p.clienteTelefono || "";
   inputClienteRed.value = p.clienteRed || "";
@@ -357,9 +332,14 @@ window.editarPedido = id => {
   selectEstado.value = p.estado;
   inputNota.value = p.nota || "";
   inputPagado.checked = p.pagado;
-
   itemsPedido = p.items.map(i => ({ ...i }));
   renderPedido();
+};
+
+window.togglePagado = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  await updateDoc(doc(db, "pedidos", id), { pagado: !p.pagado });
+  cargarPedidos();
 };
 
 /* =====================================================
