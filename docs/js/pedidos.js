@@ -53,7 +53,7 @@ const modalPdf     = document.getElementById("modalPdf");
 const modalWhats   = document.getElementById("modalWhatsApp");
 const modalCerrar  = document.getElementById("modalCerrar");
 
-// Modal editar
+// Modal editar chico
 const modalEdit   = document.getElementById("editarPedidoModal");
 const editEstado  = document.getElementById("editEstado");
 const editNota    = document.getElementById("editNota");
@@ -129,7 +129,6 @@ async function cargarProductos() {
   const snap = await getDocs(collection(db, "productos"));
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
-  // 🔠 ORDEN ALFABÉTICO POR NOMBRE
   productos.sort((a, b) =>
     a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
   );
@@ -143,7 +142,6 @@ async function cargarProductos() {
     `;
   });
 }
-
 
 /* =====================================================
    ITEMS PEDIDO
@@ -206,6 +204,8 @@ function limpiarFormulario() {
   inputFecha.value = "";
   inputPagado.checked = false;
   selectEstado.value = "PENDIENTE";
+  pedidoEditandoId = null;
+  btnGuardar.textContent = "Guardar pedido";
 }
 
 btnLimpiar.addEventListener("click", e => {
@@ -214,7 +214,7 @@ btnLimpiar.addEventListener("click", e => {
 });
 
 /* =====================================================
-   GUARDAR PEDIDO (con creación automática de cliente)
+   GUARDAR / EDITAR PEDIDO + HISTORIAL
 ===================================================== */
 btnGuardar.addEventListener("click", async e => {
   e.preventDefault();
@@ -222,43 +222,62 @@ btnGuardar.addEventListener("click", async e => {
   if (!inputClienteNombre.value || !itemsPedido.length)
     return alert("Faltan datos");
 
-  const nombreCliente = inputClienteNombre.value.trim();
-
-  // 👉 crear cliente si no existe
-  if (!clientesPorNombre[nombreCliente]) {
-    await addDoc(collection(db, "clientes"), {
-      nombre: nombreCliente,
-      telefono: inputClienteTelefono.value || "",
-      instagram: inputClienteRed.value || "",
-      createdAt: serverTimestamp()
-    });
-  }
-
   const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
   const fechaIso = inputFecha.value
     ? new Date(inputFecha.value + "T00:00:00").toISOString()
     : new Date().toISOString();
 
-  const pedido = {
-    clienteNombre: nombreCliente,
+  const baseData = {
+    clienteNombre: inputClienteNombre.value.trim(),
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
     fecha: fechaIso,
-    fechaServer: serverTimestamp(),
     estado: selectEstado.value,
     nota: inputNota.value,
     pagado: inputPagado.checked,
     total,
-    stockDescontado: false,
     items: itemsPedido
   };
 
-  const ref = await addDoc(collection(db, "pedidos"), pedido);
-  if (debeDescontarStock({ ...pedido, id: ref.id })) {
-    await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
+  if (pedidoEditandoId) {
+    const p = pedidosCache.find(x => x.id === pedidoEditandoId);
+    if (p.estado === "ENTREGADO") {
+      alert("Este pedido está ENTREGADO y no se puede editar 🔒");
+      return;
+    }
+
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
+      ...baseData,
+      historial: [
+        ...(p.historial || []),
+        {
+          fecha: new Date().toISOString(),
+          accion: "EDITADO",
+          estado: baseData.estado,
+          pagado: baseData.pagado,
+          total: baseData.total
+        }
+      ]
+    });
+
+    alert("Pedido actualizado ✔");
+  } else {
+    await addDoc(collection(db, "pedidos"), {
+      ...baseData,
+      fechaServer: serverTimestamp(),
+      stockDescontado: false,
+      historial: [{
+        fecha: new Date().toISOString(),
+        accion: "CREADO",
+        estado: baseData.estado,
+        pagado: baseData.pagado,
+        total: baseData.total
+      }]
+    });
+
+    alert("Pedido guardado ✔");
   }
 
-  alert("Pedido guardado ✔");
   limpiarFormulario();
   cargarClientes();
   cargarPedidos();
@@ -291,12 +310,15 @@ function renderLista() {
   listaPedidosBody.innerHTML = "";
 
   pedidosCache
-    .filter(p => (!est || p.estado === est) &&
-      (!txt || p.clienteNombre.toLowerCase().includes(txt)))
+    .filter(p =>
+      (!est || p.estado === est) &&
+      (!txt || p.clienteNombre.toLowerCase().includes(txt))
+    )
     .forEach(p => {
       const fila =
         prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" : "tr-ok";
+        prioridadPedido(p) <= 3 ? "tr-atencion" :
+        "tr-ok";
 
       listaPedidosBody.innerHTML += `
         <tr class="${fila}">
@@ -310,7 +332,6 @@ function renderLista() {
                 : `<span class="badge badge-nopagado">No pagado</span>`
             }
           </td>
-
           <td>$${p.total}</td>
           <td>
             <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
@@ -325,7 +346,7 @@ filtroEstado.addEventListener("change", renderLista);
 filtroBusqueda.addEventListener("input", renderLista);
 
 /* =====================================================
-   MODALES + WHATSAPP
+   MODAL VER + WHATSAPP
 ===================================================== */
 window.verPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
@@ -366,11 +387,6 @@ ${items}
 
 💳 Podés pagar por transferencia al alias:
 👉 barbi-d
-📸 Enviame el comprobante cuando puedas
-
-✨Si te gustó tu pedido, podés ver más diseños
-y novedades en nuestro Instagram:
-👉 https://www.instagram.com/pixel.stickerss/
 
 Gracias 🤍 Pixel
 `.trim();
@@ -383,42 +399,40 @@ Gracias 🤍 Pixel
 };
 
 /* =====================================================
-   EDITAR / DUPLICAR / BORRAR
+   EDITAR DESDE LISTA (formulario grande)
 ===================================================== */
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  if (p.estado === "ENTREGADO") {
+    alert("Este pedido está ENTREGADO y no se puede editar 🔒");
+    return;
+  }
+
   pedidoEditandoId = id;
-  editEstado.value = p.estado;
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha.slice(0,10);
-  editPagado.checked = p.pagado;
-  modalEdit.classList.remove("hidden");
+
+  inputClienteNombre.value = p.clienteNombre;
+  inputClienteTelefono.value = p.clienteTelefono || "";
+  inputClienteRed.value = p.clienteRed || "";
+  inputFecha.value = p.fecha.slice(0, 10);
+  selectEstado.value = p.estado;
+  inputNota.value = p.nota || "";
+  inputPagado.checked = p.pagado;
+
+  itemsPedido = p.items.map(i => ({ ...i }));
+  renderPedido();
+
+  btnGuardar.textContent = "Guardar cambios";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-editCerrar.onclick = () => modalEdit.classList.add("hidden");
-
-editGuardar.onclick = async () => {
-  await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-    estado: editEstado.value,
-    nota: editNota.value,
-    fecha: editFecha.value + "T00:00:00",
-    pagado: editPagado.checked
-  });
-  modalEdit.classList.add("hidden");
-  cargarPedidos();
-};
-
-window.duplicarPedido = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  const nuevo = { ...p, fecha: new Date().toISOString(), pagado:false, estado:"PENDIENTE" };
-  delete nuevo.id;
-  await addDoc(collection(db,"pedidos"), nuevo);
-  cargarPedidos();
-};
-
+/* =====================================================
+   BORRAR
+===================================================== */
 window.borrarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
-  await deleteDoc(doc(db,"pedidos",id));
+  await deleteDoc(doc(db, "pedidos", id));
   cargarPedidos();
 };
 
@@ -430,5 +444,4 @@ window.borrarPedido = async id => {
   await cargarProductos();
   await cargarPedidos();
   renderPedido();
-
 })();
