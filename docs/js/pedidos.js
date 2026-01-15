@@ -349,13 +349,17 @@ function renderLista() {
       </td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
           <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${
-              p.pagado
-                ? `<span class="badge badge-pagado">Pagado</span>`
-                : `<span class="badge badge-nopagado">No pagado</span>`
-            }
-          </td>
+        <td
+          onclick="togglePagado('${p.id}')"
+          style="cursor:pointer;"
+          title="Cambiar estado de pago"
+        >
+          ${
+            p.pagado
+              ? `<span class="badge badge-pagado">Pagado</span>`
+              : `<span class="badge badge-nopagado">No pagado</span>`
+          }
+        </td>
           <td>$${p.total}</td>
           <td>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
@@ -464,6 +468,22 @@ window.borrarPedido = async id => {
   cargarPedidos();
 };
 
+window.togglePagado = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  try {
+    await updateDoc(doc(db, "pedidos", id), {
+      pagado: !p.pagado
+    });
+
+    cargarPedidos();
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo cambiar el estado de pago.");
+  }
+};
+
 /* =====================================================
    INIT
 ===================================================== */
@@ -498,3 +518,4 @@ function renderResumenSimple() {
     resumenNoPagadoEl.textContent = noPagado;
   }
 }
+
