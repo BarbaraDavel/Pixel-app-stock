@@ -40,28 +40,6 @@ const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado   = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
 
-// Modal ver
-const modal        = document.getElementById("pedidoModal");
-const modalTitulo  = document.getElementById("modalTitulo");
-const modalCliente = document.getElementById("modalCliente");
-const modalEstado  = document.getElementById("modalEstado");
-const modalFecha   = document.getElementById("modalFecha");
-const modalItems   = document.getElementById("modalItems");
-const modalNota    = document.getElementById("modalNota");
-const modalTotal   = document.getElementById("modalTotal");
-const modalPdf     = document.getElementById("modalPdf");
-const modalWhats   = document.getElementById("modalWhatsApp");
-const modalCerrar  = document.getElementById("modalCerrar");
-
-// Modal editar
-const modalEdit   = document.getElementById("editarPedidoModal");
-const editEstado  = document.getElementById("editEstado");
-const editNota    = document.getElementById("editNota");
-const editFecha   = document.getElementById("editFecha");
-const editPagado  = document.getElementById("editPagado");
-const editGuardar = document.getElementById("editGuardar");
-const editCerrar  = document.getElementById("editCerrar");
-
 /* =====================================================
    ESTADO
 ===================================================== */
@@ -70,7 +48,6 @@ let productos = [];
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
-let pedidoModalActual = null;
 
 /* =====================================================
    HELPERS
@@ -101,7 +78,6 @@ async function cargarClientes() {
   snap.forEach(d => {
     const c = d.data();
     clientesPorNombre[c.nombre] = {
-      id: d.id,
       telefono: c.whatsapp || c.telefono || "",
       red: c.instagram || c.red || ""
     };
@@ -129,7 +105,6 @@ async function cargarProductos() {
   const snap = await getDocs(collection(db, "productos"));
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
 
-  // 🔠 ORDEN ALFABÉTICO POR NOMBRE
   productos.sort((a, b) =>
     a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
   );
@@ -144,9 +119,8 @@ async function cargarProductos() {
   });
 }
 
-
 /* =====================================================
-   ITEMS PEDIDO
+   ITEMS DEL PEDIDO
 ===================================================== */
 function renderPedido() {
   tbodyItems.innerHTML = "";
@@ -176,8 +150,10 @@ window.eliminarItem = idx => {
 
 btnAgregar.addEventListener("click", e => {
   e.preventDefault();
+
   const prod = productos.find(p => p.id === selProducto.value);
   const cant = Number(inputCantidad.value);
+
   if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
 
   itemsPedido.push({
@@ -197,6 +173,7 @@ btnAgregar.addEventListener("click", e => {
 function limpiarFormulario() {
   itemsPedido = [];
   renderPedido();
+
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   inputClienteRed.value = "";
@@ -206,6 +183,9 @@ function limpiarFormulario() {
   inputFecha.value = "";
   inputPagado.checked = false;
   selectEstado.value = "PENDIENTE";
+
+  pedidoEditandoId = null;
+  btnGuardar.textContent = "Guardar pedido";
 }
 
 btnLimpiar.addEventListener("click", e => {
@@ -214,7 +194,7 @@ btnLimpiar.addEventListener("click", e => {
 });
 
 /* =====================================================
-   GUARDAR PEDIDO (con creación automática de cliente)
+   GUARDAR / EDITAR PEDIDO
 ===================================================== */
 btnGuardar.addEventListener("click", async e => {
   e.preventDefault();
@@ -224,7 +204,6 @@ btnGuardar.addEventListener("click", async e => {
 
   const nombreCliente = inputClienteNombre.value.trim();
 
-  // 👉 crear cliente si no existe
   if (!clientesPorNombre[nombreCliente]) {
     await addDoc(collection(db, "clientes"), {
       nombre: nombreCliente,
@@ -239,26 +218,34 @@ btnGuardar.addEventListener("click", async e => {
     ? new Date(inputFecha.value + "T00:00:00").toISOString()
     : new Date().toISOString();
 
-  const pedido = {
+  const pedidoData = {
     clienteNombre: nombreCliente,
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
     fecha: fechaIso,
-    fechaServer: serverTimestamp(),
     estado: selectEstado.value,
     nota: inputNota.value,
     pagado: inputPagado.checked,
     total,
-    stockDescontado: false,
     items: itemsPedido
   };
 
-  const ref = await addDoc(collection(db, "pedidos"), pedido);
-  if (debeDescontarStock({ ...pedido, id: ref.id })) {
-    await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
+  if (pedidoEditandoId) {
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), pedidoData);
+    alert("Pedido actualizado ✔");
+  } else {
+    pedidoData.fechaServer = serverTimestamp();
+    pedidoData.stockDescontado = false;
+
+    const ref = await addDoc(collection(db, "pedidos"), pedidoData);
+
+    if (debeDescontarStock({ ...pedidoData, id: ref.id })) {
+      await updateDoc(doc(db, "pedidos", ref.id), { stockDescontado: true });
+    }
+
+    alert("Pedido guardado ✔");
   }
 
-  alert("Pedido guardado ✔");
   limpiarFormulario();
   cargarClientes();
   cargarPedidos();
@@ -294,26 +281,14 @@ function renderLista() {
     .filter(p => (!est || p.estado === est) &&
       (!txt || p.clienteNombre.toLowerCase().includes(txt)))
     .forEach(p => {
-      const fila =
-        prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" : "tr-ok";
-
       listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
+        <tr>
           <td>${p.clienteNombre}</td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${
-              p.pagado
-                ? `<span class="badge badge-pagado">Pagado</span>`
-                : `<span class="badge badge-nopagado">No pagado</span>`
-            }
-          </td>
-
+          <td>${p.estado}</td>
+          <td>${p.pagado ? "✔" : "✖"}</td>
           <td>$${p.total}</td>
           <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>
@@ -325,100 +300,32 @@ filtroEstado.addEventListener("change", renderLista);
 filtroBusqueda.addEventListener("input", renderLista);
 
 /* =====================================================
-   MODALES + WHATSAPP
-===================================================== */
-window.verPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  pedidoModalActual = p;
-  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
-  modalEstado.textContent = `Estado: ${p.estado}`;
-  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
-  modalNota.textContent = p.nota || "";
-  modalTotal.textContent = `Total: $${p.total}`;
-
-  modal.classList.remove("hidden");
-};
-
-modalCerrar.onclick = () => modal.classList.add("hidden");
-
-modalWhats.onclick = () => {
-  if (!pedidoModalActual) return;
-
-  const p = pedidoModalActual;
-  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
-
-  const items = p.items
-    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
-    .join("\n");
-
-  const mensaje = `
-Hola ${p.clienteNombre} 👋
-Te paso el detalle de tu pedido:
-
-${items}
-
-💰 Total: $${p.total}
-📦 Estado: ${p.estado}
-
-💳 Podés pagar por transferencia al alias:
-👉 barbi-d
-📸 Enviame el comprobante cuando puedas
-
-✨Si te gustó tu pedido, podés ver más diseños
-y novedades en nuestro Instagram:
-👉 https://www.instagram.com/pixel.stickerss/
-
-Gracias 🤍 Pixel
-`.trim();
-
-  const url = telefono
-    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-
-  window.open(url, "_blank");
-};
-
-/* =====================================================
-   EDITAR / DUPLICAR / BORRAR
+   EDITAR / BORRAR
 ===================================================== */
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
   pedidoEditandoId = id;
-  editEstado.value = p.estado;
-  editNota.value = p.nota || "";
-  editFecha.value = p.fecha.slice(0,10);
-  editPagado.checked = p.pagado;
-  modalEdit.classList.remove("hidden");
-};
 
-editCerrar.onclick = () => modalEdit.classList.add("hidden");
+  inputClienteNombre.value = p.clienteNombre;
+  inputClienteTelefono.value = p.clienteTelefono || "";
+  inputClienteRed.value = p.clienteRed || "";
+  inputFecha.value = p.fecha.slice(0, 10);
+  selectEstado.value = p.estado;
+  inputNota.value = p.nota || "";
+  inputPagado.checked = p.pagado;
 
-editGuardar.onclick = async () => {
-  await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-    estado: editEstado.value,
-    nota: editNota.value,
-    fecha: editFecha.value + "T00:00:00",
-    pagado: editPagado.checked
-  });
-  modalEdit.classList.add("hidden");
-  cargarPedidos();
-};
+  itemsPedido = p.items.map(i => ({ ...i }));
+  renderPedido();
 
-window.duplicarPedido = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  const nuevo = { ...p, fecha: new Date().toISOString(), pagado:false, estado:"PENDIENTE" };
-  delete nuevo.id;
-  await addDoc(collection(db,"pedidos"), nuevo);
-  cargarPedidos();
+  btnGuardar.textContent = "Guardar cambios";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 window.borrarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
-  await deleteDoc(doc(db,"pedidos",id));
+  await deleteDoc(doc(db, "pedidos", id));
   cargarPedidos();
 };
 
@@ -430,5 +337,4 @@ window.borrarPedido = async id => {
   await cargarProductos();
   await cargarPedidos();
   renderPedido();
-
 })();
