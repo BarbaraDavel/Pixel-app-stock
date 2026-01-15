@@ -339,7 +339,14 @@ function renderLista() {
 
       listaPedidosBody.innerHTML += `
         <tr class="${fila}">
-          <td>${p.clienteNombre}</td>
+                <td 
+        class="cliente-click"
+        onclick="verPedido('${p.id}')"
+        style="cursor:pointer;"
+        title="Ver pedido"
+      >
+        ${p.clienteNombre}
+      </td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
           <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
           <td>
@@ -351,7 +358,6 @@ function renderLista() {
           </td>
           <td>$${p.total}</td>
           <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>

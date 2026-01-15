@@ -846,3 +846,7 @@ body.home-bg > * {
   position: relative;
   z-index: 1;
 }
+
+.cliente-click {
+  font-weight: 500;
+}
