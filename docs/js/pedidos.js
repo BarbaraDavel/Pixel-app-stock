@@ -40,6 +40,7 @@ const inputPagado  = document.getElementById("pedidoPagado");
 const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado     = document.getElementById("filtroEstado");
 const filtroBusqueda   = document.getElementById("filtroBusqueda");
+const toggleEntregados = document.getElementById("toggleEntregados");
 
 // Resumen
 const resumenActivosEl  = document.getElementById("resumenActivos");
@@ -248,12 +249,21 @@ function renderLista() {
   const txt = filtroBusqueda.value.toLowerCase();
   listaPedidosBody.innerHTML = "";
 
-  pedidosCache
-    .filter(p =>
-      (!est || p.estado === est) &&
-      (!txt || p.clienteNombre.toLowerCase().includes(txt))
-    )
-    .forEach(p => {
+    pedidosCache
+      .filter(p => {
+
+        // 🔹 ocultar ENTREGADOS si el toggle está apagado
+        if (!toggleEntregados.checked && p.estado === "ENTREGADO") {
+          return false;
+        }
+
+        if (est && p.estado !== est) return false;
+        if (txt && !p.clienteNombre.toLowerCase().includes(txt)) return false;
+
+        return true;
+      })
+      .forEach(p => {
+
 
     let fila = "tr-ok";
 
