@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===============================
 // HOME - RESUMEN PEDIDOS
 // ===============================
-import { db } from "./js/firebase.js";
+import { db } from "./firebase.js";
 import {
   collection,
   getDocs
@@ -78,4 +78,44 @@ async function cargarResumenHome() {
 }
 
 // ejecutar al cargar
+document.addEventListener("DOMContentLoaded", cargarResumenHome);
+const elPendientes = document.getElementById("homePendientes");
+const elListos = document.getElementById("homeListos");
+const elNoPagado = document.getElementById("homeNoPagado");
+
+async function cargarResumenHome() {
+  if (!elPendientes || !elListos || !elNoPagado) return;
+
+  let pendientes = 0;
+  let listos = 0;
+  let noPagado = 0;
+
+  try {
+    const snap = await getDocs(collection(db, "pedidos"));
+
+    snap.forEach(d => {
+      const p = d.data();
+
+      if (p.estado === "PENDIENTE" || p.estado === "PROCESO") {
+        pendientes++;
+      }
+
+      if (p.estado === "LISTO") {
+        listos++;
+      }
+
+      if (!p.pagado) {
+        noPagado += Number(p.total || 0);
+      }
+    });
+
+    elPendientes.textContent = pendientes;
+    elListos.textContent = listos;
+    elNoPagado.textContent = `$${noPagado}`;
+
+  } catch (err) {
+    console.error("Error resumen home:", err);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", cargarResumenHome);

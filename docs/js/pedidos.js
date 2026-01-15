@@ -40,6 +40,9 @@ const inputPagado  = document.getElementById("pedidoPagado");
 const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado   = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
+const resumenPendientesEl = document.getElementById("resumenPendientes");
+const resumenListosEl = document.getElementById("resumenListos");
+
 
 // Resumen simple
 const resumenActivosEl  = document.getElementById("resumenActivos");
@@ -318,7 +321,33 @@ async function cargarPedidos() {
   });
 
   renderLista();
-  renderResumenSimple();
+function renderResumenSimple() {
+  let pendientes = 0;
+  let listos = 0;
+  let noPagado = 0;
+
+  pedidosCache.forEach(p => {
+    // 📦 trabajo pendiente
+    if (p.estado === "PENDIENTE" || p.estado === "PROCESO") {
+      pendientes++;
+    }
+
+    // 🟪 listos para entregar
+    if (p.estado === "LISTO") {
+      listos++;
+    }
+
+    // 💰 no pagado (independiente del estado)
+    if (!p.pagado) {
+      noPagado += Number(p.total || 0);
+    }
+  });
+
+  if (resumenPendientesEl) resumenPendientesEl.textContent = pendientes;
+  if (resumenListosEl) resumenListosEl.textContent = listos;
+  if (resumenNoPagadoEl) resumenNoPagadoEl.textContent = noPagado;
+}
+
 }
 
 

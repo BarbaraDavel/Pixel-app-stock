@@ -26,8 +26,16 @@
       <div class="summary-item">
         <span class="summary-icon">📦</span>
         <div>
-          <div class="summary-label">Pedidos activos</div>
-          <div class="summary-value" id="homePedidosActivos">0</div>
+          <div class="summary-label">Pendientes</div>
+          <div class="summary-value" id="homePendientes">0</div>
+        </div>
+      </div>
+
+      <div class="summary-item">
+        <span class="summary-icon">🟪</span>
+        <div>
+          <div class="summary-label">Listos para entregar</div>
+          <div class="summary-value" id="homeListos">0</div>
         </div>
       </div>
 
@@ -40,7 +48,6 @@
       </div>
     </div>
 
-  <h3 class="home-group-title">Gestión</h3>
 
 <div class="home-grid">
   <a class="home-card" href="./pedidos.html">Pedidos</a>
@@ -48,8 +55,6 @@
   <a class="home-card" href="./productos.html">Productos</a>
   <a class="home-card" href="./stock.html">Stock</a>
 </div>
-
-<h3 class="home-group-title">Producción</h3>
 
 <div class="home-grid">
   <a class="home-card" href="./insumos.html">Insumos</a>
@@ -90,7 +95,7 @@
     navigator.serviceWorker.register("service-worker.js");
   }
 </script> -->
-<script type="module" src="./app.js"></script>
+<script type="module" src="app.js"></script>
 
 </body>
 </html>
