@@ -298,12 +298,24 @@ async function cargarPedidos() {
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
-  pedidosCache.sort((a, b) => {
-    const pa = prioridadPedido(a);
-    const pb = prioridadPedido(b);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.fecha || 0) - new Date(a.fecha || 0);
-  });
+      const ordenEstado = {
+        "PENDIENTE": 1,
+        "PROCESO": 2,
+        "LISTO": 3,
+        "ENTREGADO": 4
+      };
+
+      pedidosCache.sort((a, b) => {
+        const ea = ordenEstado[a.estado] || 99;
+        const eb = ordenEstado[b.estado] || 99;
+
+        // 1️⃣ ordenar por estado
+        if (ea !== eb) return ea - eb;
+
+        // 2️⃣ dentro del mismo estado, más nuevo primero
+        return new Date(b.fecha || 0) - new Date(a.fecha || 0);
+      });
+
 
   renderLista();
   renderResumenSimple();
