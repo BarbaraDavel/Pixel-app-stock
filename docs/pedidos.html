@@ -30,7 +30,7 @@
      <a href="./movimientos_stock.html">Movimientos</a>
      <a href="./recetas.html">Recetas</a>
      <a href="./productos.html">Productos</a>
-     <a href="./clientes.html">Clientes</a>     
+     <a href="./clientes.html">Clientes</a>
      <a href="./guia.html">Guia</a>
      <a href="./costos.html">Costos</a>
      <a href="./recetas_borrador.html">Recetas guardadas</a>
@@ -159,6 +159,17 @@
 
   <br>
 
+  <!-- ================================
+        RESUMEN (NUEVO)
+  ================================= -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="form-grid">
+      <div><strong>💰 Total pendiente:</strong> $<span id="totalPendiente">0</span></div>
+      <div><strong>📦 Pedidos activos:</strong> <span id="totalActivos">0</span></div>
+      <div><strong>🟩 Total cobrado (mes):</strong> $<span id="totalCobrado">0</span></div>
+    </div>
+  </div>
+
 
   <!-- ================================
         LISTA DE PEDIDOS
@@ -238,7 +249,7 @@
 
 
 <!-- ================================
-      MODAL EDITAR PEDIDO
+      MODAL EDITAR PEDIDO (chico, sigue existiendo)
 ================================ -->
 <div id="editarPedidoModal" class="modal-backdrop hidden">
   <div class="modal">
@@ -294,7 +305,7 @@
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=2"></script>
+<script type="module" src="js/pedidos.js?v=3"></script>
 
 <script>
   if ("serviceWorker" in navigator) {

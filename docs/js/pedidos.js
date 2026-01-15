@@ -10,146 +10,77 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-/* =====================================================
-   DOM
-===================================================== */
-// Cliente
-const inputClienteNombre   = document.getElementById("clienteNombre");
+/* ===================== DOM ===================== */
+const inputClienteNombre = document.getElementById("clienteNombre");
 const inputClienteTelefono = document.getElementById("clienteTelefono");
-const inputClienteRed      = document.getElementById("clienteRed");
-const datalistClientes     = document.getElementById("clientesDatalist");
+const inputClienteRed = document.getElementById("clienteRed");
+const datalistClientes = document.getElementById("clientesDatalist");
 
-// Productos / items
-const selProducto   = document.getElementById("productoSelect");
+const selProducto = document.getElementById("productoSelect");
 const inputCantidad = document.getElementById("cantidadInput");
-const tbodyItems    = document.getElementById("pedidoItems");
-const spanTotal     = document.getElementById("totalPedido");
+const tbodyItems = document.getElementById("pedidoItems");
+const spanTotal = document.getElementById("totalPedido");
 
 const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
 const btnLimpiar = document.getElementById("limpiarPedidoBtn");
 
-// Datos pedido
-const inputFecha   = document.getElementById("pedidoFecha");
+const inputFecha = document.getElementById("pedidoFecha");
 const selectEstado = document.getElementById("pedidoEstado");
-const inputNota    = document.getElementById("pedidoNota");
-const inputPagado  = document.getElementById("pedidoPagado");
+const inputNota = document.getElementById("pedidoNota");
+const inputPagado = document.getElementById("pedidoPagado");
 
-// Lista
 const listaPedidosBody = document.getElementById("listaPedidos");
-const filtroEstado   = document.getElementById("filtroEstado");
+const filtroEstado = document.getElementById("filtroEstado");
 const filtroBusqueda = document.getElementById("filtroBusqueda");
 
-// Modal ver
-const modal        = document.getElementById("pedidoModal");
-const modalTitulo  = document.getElementById("modalTitulo");
-const modalCliente = document.getElementById("modalCliente");
-const modalEstado  = document.getElementById("modalEstado");
-const modalFecha   = document.getElementById("modalFecha");
-const modalItems   = document.getElementById("modalItems");
-const modalNota    = document.getElementById("modalNota");
-const modalTotal   = document.getElementById("modalTotal");
-const modalPdf     = document.getElementById("modalPdf");
-const modalWhats   = document.getElementById("modalWhatsApp");
-const modalCerrar  = document.getElementById("modalCerrar");
+const totalPendienteEl = document.getElementById("totalPendiente");
+const totalActivosEl = document.getElementById("totalActivos");
+const totalCobradoEl = document.getElementById("totalCobrado");
 
-// Modal editar chico
-const modalEdit   = document.getElementById("editarPedidoModal");
-const editEstado  = document.getElementById("editEstado");
-const editNota    = document.getElementById("editNota");
-const editFecha   = document.getElementById("editFecha");
-const editPagado  = document.getElementById("editPagado");
-const editGuardar = document.getElementById("editGuardar");
-const editCerrar  = document.getElementById("editCerrar");
-
-/* =====================================================
-   ESTADO
-===================================================== */
-let clientesPorNombre = {};
+/* ===================== ESTADO ===================== */
 let productos = [];
+let clientesPorNombre = {};
 let itemsPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
-let pedidoModalActual = null;
 
-/* =====================================================
-   HELPERS
-===================================================== */
-function esEstadoFinal(e) {
-  return e === "LISTO" || e === "ENTREGADO";
-}
-
-function debeDescontarStock(p) {
-  return !p.stockDescontado && (p.pagado || esEstadoFinal(p.estado));
-}
-
+/* ===================== HELPERS ===================== */
 function prioridadPedido(p) {
   if (p.estado !== "ENTREGADO" && !p.pagado) return 1;
-  if (p.estado !== "ENTREGADO" && p.pagado)  return 2;
+  if (p.estado !== "ENTREGADO" && p.pagado) return 2;
   if (p.estado === "ENTREGADO" && !p.pagado) return 3;
   return 4;
 }
 
-/* =====================================================
-   CLIENTES
-===================================================== */
+/* ===================== CLIENTES ===================== */
 async function cargarClientes() {
-  datalistClientes.innerHTML = "";
   clientesPorNombre = {};
-
+  datalistClientes.innerHTML = "";
   const snap = await getDocs(collection(db, "clientes"));
   snap.forEach(d => {
     const c = d.data();
-    clientesPorNombre[c.nombre] = {
-      id: d.id,
-      telefono: c.whatsapp || c.telefono || "",
-      red: c.instagram || c.red || ""
-    };
+    clientesPorNombre[c.nombre] = c;
     datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
   });
 }
 
-function syncClienteDesdeNombre() {
-  const c = clientesPorNombre[inputClienteNombre.value.trim()];
-  if (!c) return;
-  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-  if (!inputClienteRed.value) inputClienteRed.value = c.red;
-}
-
-inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
-inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
-
-/* =====================================================
-   PRODUCTOS
-===================================================== */
+/* ===================== PRODUCTOS ===================== */
 async function cargarProductos() {
-  selProducto.innerHTML = `<option value="">Cargando...</option>`;
   productos = [];
-
   const snap = await getDocs(collection(db, "productos"));
   snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
-
-  productos.sort((a, b) =>
-    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
-  );
-
-  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
+  productos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  selProducto.innerHTML = `<option value="">Elegí un producto</option>`;
   productos.forEach(p => {
-    selProducto.innerHTML += `
-      <option value="${p.id}">
-        ${p.nombre} — $${Number(p.precio || 0)}
-      </option>
-    `;
+    selProducto.innerHTML += `<option value="${p.id}">${p.nombre} — $${p.precio}</option>`;
   });
 }
 
-/* =====================================================
-   ITEMS PEDIDO
-===================================================== */
+/* ===================== ITEMS ===================== */
 function renderPedido() {
-  tbodyItems.innerHTML = "";
   let total = 0;
-
+  tbodyItems.innerHTML = "";
   itemsPedido.forEach((i, idx) => {
     total += i.subtotal;
     tbodyItems.innerHTML += `
@@ -158,12 +89,9 @@ function renderPedido() {
         <td>$${i.precio}</td>
         <td>${i.cantidad}</td>
         <td>$${i.subtotal}</td>
-        <td>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
-        </td>
+        <td><button onclick="eliminarItem(${idx})">✖</button></td>
       </tr>`;
   });
-
   spanTotal.textContent = total;
 }
 
@@ -172,66 +100,32 @@ window.eliminarItem = idx => {
   renderPedido();
 };
 
-btnAgregar.addEventListener("click", e => {
+btnAgregar.onclick = e => {
   e.preventDefault();
   const prod = productos.find(p => p.id === selProducto.value);
   const cant = Number(inputCantidad.value);
-  if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
-
+  if (!prod || cant <= 0) return;
   itemsPedido.push({
     productoId: prod.id,
     nombre: prod.nombre,
-    precio: Number(prod.precio || 0),
+    precio: prod.precio,
     cantidad: cant,
-    subtotal: cant * Number(prod.precio || 0)
+    subtotal: cant * prod.precio
   });
-
   renderPedido();
-});
+};
 
-/* =====================================================
-   FORM
-===================================================== */
-function limpiarFormulario() {
-  itemsPedido = [];
-  renderPedido();
-  inputClienteNombre.value = "";
-  inputClienteTelefono.value = "";
-  inputClienteRed.value = "";
-  inputNota.value = "";
-  inputCantidad.value = 1;
-  selProducto.value = "";
-  inputFecha.value = "";
-  inputPagado.checked = false;
-  selectEstado.value = "PENDIENTE";
-  pedidoEditandoId = null;
-  btnGuardar.textContent = "Guardar pedido";
-}
-
-btnLimpiar.addEventListener("click", e => {
+/* ===================== GUARDAR / EDITAR ===================== */
+btnGuardar.onclick = async e => {
   e.preventDefault();
-  limpiarFormulario();
-});
-
-/* =====================================================
-   GUARDAR / EDITAR PEDIDO + HISTORIAL
-===================================================== */
-btnGuardar.addEventListener("click", async e => {
-  e.preventDefault();
-
-  if (!inputClienteNombre.value || !itemsPedido.length)
-    return alert("Faltan datos");
+  if (!itemsPedido.length) return;
 
   const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
-  const fechaIso = inputFecha.value
-    ? new Date(inputFecha.value + "T00:00:00").toISOString()
-    : new Date().toISOString();
-
-  const baseData = {
-    clienteNombre: inputClienteNombre.value.trim(),
+  const data = {
+    clienteNombre: inputClienteNombre.value,
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
-    fecha: fechaIso,
+    fecha: inputFecha.value || new Date().toISOString(),
     estado: selectEstado.value,
     nota: inputNota.value,
     pagado: inputPagado.checked,
@@ -241,207 +135,123 @@ btnGuardar.addEventListener("click", async e => {
 
   if (pedidoEditandoId) {
     const p = pedidosCache.find(x => x.id === pedidoEditandoId);
-    if (p.estado === "ENTREGADO") {
-      alert("Este pedido está ENTREGADO y no se puede editar 🔒");
-      return;
-    }
-
     await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
-      ...baseData,
-      historial: [
-        ...(p.historial || []),
-        {
-          fecha: new Date().toISOString(),
-          accion: "EDITADO",
-          estado: baseData.estado,
-          pagado: baseData.pagado,
-          total: baseData.total
-        }
-      ]
+      ...data,
+      historial: [...(p.historial || []), { fecha: new Date().toISOString(), accion: "EDITADO" }]
     });
-
-    alert("Pedido actualizado ✔");
   } else {
     await addDoc(collection(db, "pedidos"), {
-      ...baseData,
+      ...data,
       fechaServer: serverTimestamp(),
-      stockDescontado: false,
-      historial: [{
-        fecha: new Date().toISOString(),
-        accion: "CREADO",
-        estado: baseData.estado,
-        pagado: baseData.pagado,
-        total: baseData.total
-      }]
+      historial: [{ fecha: new Date().toISOString(), accion: "CREADO" }]
     });
-
-    alert("Pedido guardado ✔");
   }
 
-  limpiarFormulario();
-  cargarClientes();
+  pedidoEditandoId = null;
+  itemsPedido = [];
+  renderPedido();
   cargarPedidos();
-});
+};
 
-/* =====================================================
-   LISTA PEDIDOS
-===================================================== */
+/* ===================== LISTA ===================== */
 async function cargarPedidos() {
   pedidosCache = [];
-  listaPedidosBody.innerHTML = "";
-
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
-
-  pedidosCache.sort((a, b) => {
-    const pa = prioridadPedido(a);
-    const pb = prioridadPedido(b);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.fecha || 0) - new Date(a.fecha || 0);
-  });
-
+  pedidosCache.sort((a, b) => prioridadPedido(a) - prioridadPedido(b));
   renderLista();
+  renderResumen();
+}
+
+function renderResumen() {
+  let pendiente = 0, activos = 0, cobrado = 0;
+  const now = new Date();
+  pedidosCache.forEach(p => {
+    if (!p.pagado) pendiente += p.total;
+    if (p.estado !== "ENTREGADO") activos++;
+    if (p.pagado) {
+      const f = new Date(p.fecha);
+      if (f.getMonth() === now.getMonth() && f.getFullYear() === now.getFullYear()) {
+        cobrado += p.total;
+      }
+    }
+  });
+  totalPendienteEl.textContent = pendiente;
+  totalActivosEl.textContent = activos;
+  totalCobradoEl.textContent = cobrado;
 }
 
 function renderLista() {
-  const est = filtroEstado.value;
-  const txt = filtroBusqueda.value.toLowerCase();
-
   listaPedidosBody.innerHTML = "";
-
   pedidosCache
     .filter(p =>
-      (!est || p.estado === est) &&
-      (!txt || p.clienteNombre.toLowerCase().includes(txt))
+      (!filtroEstado.value || p.estado === filtroEstado.value) &&
+      (!filtroBusqueda.value || p.clienteNombre.toLowerCase().includes(filtroBusqueda.value.toLowerCase()))
     )
     .forEach(p => {
-      const fila =
-        prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" :
-        "tr-ok";
-
       listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
+        <tr>
           <td>${p.clienteNombre}</td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
-          <td>
-            ${
-              p.pagado
-                ? `<span class="badge badge-pagado">Pagado</span>`
-                : `<span class="badge badge-nopagado">No pagado</span>`
-            }
-          </td>
+          <td>${p.estado}</td>
+          <td>${p.pagado ? "✔" : "✖"}</td>
           <td>$${p.total}</td>
           <td>
-            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
+            <button onclick="editarPedido('${p.id}')">✏️</button>
+            <button onclick="marcarPagado('${p.id}')">💰</button>
+            <button onclick="marcarEntregado('${p.id}')">📦</button>
+            <button onclick="verHistorial('${p.id}')">🧾</button>
+            <button onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>
         </tr>`;
     });
 }
 
-filtroEstado.addEventListener("change", renderLista);
-filtroBusqueda.addEventListener("input", renderLista);
-
-/* =====================================================
-   MODAL VER + WHATSAPP
-===================================================== */
-window.verPedido = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  pedidoModalActual = p;
-  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
-  modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
-  modalEstado.textContent = `Estado: ${p.estado}`;
-  modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
-  modalNota.textContent = p.nota || "";
-  modalTotal.textContent = `Total: $${p.total}`;
-
-  modal.classList.remove("hidden");
-};
-
-modalCerrar.onclick = () => modal.classList.add("hidden");
-
-modalWhats.onclick = () => {
-  if (!pedidoModalActual) return;
-
-  const p = pedidoModalActual;
-  const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
-
-  const items = p.items
-    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
-    .join("\n");
-
-  const mensaje = `
-Hola ${p.clienteNombre} 👋
-Te paso el detalle de tu pedido:
-
-${items}
-
-💰 Total: $${p.total}
-📦 Estado: ${p.estado}
-
-💳 Podés pagar por transferencia al alias:
-👉 barbi-d
-
-Gracias 🤍 Pixel
-`.trim();
-
-  const url = telefono
-    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-
-  window.open(url, "_blank");
-};
-
-/* =====================================================
-   EDITAR DESDE LISTA (formulario grande)
-===================================================== */
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  if (p.estado === "ENTREGADO") {
-    alert("Este pedido está ENTREGADO y no se puede editar 🔒");
-    return;
-  }
-
   pedidoEditandoId = id;
-
   inputClienteNombre.value = p.clienteNombre;
-  inputClienteTelefono.value = p.clienteTelefono || "";
-  inputClienteRed.value = p.clienteRed || "";
+  inputClienteTelefono.value = p.clienteTelefono;
+  inputClienteRed.value = p.clienteRed;
   inputFecha.value = p.fecha.slice(0, 10);
   selectEstado.value = p.estado;
-  inputNota.value = p.nota || "";
+  inputNota.value = p.nota;
   inputPagado.checked = p.pagado;
-
-  itemsPedido = p.items.map(i => ({ ...i }));
+  itemsPedido = [...p.items];
   renderPedido();
-
-  btnGuardar.textContent = "Guardar cambios";
-  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-/* =====================================================
-   BORRAR
-===================================================== */
+window.marcarPagado = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  await updateDoc(doc(db, "pedidos", id), {
+    pagado: true,
+    historial: [...(p.historial || []), { fecha: new Date().toISOString(), accion: "PAGADO" }]
+  });
+  cargarPedidos();
+};
+
+window.marcarEntregado = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  await updateDoc(doc(db, "pedidos", id), {
+    estado: "ENTREGADO",
+    historial: [...(p.historial || []), { fecha: new Date().toISOString(), accion: "ENTREGADO" }]
+  });
+  cargarPedidos();
+};
+
+window.verHistorial = id => {
+  const p = pedidosCache.find(x => x.id === id);
+  alert((p.historial || []).map(h => `${new Date(h.fecha).toLocaleString()} – ${h.accion}`).join("\n"));
+};
+
 window.borrarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
   await deleteDoc(doc(db, "pedidos", id));
   cargarPedidos();
 };
 
-/* =====================================================
-   INIT
-===================================================== */
-(async function init(){
+(async function init() {
   await cargarClientes();
   await cargarProductos();
   await cargarPedidos();
-  renderPedido();
 })();
