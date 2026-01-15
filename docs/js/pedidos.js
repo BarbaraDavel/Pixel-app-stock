@@ -405,7 +405,7 @@ ${items}
 📦 Estado: ${p.estado}
 
 💳 Podés pagar por transferencia al alias:
-👉 barbi-d
+👉 barbi-d (cuenta de astropay a nombre de Barbara Davel)
 
 Gracias 🤍 Pixel
 `.trim();
