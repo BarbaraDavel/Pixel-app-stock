@@ -22,62 +22,42 @@
     <h1>Bienvenida a Pixel</h1>
   </div>
 
-  <div class="home-grid">
+    <div class="home-summary-card">
+      <div class="summary-item">
+        <span class="summary-icon">📦</span>
+        <div>
+          <div class="summary-label">Pedidos activos</div>
+          <div class="summary-value" id="homePedidosActivos">0</div>
+        </div>
+      </div>
 
-    <a class="home-card" href="./insumos.html">
-      <span class="icon">📦</span>
-      <p>Insumos</p>
-    </a>
+      <div class="summary-item">
+        <span class="summary-icon">💰</span>
+        <div>
+          <div class="summary-label">No pagado</div>
+          <div class="summary-value" id="homeNoPagado">$0</div>
+        </div>
+      </div>
+    </div>
 
-    <a class="home-card" href="./stock.html">
-      <span class="icon">🧮</span>
-      <p>Stock</p>
-    </a>
+  <h3 class="home-group-title">Gestión</h3>
 
-<!--    <a class="home-card" href="./movimientos_stock.html">
-      <span class="icon">🔄</span>
-      <p>Movimientos</p>
-    </a>
+<div class="home-grid">
+  <a class="home-card" href="./pedidos.html">Pedidos</a>
+  <a class="home-card" href="./clientes.html">Clientes</a>
+  <a class="home-card" href="./productos.html">Productos</a>
+  <a class="home-card" href="./stock.html">Stock</a>
+</div>
 
-    <a class="home-card" href="./recetas.html">
-      <span class="icon">🧪</span>
-      <p>Recetas</p>
-    </a> --> 
+<h3 class="home-group-title">Producción</h3>
 
+<div class="home-grid">
+  <a class="home-card" href="./insumos.html">Insumos</a>
+  <a class="home-card" href="./costos.html">Costos</a>
+  <a class="home-card" href="./recetas_borrador.html">Recetas guardadas</a>
+  <a class="home-card" href="./guia.html">Guía</a>
+</div>
 
-    <a class="home-card" href="./productos.html">
-      <span class="icon">🏷️</span>
-      <p>Productos</p>
-    </a>
-
-    <!-- 🔹 NUEVA TARJETA: PEDIDOS -->
-
-    <a class="home-card" href="./clientes.html">
-      <span class="icon">👥</span>
-      <p>Clientes</p>
-    </a>
-
-    <a class="home-card" href="./guia.html">
-      <span class="icon">📊</span>
-      <p>Guia</p>
-    </a>
-
-    <a class="home-card" href="./costos.html">
-      <span class="icon">📊</span>
-      <p>Costos</p>
-    </a>
-
-    <a class="home-card" href="./recetas_borrador.html">
-      <span class="icon">📋</span>
-      <p>Recetas guardadas</p>
-    </a>
-
-    <a class="home-card" href="./pedidos.html">
-      <span class="icon">📝</span>
-      <p>Pedidos</p>
-    </a>
-
-  </div>
 
   <div class="home-footer-card">
     <p>Hecho con 💜 por <strong>Pixel</strong> 🦊</p>
@@ -105,12 +85,12 @@
   </a>
 </nav>
 
-<script>
+<!-- <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
-</script>
-<script src="js/app.js"></script>
+</script> -->
+<script type="module" src="js/app.js"></script>
 
 </body>
 </html>
