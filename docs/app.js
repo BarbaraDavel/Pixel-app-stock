@@ -1,3 +1,6 @@
+// ===============================
+// UI GENERAL (menú, bottom nav, SW)
+// ===============================
 document.addEventListener("DOMContentLoaded", () => {
   // ===== MENÚ HAMBURGUESA =====
   const burger = document.querySelector(".hamburger");
@@ -9,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cerrar menú si se toca un link (en mobile)
+  // Cerrar menú si se toca un link (mobile)
   if (navLinks) {
     navLinks.querySelectorAll("a").forEach((a) => {
       a.addEventListener("click", () => {
@@ -34,56 +37,24 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch((err) => console.error("SW error", err));
   }
 });
+
+
 // ===============================
 // HOME - RESUMEN PEDIDOS
 // ===============================
-import { db } from "./js/firebase.js";
+import { db } from "./firebase.js";
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-async function cargarResumenHome() {
-  const elActivos = document.getElementById("homePedidosActivos");
-  const elNoPagado = document.getElementById("homeNoPagado");
-
-  // Si no estamos en el home, no hace nada
-  if (!elActivos || !elNoPagado) return;
-
-  let activos = 0;
-  let noPagado = 0;
-
-  try {
-    const snap = await getDocs(collection(db, "pedidos"));
-
-    snap.forEach(d => {
-      const p = d.data();
-
-      // 📦 pedidos activos
-      if (p.estado !== "ENTREGADO") {
-        activos++;
-      }
-
-      // 💰 total no pagado
-      if (!p.pagado) {
-        noPagado += Number(p.total || 0);
-      }
-    });
-
-    elActivos.textContent = activos;
-    elNoPagado.textContent = `$${noPagado}`;
-  } catch (err) {
-    console.error("Error cargando resumen home:", err);
-  }
-}
-
-// ejecutar al cargar
-document.addEventListener("DOMContentLoaded", cargarResumenHome);
+// elementos del home
 const elPendientes = document.getElementById("homePendientes");
 const elListos = document.getElementById("homeListos");
 const elNoPagado = document.getElementById("homeNoPagado");
 
 async function cargarResumenHome() {
+  // si no estamos en el index, no hace nada
   if (!elPendientes || !elListos || !elNoPagado) return;
 
   let pendientes = 0;
@@ -96,14 +67,17 @@ async function cargarResumenHome() {
     snap.forEach(d => {
       const p = d.data();
 
+      // 📦 Pendientes = PENDIENTE + PROCESO
       if (p.estado === "PENDIENTE" || p.estado === "PROCESO") {
         pendientes++;
       }
 
+      // 🟪 Listos para entregar
       if (p.estado === "LISTO") {
         listos++;
       }
 
+      // 💰 No pagado (independiente del estado)
       if (!p.pagado) {
         noPagado += Number(p.total || 0);
       }
@@ -114,8 +88,9 @@ async function cargarResumenHome() {
     elNoPagado.textContent = `$${noPagado}`;
 
   } catch (err) {
-    console.error("Error resumen home:", err);
+    console.error("Error cargando resumen home:", err);
   }
 }
 
+// ⬇️ ejecutar UNA sola vez
 document.addEventListener("DOMContentLoaded", cargarResumenHome);

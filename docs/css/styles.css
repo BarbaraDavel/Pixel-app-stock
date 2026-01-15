@@ -906,3 +906,12 @@ body.home-bg > * {
   opacity: 0.8;
   text-align: left;
 }
+/* Pedido LISTO */
+.tr-listo {
+  background-color: rgba(186, 164, 255, 0.15); /* lila suave */
+}
+
+.badge-listo {
+  background-color: #bba4ff;
+  color: #3a2f5a;
+}

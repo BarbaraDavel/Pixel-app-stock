@@ -363,10 +363,13 @@ function renderLista() {
       (!txt || p.clienteNombre.toLowerCase().includes(txt))
     )
     .forEach(p => {
-      const fila =
-        prioridadPedido(p) === 1 ? "tr-urgente" :
-        prioridadPedido(p) <= 3 ? "tr-atencion" :
-        "tr-ok";
+    let fila = "tr-ok";
+
+    if (p.estado === "PENDIENTE") fila = "tr-urgente";
+    else if (p.estado === "PROCESO") fila = "tr-atencion";
+    else if (p.estado === "LISTO") fila = "tr-listo";
+    else if (p.estado === "ENTREGADO") fila = "tr-ok";
+
 
       listaPedidosBody.innerHTML += `
         <tr class="${fila}">
