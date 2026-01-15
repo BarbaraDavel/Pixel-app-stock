@@ -472,9 +472,19 @@ window.togglePagado = async id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
 
+  const nuevoEstado = !p.pagado;
+
+  const mensaje = nuevoEstado
+    ? "¿Marcar este pedido como PAGADO?"
+    : "¿Marcar este pedido como NO PAGADO?";
+
+  if (!confirm(mensaje)) {
+    return; // 👈 si cancela, no hacemos nada
+  }
+
   try {
     await updateDoc(doc(db, "pedidos", id), {
-      pagado: !p.pagado
+      pagado: nuevoEstado
     });
 
     cargarPedidos();
