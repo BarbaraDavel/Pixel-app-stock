@@ -83,6 +83,13 @@ let pedidosCache = [];
 let pedidoEditandoId = null;
 let pedidoModalActual = null;
 
+const ordenEstados = {
+  "PENDIENTE": 1,
+  "PROCESO": 2,
+  "LISTO": 3,
+  "ENTREGADO": 4
+};
+
 /* =====================================================
    HELPERS
 ===================================================== */
@@ -313,12 +320,24 @@ async function cargarPedidos() {
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
-  pedidosCache.sort((a, b) => {
-    const pa = prioridadPedido(a);
-    const pb = prioridadPedido(b);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.fecha || 0) - new Date(a.fecha || 0);
-  });
+    pedidosCache.sort((a, b) => {
+      // 1️⃣ No pagados primero
+      if (a.pagado !== b.pagado) {
+        return a.pagado ? 1 : -1;
+      }
+
+      // 2️⃣ Orden por estado
+      const ea = ordenEstados[a.estado] || 99;
+      const eb = ordenEstados[b.estado] || 99;
+
+      if (ea !== eb) {
+        return ea - eb;
+      }
+
+      // 3️⃣ Sin importar fecha → quedan como vienen
+      return 0;
+    });
+
 
   renderLista();
 function renderResumenSimple() {
