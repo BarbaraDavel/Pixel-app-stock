@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===============================
 // HOME - RESUMEN PEDIDOS
 // ===============================
-import { db } from "./firebase.js";
+import { db } from "./js/firebase.js";
 import {
   collection,
   getDocs
