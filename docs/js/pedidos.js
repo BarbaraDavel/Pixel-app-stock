@@ -58,6 +58,8 @@ const modalTotal   = document.getElementById("modalTotal");
 const modalPdf     = document.getElementById("modalPdf");
 const modalWhats   = document.getElementById("modalWhatsApp");
 const modalCerrar  = document.getElementById("modalCerrar");
+const modalHistorial = document.getElementById("modalHistorial");
+
 
 // Modal editar chico
 const modalEdit   = document.getElementById("editarPedidoModal");
@@ -380,13 +382,30 @@ window.verPedido = id => {
   if (!p) return;
 
   pedidoModalActual = p;
+
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
   modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
   modalEstado.textContent = `Estado: ${p.estado}`;
   modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`).join("<br>");
+  modalItems.innerHTML = p.items
+    .map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`)
+    .join("<br>");
   modalNota.textContent = p.nota || "";
   modalTotal.textContent = `Total: $${p.total}`;
+
+  // 🕓 HISTORIAL
+  if (p.historial && p.historial.length) {
+    modalHistorial.innerHTML = `
+      <strong>🕓 Historial</strong><br>
+      ${p.historial
+        .map(h =>
+          `• ${new Date(h.fecha).toLocaleString()} – ${traducirAccion(h.accion)}`
+        )
+        .join("<br>")}
+    `;
+  } else {
+    modalHistorial.innerHTML = "";
+  }
 
   modal.classList.remove("hidden");
 };
@@ -478,13 +497,20 @@ window.togglePagado = async id => {
     ? "¿Marcar este pedido como PAGADO?"
     : "¿Marcar este pedido como NO PAGADO?";
 
-  if (!confirm(mensaje)) {
-    return; // 👈 si cancela, no hacemos nada
-  }
+  if (!confirm(mensaje)) return;
+
+  const nuevoHistorial = [
+    ...(p.historial || []),
+    {
+      fecha: new Date().toISOString(),
+      accion: nuevoEstado ? "PAGADO" : "NO_PAGADO"
+    }
+  ];
 
   try {
     await updateDoc(doc(db, "pedidos", id), {
-      pagado: nuevoEstado
+      pagado: nuevoEstado,
+      historial: nuevoHistorial
     });
 
     cargarPedidos();
@@ -493,6 +519,8 @@ window.togglePagado = async id => {
     alert("No se pudo cambiar el estado de pago.");
   }
 };
+
+
 
 /* =====================================================
    INIT
@@ -526,6 +554,21 @@ function renderResumenSimple() {
 
   if (resumenNoPagadoEl) {
     resumenNoPagadoEl.textContent = noPagado;
+  }
+}
+
+function traducirAccion(accion) {
+  switch (accion) {
+    case "CREADO":
+      return "Pedido creado";
+    case "EDITADO":
+      return "Pedido editado";
+    case "PAGADO":
+      return "Marcado como pagado";
+    case "NO_PAGADO":
+      return "Marcado como no pagado";
+    default:
+      return accion;
   }
 }
 
