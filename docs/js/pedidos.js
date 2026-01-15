@@ -41,6 +41,8 @@ const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado     = document.getElementById("filtroEstado");
 const filtroBusqueda   = document.getElementById("filtroBusqueda");
 const toggleEntregados = document.getElementById("toggleEntregados");
+const chkMostrarEntregados = document.getElementById("chkMostrarEntregados");
+
 
 // Resumen
 const resumenActivosEl  = document.getElementById("resumenActivos");
@@ -249,20 +251,27 @@ function renderLista() {
   const txt = filtroBusqueda.value.toLowerCase();
   listaPedidosBody.innerHTML = "";
 
-    pedidosCache
-      .filter(p => {
+pedidosCache
+  .filter(p => {
+    // 🔎 filtro por texto
+    if (txt && !p.clienteNombre.toLowerCase().includes(txt)) {
+      return false;
+    }
 
-        // 🔹 ocultar ENTREGADOS si el toggle está apagado
-        if (!toggleEntregados.checked && p.estado === "ENTREGADO") {
-          return false;
-        }
+    // 🎛 filtro por estado select
+    if (est && p.estado !== est) {
+      return false;
+    }
 
-        if (est && p.estado !== est) return false;
-        if (txt && !p.clienteNombre.toLowerCase().includes(txt)) return false;
+    // 🚫 ocultar entregados si el checkbox NO está tildado
+    if (!chkMostrarEntregados?.checked && p.estado === "ENTREGADO") {
+      return false;
+    }
 
-        return true;
-      })
-      .forEach(p => {
+    return true;
+  })
+  .forEach(p => {
+    // render normal
 
 
     let fila = "tr-ok";
@@ -374,3 +383,4 @@ window.togglePagado = async id => {
   await cargarProductos();
   await cargarPedidos();
 })();
+chkMostrarEntregados?.addEventListener("change", renderLista);
