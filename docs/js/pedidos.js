@@ -386,7 +386,7 @@ modalWhats.onclick = () => {
   const mensaje = `
 Hola ${p.clienteNombre} 👋
 Te paso el detalle de tu pedido:
-
+ 
 ${items}
 
 💰 Total: $${p.total}
