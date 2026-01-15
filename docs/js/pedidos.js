@@ -15,6 +15,7 @@ import {
 ===================================================== */
 // Cliente
 const inputClienteNombre   = document.getElementById("clienteNombre");
+const inputClienteApodo = document.getElementById("clienteApodo");
 const inputClienteTelefono = document.getElementById("clienteTelefono");
 const inputClienteRed      = document.getElementById("clienteRed");
 const datalistClientes     = document.getElementById("clientesDatalist");
@@ -108,18 +109,26 @@ async function cargarClientes() {
     clientesPorNombre[c.nombre] = {
       id: d.id,
       telefono: c.whatsapp || c.telefono || "",
-      red: c.instagram || c.red || ""
+      red: c.instagram || c.red || "",
+      apodo: c.apodo || ""
     };
     datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
   });
 }
 
-function syncClienteDesdeNombre() {
-  const c = clientesPorNombre[inputClienteNombre.value.trim()];
-  if (!c) return;
-  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-  if (!inputClienteRed.value) inputClienteRed.value = c.red;
-}
+    function syncClienteDesdeNombre() {
+      const c = clientesPorNombre[inputClienteNombre.value.trim()];
+      if (!c) return;
+
+      if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
+      if (!inputClienteRed.value) inputClienteRed.value = c.red;
+
+      // 🆕 autocompletar apodo si existe el input
+      if (inputClienteApodo && c.apodo && !inputClienteApodo.value) {
+        inputClienteApodo.value = c.apodo;
+      }
+    }
+
 
 inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
 inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
@@ -234,6 +243,7 @@ btnGuardar.addEventListener("click", async e => {
 
   const baseData = {
     clienteNombre: inputClienteNombre.value.trim(),
+    clienteApodo: inputClienteApodo?.value?.trim() || "",
     clienteTelefono: inputClienteTelefono.value,
     clienteRed: inputClienteRed.value,
     fecha: fechaIso,
@@ -384,7 +394,7 @@ modalWhats.onclick = () => {
     .join("\n");
 
   const mensaje = `
-Hola ${p.clienteNombre} 👋
+Hola ${p.clienteApodo || p.clienteNombre} 👋
 Te paso el detalle de tu pedido:
  
 ${items}
