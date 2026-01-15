@@ -333,24 +333,11 @@ function renderLista() {
             }
           </td>
           <td>$${p.total}</td>
-      <td>
-        <button class="btn-pp" onclick="verPedido('${p.id}')" title="Ver">👁️</button>
-
-        ${
-          !p.pagado
-            ? `<button class="btn-pp" onclick="marcarPagado('${p.id}')" title="Marcar como pagado">💰</button>`
-            : ""
-        }
-
-        ${
-          p.estado !== "ENTREGADO"
-            ? `<button class="btn-pp" onclick="marcarEntregado('${p.id}')" title="Marcar como entregado">📦</button>`
-            : ""
-        }
-
-        <button class="btn-pp" onclick="verHistorial('${p.id}')" title="Ver historial">🧾</button>
-      </td>
-
+          <td>
+            <button class="btn-pp" onclick="verPedido('${p.id}')">👁️</button>
+            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
+            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
+          </td>
         </tr>`;
     });
 }
@@ -458,83 +445,3 @@ window.borrarPedido = async id => {
   await cargarPedidos();
   renderPedido();
 })();
-
-function renderResumen() {
-  let pendiente = 0;
-  let activos = 0;
-  let cobrado = 0;
-
-  const mesActual = new Date().getMonth();
-  const anioActual = new Date().getFullYear();
-
-  pedidosCache.forEach(p => {
-    if (p.estado !== "ENTREGADO") activos++;
-
-    if (!p.pagado) pendiente += p.total;
-
-    if (p.pagado) {
-      const f = new Date(p.fecha);
-      if (f.getMonth() === mesActual && f.getFullYear() === anioActual) {
-        cobrado += p.total;
-      }
-    }
-  });
-
-  document.getElementById("totalPendiente").textContent = pendiente;
-  document.getElementById("totalActivos").textContent = activos;
-  document.getElementById("totalCobrado").textContent = cobrado;
-}
-
-window.marcarPagado = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p || p.pagado) return;
-
-  await updateDoc(doc(db, "pedidos", id), {
-    pagado: true,
-    historial: [
-      ...(p.historial || []),
-      {
-        fecha: new Date().toISOString(),
-        accion: "MARCAR_PAGADO",
-        total: p.total
-      }
-    ]
-  });
-
-  cargarPedidos();
-};
-
-window.marcarEntregado = async id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p || p.estado === "ENTREGADO") return;
-
-  await updateDoc(doc(db, "pedidos", id), {
-    estado: "ENTREGADO",
-    historial: [
-      ...(p.historial || []),
-      {
-        fecha: new Date().toISOString(),
-        accion: "ENTREGADO",
-        total: p.total
-      }
-    ]
-  });
-
-  cargarPedidos();
-};
-
-window.verHistorial = id => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p || !p.historial?.length) {
-    alert("Sin historial");
-    return;
-  }
-
-  const texto = p.historial
-    .map(h =>
-      `• ${new Date(h.fecha).toLocaleString()} – ${h.accion}`
-    )
-    .join("\n");
-
-  alert(`Historial del pedido:\n\n${texto}`);
-};
