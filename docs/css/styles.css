@@ -915,3 +915,15 @@ body.home-bg > * {
   background-color: #bba4ff;
   color: #3a2f5a;
 }
+.tr-entregado-ok {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.55);
+}
+
+.tr-entregado-ok .badge {
+  opacity: 0.6;
+}
+
+.tr-entregado-ok button {
+  opacity: 0.5;
+}

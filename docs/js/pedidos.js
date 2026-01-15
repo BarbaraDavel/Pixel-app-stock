@@ -255,10 +255,24 @@ function renderLista() {
     )
     .forEach(p => {
 
-      let fila = "tr-ok";
-      if (p.estado === "PENDIENTE") fila = "tr-urgente";
-      else if (p.estado === "PROCESO") fila = "tr-atencion";
-      else if (p.estado === "LISTO") fila = "tr-listo";
+    let fila = "tr-ok";
+
+    if (p.estado === "PENDIENTE") {
+      fila = "tr-urgente";
+    }
+    else if (p.estado === "PROCESO") {
+      fila = "tr-atencion";
+    }
+    else if (p.estado === "LISTO") {
+      fila = "tr-listo";
+    }
+    else if (p.estado === "ENTREGADO" && p.pagado) {
+      fila = "tr-entregado-ok"; // 👈 NUEVO (apagado)
+    }
+    else if (p.estado === "ENTREGADO") {
+      fila = "tr-ok";
+    }
+
 
       listaPedidosBody.innerHTML += `
         <tr class="${fila}">
