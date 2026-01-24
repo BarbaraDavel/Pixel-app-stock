@@ -28,8 +28,8 @@ let lineas = [];
    COSTOS BASE PIXEL
 ============================================================ */
 const COSTOS_BASE_PIXEL = [
-  { nombre: "Tinta, packaging y electricidad", costo: 300 },
-  { nombre: "Tiempo y diseño", costo: 200 }
+  { nombre: "Tinta, packaging y electricidad", costo: 700 },
+  { nombre: "Tiempo y diseño", costo: 700 }
 ];
 
 /* ============================================================
@@ -354,3 +354,4 @@ btnGuardarReceta.onclick = async () => {
   await cargarInsumos();
   render();
 })();
+
