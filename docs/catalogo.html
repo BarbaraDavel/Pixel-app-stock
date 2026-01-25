@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel – Catálogo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+  </div>
+
+  <div class="main">
+    <h1>Catálogo de productos</h1>
+
+    <div id="catalogo" class="catalogo-grid"></div>
+  </div>
+
+  <script>
+    const productos = [
+      {
+        id: 1,
+        nombre: "Agenda 2026 A5",
+        categoria: "Agendas",
+        precio: 19000,
+        foto: "imagenes/productos/agenda-a5.jpg"
+      },
+      {
+        id: 2,
+        nombre: "Cuaderno A5 rayado",
+        categoria: "Cuadernos",
+        precio: 7500,
+        foto: "imagenes/productos/cuaderno-a5.jpg"
+      }
+    ];
+
+    const contenedor = document.getElementById("catalogo");
+
+    productos.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "catalogo-card";
+
+      card.innerHTML = `
+        <img src="${p.foto}" alt="${p.nombre}">
+        <h3>${p.nombre}</h3>
+        <p class="precio">$${p.precio}</p>
+
+        <div class="acciones">
+          <button onclick="copiarTexto('${p.nombre}')">📋 Nombre</button>
+          <button onclick="copiarTexto('$${p.precio}')">💰 Precio</button>
+        </div>
+      `;
+
+      contenedor.appendChild(card);
+    });
+
+    function copiarTexto(texto) {
+      navigator.clipboard.writeText(texto);
+      alert("Copiado: " + texto);
+    }
+  </script>
+</body>
+</html>

@@ -927,3 +927,57 @@ body.home-bg > * {
 .tr-entregado-ok button {
   opacity: 0.5;
 }
+/* ===============================
+   CATÁLOGO DE PRODUCTOS
+================================ */
+
+.catalogo-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.2rem;
+}
+
+.catalogo-card {
+  background: var(--pixel-card);
+  border-radius: 1.4rem;
+  padding: 1rem;
+  border: 1px solid var(--pixel-borde);
+  box-shadow: 0 14px 35px rgba(0,0,0,.4);
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  text-align: center;
+}
+
+.catalogo-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+
+.catalogo-card h3 {
+  font-size: 1rem;
+}
+
+.catalogo-card .precio {
+  font-weight: 700;
+  color: var(--pixel-naranja);
+}
+
+.catalogo-card .acciones {
+  display: flex;
+  gap: .4rem;
+  justify-content: center;
+}
+
+.catalogo-card button {
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,.15);
+  color: white;
+  font-size: .8rem;
+}
