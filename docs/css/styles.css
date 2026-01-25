@@ -981,3 +981,35 @@ body.home-bg > * {
   color: white;
   font-size: .8rem;
 }
+/* ===============================
+   CATÁLOGO – IMAGEN PROTAGONISTA
+================================ */
+
+.catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.4rem;
+}
+
+.catalogo-card {
+  background: rgba(90, 75, 115, 0.85);
+  border-radius: 1.4rem;
+  padding: 1rem;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+/* contenedor de imagen */
+.catalogo-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;      /* 🔥 clave para WhatsApp */
+  object-fit: cover;        /* no se deforma */
+  border-radius: 1rem;
+  background: #1a132b;
+}
+
+/* ocultamos texto si querés SOLO imagen */
+.catalogo-card h3,
+.catalogo-card .precio,
+.catalogo-card .acciones {
+  display: none;
+}
