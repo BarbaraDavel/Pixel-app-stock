@@ -7,34 +7,37 @@
 </head>
 
 <body>
+
+  <!-- ================= HEADER ================= -->
   <div class="topbar">
     <div class="brand">
       <span class="logo-fox">🦊</span> Pixel
     </div>
+
+    <nav class="nav-links">
+      <a href="./index.html">Inicio</a>
+      <a href="./insumos.html">Insumos</a>
+      <a href="./stock.html">Stock</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./clientes.html">Clientes</a>
+      <a href="./guia.html">Guía</a>
+      <a href="./costos.html">Costos</a>
+      <a href="./recetas_borrador.html">Recetas guardadas</a>
+      <a href="./pedidos.html">Pedidos</a>
+      <a class="active" href="./catalogo.html">Catálogo</a>
+    </nav>
   </div>
 
-    <div class="nav-links">
-        <a href="./index.html">Inicio</a>
-        <a href="./insumos.html">Insumos</a>
-        <a href="./stock.html">Stock</a>
-    <!--     <a href="./movimientos_stock.html">Movimientos</a>-->
-    <!--     <a href="./recetas.html">Recetas</a>-->
-        <a href="./productos.html">Productos</a>
-        <a href="./clientes.html">Clientes</a>
-        <a href="./guia.html">Guia</a>
-        <a href="./costos.html">Costos</a>
-        <a href="./recetas_borrador.html">Recetas guardadas</a>
-        <a href="./pedidos.html">Pedidos</a>
-        <a class="active" href="./catalogo.html">Catalogo</a>
-    </div>
-    </div>
-
-  <div class="main">
-    <h1>Catálogo de productos</h1>
+  <!-- ================= CONTENIDO ================= -->
+  <main class="main">
+    <h1 style="text-align:center; margin-bottom:1.5rem;">
+      Catálogo de productos
+    </h1>
 
     <div id="catalogo" class="catalogo-grid"></div>
-  </div>
+  </main>
 
+  <!-- ================= SCRIPT ================= -->
   <script>
     const productos = [
       {
@@ -42,7 +45,7 @@
         nombre: "Diario de recuerdos",
         categoria: "Agendas",
         precio: 19000,
-        foto: "imagenes/productos/diario_de_recuerdos.jpg"
+        foto: "imagenes/productos/Diario de recuerdos.jpg"
       },
       {
         id: 2,
@@ -78,5 +81,6 @@
       alert("Copiado: " + texto);
     }
   </script>
+
 </body>
 </html>
