@@ -1,9 +1,13 @@
+// js/calendario.js
 import { db } from "./firebase.js";
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* ===============================
+   ESTADO
+================================ */
 let fechaActual = new Date();
 let pedidosCache = [];
 
@@ -12,6 +16,7 @@ let pedidosCache = [];
 ================================ */
 async function cargarPedidos() {
   pedidosCache = [];
+
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => {
     pedidosCache.push({ id: d.id, ...d.data() });
@@ -37,6 +42,7 @@ function renderCalendario() {
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
 
+  // espacios vacíos inicio
   for (let i = 0; i < primerDia; i++) {
     calendario.appendChild(document.createElement("div"));
   }
@@ -47,21 +53,20 @@ function renderCalendario() {
 
     const numero = document.createElement("div");
     numero.className = "dia-numero";
-    numero.innerText = dia;
+    numero.textContent = dia;
     divDia.appendChild(numero);
 
     const fechaStr = `${año}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
     pedidosCache
       .filter(p =>
-        p.estado !== "ENTREGADO" &&           // 🚫 no mostrar entregados
+        p.estado !== "ENTREGADO" &&                 // 🚫 ocultar entregados
         p.fecha?.slice(0, 10) === fechaStr
       )
       .forEach(p => {
-
         const pedido = document.createElement("div");
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
-        pedido.innerText = `${p.clienteNombre} – $${p.total}`;
+        pedido.textContent = `${p.clienteNombre} – $${p.total}`;
 
         pedido.onclick = () => abrirModalCalendario(p);
 
@@ -73,7 +78,7 @@ function renderCalendario() {
 }
 
 /* ===============================
-   MODAL PROPIO DEL CALENDARIO
+   MODAL DEL CALENDARIO
 ================================ */
 function abrirModalCalendario(p) {
   document.getElementById("calTitulo").textContent =
@@ -103,26 +108,8 @@ document.getElementById("calCerrar").onclick = () => {
 };
 
 /* ===============================
-   NAV MES
+   ALERTA ENTREGAS MAÑANA
 ================================ */
-document.getElementById("prevMes").onclick = () => {
-  fechaActual.setMonth(fechaActual.getMonth() - 1);
-  renderCalendario();
-};
-
-document.getElementById("nextMes").onclick = () => {
-  fechaActual.setMonth(fechaActual.getMonth() + 1);
-  renderCalendario();
-};
-
-/* ===============================
-   INIT
-================================ */
-(async function init() {
-  await cargarPedidos();
-  alertasEntregasManiana(); // 🔔 alerta automática
-  renderCalendario();
-})();
 function alertasEntregasManiana() {
   const hoy = new Date();
   const manana = new Date(hoy);
@@ -145,3 +132,25 @@ function alertasEntregasManiana() {
     );
   }
 }
+
+/* ===============================
+   NAVEGACIÓN DE MESES
+================================ */
+document.getElementById("prevMes").onclick = () => {
+  fechaActual.setMonth(fechaActual.getMonth() - 1);
+  renderCalendario();
+};
+
+document.getElementById("nextMes").onclick = () => {
+  fechaActual.setMonth(fechaActual.getMonth() + 1);
+  renderCalendario();
+};
+
+/* ===============================
+   INIT
+================================ */
+(async function init() {
+  await cargarPedidos();
+  alertasEntregasManiana(); // 🔔
+  renderCalendario();
+})();
