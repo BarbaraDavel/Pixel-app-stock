@@ -588,7 +588,302 @@ function renderResumenSimple() {
   let noPagado = 0;
 
   pedidosCache.forEach(p => {
-    // 📦 NO entregados
+    // 📦 NO entregados// js/pedidos.js
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+/* =====================================================
+   DOM
+===================================================== */
+// Cliente
+const inputClienteNombre   = document.getElementById("clienteNombre");
+const inputClienteApodo    = document.getElementById("clienteApodo");
+const inputClienteTelefono = document.getElementById("clienteTelefono");
+const inputClienteRed      = document.getElementById("clienteRed");
+const datalistClientes     = document.getElementById("clientesDatalist");
+
+// Productos / items
+const selProducto   = document.getElementById("productoSelect");
+const inputCantidad = document.getElementById("cantidadInput");
+const tbodyItems    = document.getElementById("pedidoItems");
+const spanTotal     = document.getElementById("totalPedido");
+
+const btnAgregar = document.getElementById("agregarItemBtn");
+const btnGuardar = document.getElementById("guardarPedidoBtn");
+const btnLimpiar = document.getElementById("limpiarPedidoBtn");
+
+// Datos pedido
+const inputFecha   = document.getElementById("pedidoFecha");
+const selectEstado = document.getElementById("pedidoEstado");
+const inputNota    = document.getElementById("pedidoNota");
+const inputPagado  = document.getElementById("pedidoPagado");
+
+// Lista
+const listaPedidosBody = document.getElementById("listaPedidos");
+const filtroEstado   = document.getElementById("filtroEstado");
+const filtroBusqueda = document.getElementById("filtroBusqueda");
+
+// Resumen
+const resumenActivosEl  = document.getElementById("resumenActivos");
+const resumenNoPagadoEl = document.getElementById("resumenNoPagado");
+
+// Modal ver
+const modal        = document.getElementById("pedidoModal");
+const modalTitulo  = document.getElementById("modalTitulo");
+const modalCliente = document.getElementById("modalCliente");
+const modalEstado  = document.getElementById("modalEstado");
+const modalFecha   = document.getElementById("modalFecha");
+const modalItems   = document.getElementById("modalItems");
+const modalNota    = document.getElementById("modalNota");
+const modalTotal   = document.getElementById("modalTotal");
+const modalPdf     = document.getElementById("modalPdf");
+const modalWhats   = document.getElementById("modalWhatsApp");
+const modalCerrar  = document.getElementById("modalCerrar");
+const modalHistorial = document.getElementById("modalHistorial");
+
+// Modal editar
+const modalEdit   = document.getElementById("editarPedidoModal");
+const editEstado  = document.getElementById("editEstado");
+const editNota    = document.getElementById("editNota");
+const editFecha   = document.getElementById("editFecha");
+const editPagado  = document.getElementById("editPagado");
+const editGuardar = document.getElementById("editGuardar");
+const editCerrar  = document.getElementById("editCerrar");
+
+/* =====================================================
+   ESTADO
+===================================================== */
+let clientesPorNombre = {};
+let productos = [];
+let itemsPedido = [];
+let pedidosCache = [];
+let pedidoEditandoId = null;
+let pedidoModalActual = null;
+
+const ordenEstados = {
+  PENDIENTE: 1,
+  PROCESO: 2,
+  LISTO: 3,
+  ENTREGADO: 4
+};
+
+/* =====================================================
+   CLIENTES
+===================================================== */
+async function cargarClientes() {
+  clientesPorNombre = {};
+  datalistClientes.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "clientes"));
+  snap.forEach(d => {
+    const c = d.data();
+    clientesPorNombre[c.nombre] = {
+      telefono: c.whatsapp || c.telefono || "",
+      red: c.instagram || c.red || "",
+      apodo: c.apodo || ""
+    };
+    datalistClientes.innerHTML += `<option value="${c.nombre}"></option>`;
+  });
+}
+
+function syncClienteDesdeNombre() {
+  const c = clientesPorNombre[inputClienteNombre.value.trim()];
+  if (!c) return;
+  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
+  if (!inputClienteRed.value) inputClienteRed.value = c.red;
+  if (inputClienteApodo && !inputClienteApodo.value) {
+    inputClienteApodo.value = c.apodo;
+  }
+}
+
+inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
+inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
+
+/* =====================================================
+   PRODUCTOS
+===================================================== */
+async function cargarProductos() {
+  productos = [];
+  selProducto.innerHTML = `<option value="">Cargando...</option>`;
+
+  const snap = await getDocs(collection(db, "productos"));
+  snap.forEach(d => productos.push({ id: d.id, ...d.data() }));
+
+  productos.sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+  );
+
+  selProducto.innerHTML = `<option value="">Elegí un producto...</option>`;
+  productos.forEach(p => {
+    selProducto.innerHTML += `<option value="${p.id}">
+      ${p.nombre} — $${p.precio}
+    </option>`;
+  });
+}
+
+/* =====================================================
+   ITEMS
+===================================================== */
+function renderPedido() {
+  tbodyItems.innerHTML = "";
+  let total = 0;
+
+  itemsPedido.forEach((i, idx) => {
+    total += i.subtotal;
+    tbodyItems.innerHTML += `
+      <tr>
+        <td>${i.nombre}</td>
+        <td>$${i.precio}</td>
+        <td>${i.cantidad}</td>
+        <td>$${i.subtotal}</td>
+        <td>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+        </td>
+      </tr>`;
+  });
+
+  spanTotal.textContent = total;
+}
+
+window.eliminarItem = idx => {
+  itemsPedido.splice(idx, 1);
+  renderPedido();
+};
+
+btnAgregar.addEventListener("click", e => {
+  e.preventDefault();
+  const prod = productos.find(p => p.id === selProducto.value);
+  const cant = Number(inputCantidad.value);
+  if (!prod || cant <= 0) return alert("Producto o cantidad inválida");
+
+  itemsPedido.push({
+    productoId: prod.id,
+    nombre: prod.nombre,
+    precio: prod.precio,
+    cantidad: cant,
+    subtotal: cant * prod.precio
+  });
+
+  renderPedido();
+});
+
+/* =====================================================
+   GUARDAR
+===================================================== */
+btnGuardar.addEventListener("click", async e => {
+  e.preventDefault();
+  if (!inputClienteNombre.value || !itemsPedido.length)
+    return alert("Faltan datos");
+
+  const total = itemsPedido.reduce((a, i) => a + i.subtotal, 0);
+  const fechaIso = inputFecha.value
+    ? new Date(inputFecha.value + "T00:00:00").toISOString()
+    : new Date().toISOString();
+
+  const data = {
+    clienteNombre: inputClienteNombre.value,
+    clienteApodo: inputClienteApodo?.value || "",
+    clienteTelefono: inputClienteTelefono.value,
+    clienteRed: inputClienteRed.value,
+    fecha: fechaIso,
+    estado: selectEstado.value,
+    nota: inputNota.value,
+    pagado: inputPagado.checked,
+    total,
+    items: itemsPedido
+  };
+
+  if (pedidoEditandoId) {
+    await updateDoc(doc(db, "pedidos", pedidoEditandoId), data);
+    alert("Pedido actualizado ✔");
+  } else {
+    await addDoc(collection(db, "pedidos"), {
+      ...data,
+      fechaServer: serverTimestamp(),
+      historial: [{
+        fecha: new Date().toISOString(),
+        accion: "CREADO"
+      }]
+    });
+    alert("Pedido guardado ✔");
+  }
+
+  limpiarFormulario();
+  cargarPedidos();
+});
+
+/* =====================================================
+   LISTA + MODAL
+===================================================== */
+async function cargarPedidos() {
+  pedidosCache = [];
+  const snap = await getDocs(collection(db, "pedidos"));
+  snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
+  renderLista();
+}
+
+function renderLista() {
+  listaPedidosBody.innerHTML = "";
+  pedidosCache.forEach(p => {
+    listaPedidosBody.innerHTML += `
+      <tr>
+        <td onclick="verPedido('${p.id}')" style="cursor:pointer;">
+          ${p.clienteNombre}
+        </td>
+        <td>${new Date(p.fecha).toLocaleDateString()}</td>
+        <td>${p.estado}</td>
+        <td>$${p.total}</td>
+      </tr>`;
+  });
+}
+
+window.verPedido = id => {
+  const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  pedidoModalActual = p;
+  modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
+  modalEstado.textContent = `Estado: ${p.estado}`;
+  modalFecha.textContent = new Date(p.fecha).toLocaleString();
+  modalItems.innerHTML = p.items.map(i => `• ${i.cantidad} × ${i.nombre}`).join("<br>");
+  modalNota.textContent = p.nota || "";
+  modalTotal.textContent = `Total: $${p.total}`;
+  modal.classList.remove("hidden");
+};
+
+modalCerrar.onclick = () => modal.classList.add("hidden");
+
+/* =====================================================
+   ABRIR DESDE CALENDARIO
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  const pedidoId = localStorage.getItem("pedidoAbrir");
+  if (pedidoId) {
+    setTimeout(() => {
+      verPedido(pedidoId);
+      localStorage.removeItem("pedidoAbrir");
+    }, 500);
+  }
+});
+
+/* =====================================================
+   INIT
+===================================================== */
+(async function init(){
+  await cargarClientes();
+  await cargarProductos();
+  await cargarPedidos();
+  renderPedido();
+})();
+
     if (p.estado !== "ENTREGADO") {
       activos++;
     }
