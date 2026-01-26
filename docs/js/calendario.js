@@ -53,8 +53,12 @@ function renderCalendario() {
     const fechaStr = `${año}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
     pedidosCache
-      .filter(p => p.fecha?.slice(0, 10) === fechaStr)
+      .filter(p =>
+        p.estado !== "ENTREGADO" &&           // 🚫 no mostrar entregados
+        p.fecha?.slice(0, 10) === fechaStr
+      )
       .forEach(p => {
+
         const pedido = document.createElement("div");
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
         pedido.innerText = `${p.clienteNombre} – $${p.total}`;
@@ -116,5 +120,28 @@ document.getElementById("nextMes").onclick = () => {
 ================================ */
 (async function init() {
   await cargarPedidos();
+  alertasEntregasManiana(); // 🔔 alerta automática
   renderCalendario();
 })();
+function alertasEntregasManiana() {
+  const hoy = new Date();
+  const manana = new Date(hoy);
+  manana.setDate(hoy.getDate() + 1);
+
+  const mananaStr = manana.toISOString().slice(0, 10);
+
+  const pedidosManiana = pedidosCache.filter(p =>
+    p.estado !== "ENTREGADO" &&
+    p.fecha?.slice(0, 10) === mananaStr
+  );
+
+  if (pedidosManiana.length > 0) {
+    const nombres = pedidosManiana
+      .map(p => `• ${p.clienteNombre}`)
+      .join("\n");
+
+    alert(
+      `🔔 Mañana tenés ${pedidosManiana.length} entrega(s):\n\n${nombres}`
+    );
+  }
+}
