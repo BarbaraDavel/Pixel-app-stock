@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel – Planner de pedidos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+  </div>
+
+  <div class="main">
+    <h1>Planner de pedidos</h1>
+
+    <div id="planner" class="planner-list"></div>
+  </div>
+
+<script>
+const pedidos = [
+  {
+    nombre: "Agenda A5 – Camila",
+    fecha: "2026-01-22",
+    estado: "pendiente"
+  },
+  {
+    nombre: "Diario de lectura – Ana",
+    fecha: "2026-01-24",
+    estado: "proceso"
+  },
+  {
+    nombre: "Llaveros x10 – Sofi",
+    fecha: "2026-01-25",
+    estado: "listo"
+  }
+];
+
+const planner = document.getElementById("planner");
+
+pedidos
+  .sort((a,b) => new Date(a.fecha) - new Date(b.fecha))
+  .forEach(p => {
+    const div = document.createElement("div");
+    div.className = `pedido-card ${p.estado}`;
+
+    div.innerHTML = `
+      <div class="pedido-fecha">${p.fecha}</div>
+      <div class="pedido-nombre">${p.nombre}</div>
+      <div class="pedido-estado">${p.estado}</div>
+    `;
+
+    planner.appendChild(div);
+  });
+</script>
+
+</body>
+</html>
