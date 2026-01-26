@@ -1,13 +1,9 @@
-// js/calendario.js
 import { db } from "./firebase.js";
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-/* ===============================
-   ESTADO
-================================ */
 let fechaActual = new Date();
 let pedidosCache = [];
 
@@ -41,12 +37,10 @@ function renderCalendario() {
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
 
-  // Huecos antes del día 1
   for (let i = 0; i < primerDia; i++) {
     calendario.appendChild(document.createElement("div"));
   }
 
-  // Días
   for (let dia = 1; dia <= diasMes; dia++) {
     const divDia = document.createElement("div");
     divDia.className = "dia";
@@ -65,14 +59,7 @@ function renderCalendario() {
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
         pedido.innerText = `${p.clienteNombre} – $${p.total}`;
 
-        // 🔥 CLICK → ABRE MODAL
-        pedido.onclick = () => {
-          if (window.verPedidoDesdeCalendario) {
-            window.verPedidoDesdeCalendario(p.id);
-          } else {
-            alert("El módulo de pedidos aún no está listo.");
-          }
-        };
+        pedido.onclick = () => abrirModalCalendario(p);
 
         divDia.appendChild(pedido);
       });
@@ -82,7 +69,37 @@ function renderCalendario() {
 }
 
 /* ===============================
-   NAVEGACIÓN DE MES
+   MODAL PROPIO DEL CALENDARIO
+================================ */
+function abrirModalCalendario(p) {
+  document.getElementById("calTitulo").textContent =
+    `Pedido de ${p.clienteNombre}`;
+
+  document.getElementById("calCliente").textContent =
+    `Cliente: ${p.clienteNombre}`;
+
+  document.getElementById("calEstado").textContent =
+    `Estado: ${p.estado}`;
+
+  document.getElementById("calFecha").textContent =
+    `Fecha: ${new Date(p.fecha).toLocaleDateString()}`;
+
+  document.getElementById("calItems").innerHTML = p.items
+    .map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`)
+    .join("<br>");
+
+  document.getElementById("calNota").textContent = p.nota || "";
+  document.getElementById("calTotal").textContent = `Total: $${p.total}`;
+
+  document.getElementById("modalCalendario").classList.remove("hidden");
+}
+
+document.getElementById("calCerrar").onclick = () => {
+  document.getElementById("modalCalendario").classList.add("hidden");
+};
+
+/* ===============================
+   NAV MES
 ================================ */
 document.getElementById("prevMes").onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() - 1);
@@ -92,26 +109,6 @@ document.getElementById("prevMes").onclick = () => {
 document.getElementById("nextMes").onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() + 1);
   renderCalendario();
-};
-
-/* ===============================
-   PUENTE CON PEDIDOS.JS
-   (NO TOCA SU LÓGICA)
-================================ */
-window.verPedidoDesdeCalendario = function (pedidoId) {
-  // Esperamos a que pedidos.js esté cargado
-  if (typeof window.verPedido === "function") {
-    window.verPedido(pedidoId);
-  } else {
-    // retry corto por si carga después
-    setTimeout(() => {
-      if (typeof window.verPedido === "function") {
-        window.verPedido(pedidoId);
-      } else {
-        alert("No se pudo abrir el pedido.");
-      }
-    }, 300);
-  }
 };
 
 /* ===============================
