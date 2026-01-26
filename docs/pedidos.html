@@ -323,6 +323,15 @@
   </a>
 </nav>
 
+<div id="pedido-modal-container"></div>
+
+<script>
+  fetch("partials/pedido-modal.html")
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById("pedido-modal-container").innerHTML = html;
+    });
+</script>
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>

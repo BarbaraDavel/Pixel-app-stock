@@ -32,6 +32,15 @@
 
     <div class="calendario-grid" id="calendario"></div>
   </div>
+<div id="pedido-modal-container"></div>
+
+<script>
+  fetch("partials/pedido-modal.html")
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById("pedido-modal-container").innerHTML = html;
+    });
+</script>
 
   <script type="module" src="js/calendario.js"></script>
 </body>
