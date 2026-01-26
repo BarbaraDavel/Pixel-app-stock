@@ -8,34 +8,33 @@
 
 <body>
 
-  <!-- TOPBAR -->
-  <div class="topbar">
+  <!-- TOPBAR + NAV -->
+  <header class="topbar">
     <div class="brand">
       <span class="logo-fox">🦊</span> Pixel
     </div>
 
+    <nav class="nav-links">
+      <a href="./index.html">Inicio</a>
+      <a href="./insumos.html">Insumos</a>
+      <a href="./stock.html">Stock</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./clientes.html">Clientes</a>
+      <a href="./guia.html">Guía</a>
+      <a href="./costos.html">Costos</a>
+      <a href="./recetas_borrador.html">Recetas guardadas</a>
+      <a href="./pedidos.html">Pedidos</a>
+      <a href="./catalogo.html">Catálogo</a>
+      <a class="active" href="./calendario.html">Calendario</a>
+    </nav>
+
     <button class="hamburger" aria-label="Menú">
       ☰
     </button>
-  </div>
-
-  <!-- NAV -->
-  <nav class="nav-links">
-    <a href="./index.html">Inicio</a>
-    <a href="./insumos.html">Insumos</a>
-    <a href="./stock.html">Stock</a>
-    <a href="./productos.html">Productos</a>
-    <a href="./clientes.html">Clientes</a>
-    <a href="./guia.html">Guía</a>
-    <a href="./costos.html">Costos</a>
-    <a href="./recetas_borrador.html">Recetas guardadas</a>
-    <a href="./pedidos.html">Pedidos</a>
-    <a href="./catalogo.html">Catálogo</a>
-    <a class="active" href="./calendario.html">Calendario</a>
-  </nav>
+  </header>
 
   <!-- CONTENIDO -->
-  <div class="main">
+  <main class="main">
     <h1>📅 Calendario de pedidos</h1>
 
     <!-- Leyenda -->
@@ -54,7 +53,7 @@
 
     <!-- Calendario -->
     <div class="calendario-grid" id="calendario"></div>
-  </div>
+  </main>
 
   <!-- MODAL CALENDARIO -->
   <div id="modalCalendario" class="modal-backdrop hidden">
@@ -76,5 +75,6 @@
   </div>
 
   <script type="module" src="js/calendario.js"></script>
+  <script src="js/nav.js"></script>
 </body>
 </html>
