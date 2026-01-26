@@ -8,11 +8,13 @@
 
 <body>
 
-  <!-- TOPBAR + NAV -->
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand">
       <span class="logo-fox">🦊</span> Pixel
     </div>
+
+    <button class="hamburger" aria-label="Menú">☰</button>
 
     <nav class="nav-links">
       <a href="./index.html">Inicio</a>
@@ -27,10 +29,6 @@
       <a href="./catalogo.html">Catálogo</a>
       <a class="active" href="./calendario.html">Calendario</a>
     </nav>
-
-    <button class="hamburger" aria-label="Menú">
-      ☰
-    </button>
   </header>
 
   <!-- CONTENIDO -->
@@ -55,16 +53,13 @@
     <div class="calendario-grid" id="calendario"></div>
   </main>
 
-  <!-- MODAL CALENDARIO -->
+  <!-- MODAL -->
   <div id="modalCalendario" class="modal-backdrop hidden">
     <div class="modal">
       <h3 id="calTitulo"></h3>
-      <p id="calCliente"></p>
       <p id="calEstado"></p>
       <p id="calFecha"></p>
-
       <div id="calItems"></div>
-
       <p id="calNota"></p>
       <p id="calTotal" style="font-weight:700;"></p>
 
@@ -75,6 +70,5 @@
   </div>
 
   <script type="module" src="js/calendario.js"></script>
-  <script src="js/nav.js"></script>
 </body>
 </html>
