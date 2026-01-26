@@ -1103,14 +1103,21 @@ body.home-bg > * {
 
 
 .pedido {
-  margin-top: 4px;
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
+  margin-top: 4px;
   cursor: pointer;
 }
 
-.pedido.pendiente { background: #ff6b6b; }
-.pedido.proceso   { background: #ffb347; }
-.pedido.listo     { background: #a66bff; }
-.pedido.entregado { background: #4caf50; }
+.pedido-pendiente { background: #ff6b6b; }
+.pedido-proceso   { background: #ffd166; color:#000; }
+.pedido-listo     { background: #9b5de5; }
+.pedido-entregado { background: #51cf66; }
+
+.leyenda-estados {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
