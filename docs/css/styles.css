@@ -1013,3 +1013,10 @@ body.home-bg > * {
 .catalogo-card .acciones {
   display: none;
 }
+.catalogo-card img {
+  width: 100%;
+  height: 260px;          /* altura visual fija */
+  object-fit: cover;     /* CLAVE */
+  border-radius: 12px;
+  display: block;
+}
