@@ -1141,3 +1141,20 @@ body.home-bg > * {
   50% { transform: scale(1.01); }
   100% { transform: scale(1); }
 }
+.dia-hoy {
+  outline: 2px solid #ffb703;
+  background: rgba(255,183,3,0.12);
+}
+
+.aviso-maniana {
+  background: rgba(255,183,3,0.15);
+  border-left: 4px solid #ffb703;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.hidden {
+  display: none;
+}

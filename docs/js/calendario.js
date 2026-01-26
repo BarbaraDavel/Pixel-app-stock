@@ -19,13 +19,15 @@ async function cargarPedidos() {
 }
 
 /* ===============================
-   ALERTA MAÑANA
+   AVISO VISUAL MAÑANA
 ================================ */
-function alertasEntregasManiana() {
+function renderAvisoManiana() {
+  const contenedor = document.getElementById("avisoManiana");
+  if (!contenedor) return;
+
   const hoy = new Date();
   const manana = new Date(hoy);
   manana.setDate(hoy.getDate() + 1);
-
   const mananaStr = manana.toISOString().slice(0, 10);
 
   const pedidosManiana = pedidosCache.filter(p =>
@@ -33,9 +35,15 @@ function alertasEntregasManiana() {
     p.fecha?.slice(0, 10) === mananaStr
   );
 
-  if (pedidosManiana.length) {
-    alert(`🔔 Mañana tenés ${pedidosManiana.length} entrega(s).`);
+  if (pedidosManiana.length === 0) {
+    contenedor.classList.add("hidden");
+    return;
   }
+
+  contenedor.classList.remove("hidden");
+  contenedor.innerHTML = `
+    🔔 <strong>Mañana tenés ${pedidosManiana.length} entrega(s)</strong>
+  `;
 }
 
 /* ===============================
@@ -61,11 +69,13 @@ function renderCalendario() {
     calendario.appendChild(document.createElement("div"));
   }
 
+  const hoy = new Date();
+
   for (let dia = 1; dia <= diasMes; dia++) {
     const divDia = document.createElement("div");
     divDia.className = "dia";
 
-    const hoy = new Date();
+    // 🔥 HOY BIEN MARCADO
     if (
       dia === hoy.getDate() &&
       mes === hoy.getMonth() &&
@@ -141,6 +151,6 @@ document.getElementById("nextMes").onclick = () => {
 ================================ */
 (async function init() {
   await cargarPedidos();
-  alertasEntregasManiana();
+  renderAvisoManiana();
   renderCalendario();
 })();

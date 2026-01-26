@@ -31,9 +31,11 @@
     </nav>
   </header>
 
-  <!-- CONTENIDO -->
   <main class="main">
     <h1>📅 Calendario de pedidos</h1>
+
+    <!-- 🔔 AVISO VISUAL -->
+    <div id="avisoManiana" class="aviso-maniana hidden"></div>
 
     <!-- Leyenda -->
     <div class="leyenda-estados">
@@ -42,14 +44,13 @@
       <span class="badge badge-listo">🟪 Listo</span>
     </div>
 
-    <!-- Navegación calendario -->
+    <!-- Navegación -->
     <div class="calendario-header">
       <button id="prevMes">◀</button>
       <h2 id="mesActual"></h2>
       <button id="nextMes">▶</button>
     </div>
 
-    <!-- Calendario -->
     <div class="calendario-grid" id="calendario"></div>
   </main>
 
