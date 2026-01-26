@@ -622,3 +622,13 @@ function traducirAccion(accion) {
       return accion;
   }
 }
+// Abrir pedido desde calendario
+document.addEventListener("DOMContentLoaded", () => {
+  const pedidoId = localStorage.getItem("pedidoAbrir");
+  if (pedidoId) {
+    setTimeout(() => {
+      verPedido(pedidoId);
+      localStorage.removeItem("pedidoAbrir");
+    }, 500);
+  }
+});

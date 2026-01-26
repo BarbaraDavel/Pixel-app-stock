@@ -1,73 +1,120 @@
-const pedidos = [
-  {
-    nombre: "Agenda A5 – Camila",
-    fecha: "2026-01-15",
-    estado: "proceso"
-  },
-  {
-    nombre: "Diario lectura – Sofía",
-    fecha: "2026-01-18",
-    estado: "pendiente"
-  },
-  {
-    nombre: "Llaveros x10 – Laura",
-    fecha: "2026-01-18",
-    estado: "urgente"
-  }
-];
+// js/calendario.js
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const calendarioEl = document.getElementById("calendario");
+const mesActualEl = document.getElementById("mesActual");
+const btnPrev = document.getElementById("prevMes");
+const btnNext = document.getElementById("nextMes");
 
 let fechaActual = new Date();
+let pedidosCache = [];
 
+/* ===============================
+   COLORES POR ESTADO
+================================ */
+function claseEstado(estado) {
+  switch (estado) {
+    case "PENDIENTE": return "pedido pendiente";
+    case "PROCESO": return "pedido proceso";
+    case "LISTO": return "pedido listo";
+    case "ENTREGADO": return "pedido entregado";
+    default: return "pedido";
+  }
+}
+
+/* ===============================
+   CARGAR PEDIDOS DESDE FIRESTORE
+================================ */
+async function cargarPedidos() {
+  pedidosCache = [];
+
+  const snap = await getDocs(collection(db, "pedidos"));
+  snap.forEach(d => {
+    pedidosCache.push({
+      id: d.id,
+      ...d.data()
+    });
+  });
+
+  renderCalendario();
+}
+
+/* ===============================
+   RENDER CALENDARIO
+================================ */
 function renderCalendario() {
-  const calendario = document.getElementById("calendario");
-  calendario.innerHTML = "";
+  calendarioEl.innerHTML = "";
 
   const mes = fechaActual.getMonth();
   const año = fechaActual.getFullYear();
 
-  document.getElementById("mesActual").innerText =
-    fechaActual.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  mesActualEl.textContent = fechaActual.toLocaleDateString("es-AR", {
+    month: "long",
+    year: "numeric"
+  });
 
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
 
+  // Espacios vacíos al inicio
   for (let i = 0; i < primerDia; i++) {
-    calendario.appendChild(document.createElement("div"));
+    calendarioEl.appendChild(document.createElement("div"));
   }
 
   for (let dia = 1; dia <= diasMes; dia++) {
-    const divDia = document.createElement("div");
-    divDia.className = "dia";
+    const diaEl = document.createElement("div");
+    diaEl.className = "dia";
 
-    const numero = document.createElement("div");
-    numero.className = "dia-numero";
-    numero.innerText = dia;
+    const nro = document.createElement("div");
+    nro.className = "dia-numero";
+    nro.textContent = dia;
+    diaEl.appendChild(nro);
 
-    divDia.appendChild(numero);
+    const fechaStr = `${año}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
-    const fechaStr = `${año}-${String(mes+1).padStart(2,"0")}-${String(dia).padStart(2,"0")}`;
-
-    pedidos
-      .filter(p => p.fecha === fechaStr)
+    pedidosCache
+      .filter(p => p.fecha?.startsWith(fechaStr))
       .forEach(p => {
-        const pedido = document.createElement("div");
-        pedido.className = `pedido ${p.estado}`;
-        pedido.innerText = p.nombre;
-        divDia.appendChild(pedido);
+        const pedidoEl = document.createElement("div");
+        pedidoEl.className = claseEstado(p.estado);
+        pedidoEl.textContent = `${p.clienteNombre} – $${p.total}`;
+
+        pedidoEl.onclick = () => abrirPedido(p.id);
+
+        diaEl.appendChild(pedidoEl);
       });
 
-    calendario.appendChild(divDia);
+    calendarioEl.appendChild(diaEl);
   }
 }
 
-document.getElementById("prevMes").onclick = () => {
+/* ===============================
+   ABRIR PEDIDO
+================================ */
+function abrirPedido(pedidoId) {
+  // opción A: ir a pedidos.html y abrir modal
+  localStorage.setItem("pedidoAbrir", pedidoId);
+  window.location.href = "pedidos.html";
+}
+
+/* ===============================
+   NAVEGACIÓN MESES
+================================ */
+btnPrev.onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() - 1);
   renderCalendario();
 };
 
-document.getElementById("nextMes").onclick = () => {
+btnNext.onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() + 1);
   renderCalendario();
 };
 
-renderCalendario();
+/* ===============================
+   INIT
+================================ */
+cargarPedidos();
