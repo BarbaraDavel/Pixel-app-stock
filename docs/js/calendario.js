@@ -1,3 +1,4 @@
+// js/calendario.js
 import { db } from "./firebase.js";
 import {
   collection,
@@ -12,6 +13,7 @@ let pedidosCache = [];
 ================================ */
 async function cargarPedidos() {
   pedidosCache = [];
+
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => {
     pedidosCache.push({ id: d.id, ...d.data() });
@@ -37,6 +39,7 @@ function renderCalendario() {
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
 
+  // espacios vacíos inicio
   for (let i = 0; i < primerDia; i++) {
     calendario.appendChild(document.createElement("div"));
   }
@@ -59,30 +62,20 @@ function renderCalendario() {
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
         pedido.innerText = `${p.clienteNombre} – $${p.total}`;
 
-        // 🔥 ABRIR MODAL (NO NAVEGAR)
-        pedido.onclick = () => abrirModalPedido(p);
+        // 🔥 abrir modal existente (sin navegar)
+        pedido.onclick = () => {
+          if (typeof window.verPedido === "function") {
+            window.verPedido(p.id);
+          } else {
+            alert("El modal de pedidos aún no está cargado.");
+          }
+        };
 
         divDia.appendChild(pedido);
       });
 
     calendario.appendChild(divDia);
   }
-}
-
-/* ===============================
-   MODAL (reutiliza lógica de pedidos)
-================================ */
-function abrirModalPedido(p) {
-  // reutilizamos el modal existente en pedidos.html
-  // si no existe, lo creamos dinámicamente
-  let modal = document.getElementById("pedidoModal");
-
-  if (!modal) {
-    alert("El modal de pedidos no está disponible.");
-    return;
-  }
-
-  window.verPedido(p.id); // 🔥 llama a la misma función global
 }
 
 /* ===============================

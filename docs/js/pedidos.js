@@ -622,3 +622,7 @@ function traducirAccion(accion) {
       return accion;
   }
 }
+// 👉 Exponer pedidos para otros módulos (calendario)
+window.getPedidosCache = function () {
+  return pedidosCache || [];
+};

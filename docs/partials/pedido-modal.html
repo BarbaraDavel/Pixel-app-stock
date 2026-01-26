@@ -1,23 +1,53 @@
-<div id="pedidoModal" class="modal-backdrop hidden">
-  <div class="modal">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pixel – Calendario de pedidos</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
 
-    <h3 id="modalTitulo"></h3>
+<body>
+  <!-- HEADER -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+  </div>
 
-    <p id="modalCliente"></p>
-    <p id="modalEstado"></p>
-    <p id="modalFecha"></p>
+  <div class="main">
+    <h1>📅 Calendario de pedidos</h1>
 
-    <div id="modalItems"></div>
-    <p id="modalNota"></p>
-    <p id="modalTotal"></p>
-
-    <div id="modalHistorial"></div>
-
-    <div class="modal-actions">
-      <button id="modalPdf" class="btn btn-outline">PDF</button>
-      <button id="modalWhatsApp" class="btn btn-outline">WhatsApp</button>
-      <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
+    <!-- LEYENDA -->
+    <div class="leyenda-estados">
+      <span class="badge badge-pendiente">🟥 Pendiente</span>
+      <span class="badge badge-proceso">🟨 En proceso</span>
+      <span class="badge badge-listo">🟪 Listo</span>
+      <span class="badge badge-entregado">🟩 Entregado</span>
     </div>
 
+    <!-- NAVEGACIÓN -->
+    <div class="calendario-header">
+      <button id="prevMes">◀</button>
+      <h2 id="mesActual"></h2>
+      <button id="nextMes">▶</button>
+    </div>
+
+    <!-- GRID -->
+    <div class="calendario-grid" id="calendario"></div>
   </div>
-</div>
+
+  <!-- MODAL (MISMO QUE PEDIDOS) -->
+  <div id="pedido-modal-container"></div>
+
+  <script>
+    fetch("partials/pedido-modal.html")
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById("pedido-modal-container").innerHTML = html;
+      });
+  </script>
+
+  <!-- JS -->
+  <script type="module" src="js/calendario.js"></script>
+</body>
+</html>
