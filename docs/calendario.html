@@ -7,33 +7,34 @@
 </head>
 
 <body>
+
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">
       <span class="logo-fox">🦊</span> Pixel
     </div>
+
+    <button class="hamburger" aria-label="Menú">
+      ☰
+    </button>
   </div>
 
-   <button class="hamburger" aria-label="Menú">
-    ☰
-  </button>
+  <!-- NAV -->
+  <nav class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./stock.html">Stock</a>
+    <a href="./productos.html">Productos</a>
+    <a href="./clientes.html">Clientes</a>
+    <a href="./guia.html">Guía</a>
+    <a href="./costos.html">Costos</a>
+    <a href="./recetas_borrador.html">Recetas guardadas</a>
+    <a href="./pedidos.html">Pedidos</a>
+    <a href="./catalogo.html">Catálogo</a>
+    <a class="active" href="./calendario.html">Calendario</a>
+  </nav>
 
-  <div class="nav-links">
-     <a href="./index.html">Inicio</a>
-     <a href="./insumos.html">Insumos</a>
-     <a href="./stock.html">Stock</a>
-<!--     <a href="./movimientos_stock.html">Movimientos</a>-->
-<!--     <a href="./recetas.html">Recetas</a>-->
-     <a href="./productos.html">Productos</a>
-     <a href="./clientes.html">Clientes</a>     
-     <a href="./guia.html">Guia</a>
-     <a href="./costos.html">Costos</a>
-     <a href="./recetas_borrador.html">Recetas guardadas</a>
-     <a href="./pedidos.html">Pedidos</a>
-     <a href="./catalogo.html">Catalogo</a>
-     <a class="active" href="./calendario.html">Calendario</a>
-   </div>
-</div> 
-
+  <!-- CONTENIDO -->
   <div class="main">
     <h1>📅 Calendario de pedidos</h1>
 
@@ -44,7 +45,7 @@
       <span class="badge badge-listo">🟪 Listo</span>
     </div>
 
-    <!-- Navegación -->
+    <!-- Navegación calendario -->
     <div class="calendario-header">
       <button id="prevMes">◀</button>
       <h2 id="mesActual"></h2>
