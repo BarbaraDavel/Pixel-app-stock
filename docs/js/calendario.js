@@ -35,14 +35,18 @@ function renderAvisoManiana() {
     p.fecha?.slice(0, 10) === mananaStr
   );
 
-  if (pedidosManiana.length === 0) {
+  const cantidad = pedidosManiana.length;
+
+  if (cantidad === 0) {
     contenedor.classList.add("hidden");
     return;
   }
 
+  const textoEntrega = cantidad === 1 ? "entrega" : "entregas";
+
   contenedor.classList.remove("hidden");
   contenedor.innerHTML = `
-    🔔 <strong>Mañana tenés ${pedidosManiana.length} entrega(s)</strong>
+    🔔 <strong>Mañana tenés ${cantidad} ${textoEntrega}</strong>
   `;
 }
 
