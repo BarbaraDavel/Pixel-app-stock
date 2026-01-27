@@ -19,36 +19,49 @@ async function cargarPedidos() {
 }
 
 /* ===============================
-   AVISO VISUAL MAÑANA
+   AVISO VISUAL HOY + MAÑANA
 ================================ */
 function renderAvisoManiana() {
   const contenedor = document.getElementById("avisoManiana");
   if (!contenedor) return;
 
   const hoy = new Date();
+  const hoyStr = hoy.toISOString().slice(0, 10);
+
   const manana = new Date(hoy);
   manana.setDate(hoy.getDate() + 1);
   const mananaStr = manana.toISOString().slice(0, 10);
+
+  const pedidosHoy = pedidosCache.filter(p =>
+    p.estado !== "ENTREGADO" &&
+    p.fecha?.slice(0, 10) === hoyStr
+  );
 
   const pedidosManiana = pedidosCache.filter(p =>
     p.estado !== "ENTREGADO" &&
     p.fecha?.slice(0, 10) === mananaStr
   );
 
-  const cantidad = pedidosManiana.length;
-
-  if (cantidad === 0) {
+  if (pedidosHoy.length === 0 && pedidosManiana.length === 0) {
     contenedor.classList.add("hidden");
     return;
   }
 
-  const textoEntrega = cantidad === 1 ? "entrega" : "entregas";
-
   contenedor.classList.remove("hidden");
-  contenedor.innerHTML = `
-    🔔 <strong>Mañana tenés ${cantidad} ${textoEntrega}</strong>
-  `;
+
+  let html = "";
+
+  if (pedidosHoy.length > 0) {
+    html += `🔔 <strong>Hoy tenés ${pedidosHoy.length} entrega${pedidosHoy.length === 1 ? "" : "s"}</strong><br>`;
+  }
+
+  if (pedidosManiana.length > 0) {
+    html += `🔔 <strong>Mañana tenés ${pedidosManiana.length} entrega${pedidosManiana.length === 1 ? "" : "s"}</strong>`;
+  }
+
+  contenedor.innerHTML = html;
 }
+
 
 /* ===============================
    RENDER CALENDARIO
