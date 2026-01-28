@@ -52,7 +52,7 @@ function renderAvisoManiana() {
     p.fecha?.slice(0, 10) === mananaStr
   );
 
-  if (pedidosHoy.length === 0 && pedidosManiana.length === 0) {
+  if (!pedidosHoy.length && !pedidosManiana.length) {
     contenedor.classList.add("hidden");
     return;
   }
@@ -60,12 +60,10 @@ function renderAvisoManiana() {
   contenedor.classList.remove("hidden");
 
   let html = "";
-
-  if (pedidosHoy.length > 0) {
+  if (pedidosHoy.length) {
     html += `🔔 <strong>Hoy tenés ${pedidosHoy.length} entrega${pedidosHoy.length === 1 ? "" : "s"}</strong><br>`;
   }
-
-  if (pedidosManiana.length > 0) {
+  if (pedidosManiana.length) {
     html += `🔔 <strong>Mañana tenés ${pedidosManiana.length} entrega${pedidosManiana.length === 1 ? "" : "s"}</strong>`;
   }
 
@@ -83,10 +81,7 @@ function renderCalendario() {
   const año = fechaActual.getFullYear();
 
   document.getElementById("mesActual").textContent =
-    fechaActual.toLocaleDateString("es-AR", {
-      month: "long",
-      year: "numeric"
-    });
+    fechaActual.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
 
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
@@ -102,10 +97,7 @@ function renderCalendario() {
     divDia.className = "dia";
 
     const fechaStr = `${año}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-
-    if (fechaStr === hoyStr) {
-      divDia.classList.add("dia-hoy");
-    }
+    if (fechaStr === hoyStr) divDia.classList.add("dia-hoy");
 
     const numero = document.createElement("div");
     numero.className = "dia-numero";
@@ -113,10 +105,7 @@ function renderCalendario() {
     divDia.appendChild(numero);
 
     pedidosCache
-      .filter(p =>
-        p.estado !== "ENTREGADO" &&
-        p.fecha?.slice(0, 10) === fechaStr
-      )
+      .filter(p => p.estado !== "ENTREGADO" && p.fecha?.slice(0, 10) === fechaStr)
       .forEach(p => {
         const pedido = document.createElement("div");
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
@@ -133,36 +122,23 @@ function renderCalendario() {
    MODAL
 ================================ */
 function abrirModal(p) {
-  document.getElementById("calTitulo").textContent =
-    `Pedido de ${p.clienteNombre}`;
-
-  document.getElementById("calEstado").textContent =
-    `Estado: ${p.estado}`;
-
+  document.getElementById("calTitulo").textContent = `Pedido de ${p.clienteNombre}`;
+  document.getElementById("calEstado").textContent = `Estado: ${p.estado}`;
   document.getElementById("calFecha").textContent =
     `Fecha: ${new Date(p.fecha).toLocaleDateString("es-AR")}`;
-
-  document.getElementById("calItems").innerHTML = p.items
-    .map(i => `• ${i.cantidad} × ${i.nombre}`)
-    .join("<br>");
-
-  document.getElementById("calNota").textContent =
-    p.nota || "—";
-
-  document.getElementById("calTotal").textContent =
-    `Total: $${p.total}`;
-
-  document.getElementById("modalCalendario")
-    .classList.remove("hidden");
+  document.getElementById("calItems").innerHTML =
+    p.items.map(i => `• ${i.cantidad} × ${i.nombre}`).join("<br>");
+  document.getElementById("calNota").textContent = p.nota || "—";
+  document.getElementById("calTotal").textContent = `Total: $${p.total}`;
+  document.getElementById("modalCalendario").classList.remove("hidden");
 }
 
 document.getElementById("calCerrar").onclick = () => {
-  document.getElementById("modalCalendario")
-    .classList.add("hidden");
+  document.getElementById("modalCalendario").classList.add("hidden");
 };
 
 /* ===============================
-   NAVEGACIÓN DE MESES
+   NAVEGACIÓN MESES
 ================================ */
 document.getElementById("prevMes").onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() - 1);
