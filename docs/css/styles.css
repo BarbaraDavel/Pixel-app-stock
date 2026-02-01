@@ -1158,46 +1158,4 @@ body.home-bg > * {
 .hidden {
   display: none;
 }
-.producto-search {
-  position: relative;
-}
-
-.producto-search .lupa {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.producto-search input {
-  width: 100%;
-  padding: 10px 10px 10px 34px;
-  border-radius: 10px;
-  border: none;
-  background: #2a2140;
-  color: #fff;
-}
-
-.lista-productos {
-  background: #2a2140;
-  border-radius: 10px;
-  margin-top: 6px;
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 10;
-}
-
-.lista-productos div {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.lista-productos div:hover {
-  background: #3b2d63;
-}
-
-.hidden {
-  display: none;
-}
+z

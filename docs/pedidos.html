@@ -82,21 +82,12 @@
     <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
 
     <div class="form-grid">
-    <div class="form-group">
-      <label>Producto</label>
-
-      <div class="producto-search">
-        <span class="lupa">🔍</span>
-        <input
-          id="productoBuscar"
-          placeholder="Buscar producto..."
-          autocomplete="off"
-        />
+      <div class="form-group">
+        <label>Producto</label>
+        <select id="productoSelect">
+          <option value="">Cargando productos...</option>
+        </select>
       </div>
-
-      <div id="productoResultados" class="lista-productos hidden"></div>
-    </div>
-
 
       <div class="form-group">
         <label>Cantidad</label>
