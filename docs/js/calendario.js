@@ -15,6 +15,7 @@ let pedidoModalActual = null;
    DOM
 ===================================================== */
 const btnGoogleCalendar = document.getElementById("calGoogleCalendar");
+const btnQuitarCalendar = document.getElementById("calQuitarCalendar");
 
 /* =====================================================
    UTIL – FECHA LOCAL ISO (AR)
@@ -117,18 +118,15 @@ function renderCalendario() {
     divDia.appendChild(numero);
 
     pedidosCache
-      .filter(p =>
-        p.estado !== "ENTREGADO" &&
-        p.fecha?.slice(0, 10) === fechaStr
-      )
+      .filter(p => p.estado !== "ENTREGADO" && p.fecha?.slice(0, 10) === fechaStr)
       .forEach(p => {
         const pedido = document.createElement("div");
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
 
         const marcado = pedidoYaEnCalendar(p.id) ? " 📅" : "";
         pedido.textContent = `${p.clienteNombre} – $${p.total}${marcado}`;
-
         pedido.onclick = () => abrirModal(p);
+
         divDia.appendChild(pedido);
       });
 
@@ -160,14 +158,17 @@ function abrirModal(p) {
   document.getElementById("calTotal").textContent =
     `Total: $${p.total}`;
 
-  // 📅 BOTÓN GOOGLE CALENDAR
-  if (btnGoogleCalendar) {
+  if (btnGoogleCalendar && btnQuitarCalendar) {
     if (p.estado === "LISTO") {
       btnGoogleCalendar.style.display = "inline-flex";
+      btnQuitarCalendar.style.display = "none";
 
       if (pedidoYaEnCalendar(p.id)) {
         btnGoogleCalendar.textContent = "📅 Ya agregado";
         btnGoogleCalendar.disabled = true;
+
+        btnQuitarCalendar.style.display = "inline-flex";
+        btnQuitarCalendar.onclick = () => quitarDeCalendar(p.id);
       } else {
         btnGoogleCalendar.textContent = "📅 Google Calendar";
         btnGoogleCalendar.disabled = false;
@@ -175,6 +176,7 @@ function abrirModal(p) {
       }
     } else {
       btnGoogleCalendar.style.display = "none";
+      btnQuitarCalendar.style.display = "none";
     }
   }
 
@@ -211,7 +213,6 @@ function abrirEnGoogleCalendar(p) {
   const mm = String(fecha.getMonth() + 1).padStart(2, "0");
   const dd = String(fecha.getDate()).padStart(2, "0");
 
-  // Evento de día completo
   const fechaGCal = `${yyyy}${mm}${dd}/${yyyy}${mm}${dd}`;
 
   const titulo = `Pedido Pixel – ${p.clienteNombre}`;
@@ -230,8 +231,29 @@ ${p.nota ? `Nota: ${p.nota}` : ""}
 
   window.open(url, "_blank");
 
-  marcarPedidoEnCalendar(p.id);
+  setTimeout(() => {
+    if (confirm("¿Agregaste este pedido a Google Calendar?")) {
+      marcarPedidoEnCalendar(p.id);
+      renderCalendario();
+      abrirModal(p);
+    }
+  }, 800);
+}
+
+function quitarDeCalendar(id) {
+  if (!confirm("¿Quitar este pedido del calendario?")) return;
+
+  const data = JSON.parse(
+    localStorage.getItem("pixel_calendar_pedidos") || "[]"
+  ).filter(x => x !== id);
+
+  localStorage.setItem(
+    "pixel_calendar_pedidos",
+    JSON.stringify(data)
+  );
+
   renderCalendario();
+  if (pedidoModalActual) abrirModal(pedidoModalActual);
 }
 
 function pedidoYaEnCalendar(id) {
