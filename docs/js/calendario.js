@@ -4,12 +4,21 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* =====================================================
+   ESTADO
+===================================================== */
 let fechaActual = new Date();
 let pedidosCache = [];
+let pedidoModalActual = null;
 
-/* ===============================
+/* =====================================================
+   DOM
+===================================================== */
+const btnGoogleCalendar = document.getElementById("calGoogleCalendar");
+
+/* =====================================================
    UTIL – FECHA LOCAL ISO (AR)
-================================ */
+===================================================== */
 function fechaLocalISO(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -17,9 +26,9 @@ function fechaLocalISO(date) {
   return `${y}-${m}-${d}`;
 }
 
-/* ===============================
+/* =====================================================
    CARGAR PEDIDOS
-================================ */
+===================================================== */
 async function cargarPedidos() {
   pedidosCache = [];
   const snap = await getDocs(collection(db, "pedidos"));
@@ -28,9 +37,9 @@ async function cargarPedidos() {
   });
 }
 
-/* ===============================
+/* =====================================================
    AVISO VISUAL HOY + MAÑANA
-================================ */
+===================================================== */
 function renderAvisoManiana() {
   const contenedor = document.getElementById("avisoManiana");
   if (!contenedor) return;
@@ -70,9 +79,9 @@ function renderAvisoManiana() {
   contenedor.innerHTML = html;
 }
 
-/* ===============================
+/* =====================================================
    RENDER CALENDARIO
-================================ */
+===================================================== */
 function renderCalendario() {
   const calendario = document.getElementById("calendario");
   calendario.innerHTML = "";
@@ -81,7 +90,10 @@ function renderCalendario() {
   const año = fechaActual.getFullYear();
 
   document.getElementById("mesActual").textContent =
-    fechaActual.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+    fechaActual.toLocaleDateString("es-AR", {
+      month: "long",
+      year: "numeric"
+    });
 
   const primerDia = new Date(año, mes, 1).getDay();
   const diasMes = new Date(año, mes + 1, 0).getDate();
@@ -105,11 +117,17 @@ function renderCalendario() {
     divDia.appendChild(numero);
 
     pedidosCache
-      .filter(p => p.estado !== "ENTREGADO" && p.fecha?.slice(0, 10) === fechaStr)
+      .filter(p =>
+        p.estado !== "ENTREGADO" &&
+        p.fecha?.slice(0, 10) === fechaStr
+      )
       .forEach(p => {
         const pedido = document.createElement("div");
         pedido.className = `pedido pedido-${p.estado.toLowerCase()}`;
-        pedido.textContent = `${p.clienteNombre} – $${p.total}`;
+
+        const marcado = pedidoYaEnCalendar(p.id) ? " 📅" : "";
+        pedido.textContent = `${p.clienteNombre} – $${p.total}${marcado}`;
+
         pedido.onclick = () => abrirModal(p);
         divDia.appendChild(pedido);
       });
@@ -118,34 +136,60 @@ function renderCalendario() {
   }
 }
 
-/* ===============================
+/* =====================================================
    MODAL
-================================ */
+===================================================== */
 function abrirModal(p) {
-    pedidoModalActual = p;
+  pedidoModalActual = p;
 
-  if (btnGoogleCalendar) {
-    btnGoogleCalendar.onclick = () => abrirEnGoogleCalendar(p);
-  }
+  document.getElementById("calTitulo").textContent =
+    `Pedido de ${p.clienteNombre}`;
 
-  document.getElementById("calTitulo").textContent = `Pedido de ${p.clienteNombre}`;
-  document.getElementById("calEstado").textContent = `Estado: ${p.estado}`;
+  document.getElementById("calEstado").textContent =
+    `Estado: ${p.estado}`;
+
   document.getElementById("calFecha").textContent =
     `Fecha: ${new Date(p.fecha).toLocaleDateString("es-AR")}`;
+
   document.getElementById("calItems").innerHTML =
     p.items.map(i => `• ${i.cantidad} × ${i.nombre}`).join("<br>");
-  document.getElementById("calNota").textContent = p.nota || "—";
-  document.getElementById("calTotal").textContent = `Total: $${p.total}`;
-  document.getElementById("modalCalendario").classList.remove("hidden");
+
+  document.getElementById("calNota").textContent =
+    p.nota || "—";
+
+  document.getElementById("calTotal").textContent =
+    `Total: $${p.total}`;
+
+  // 📅 BOTÓN GOOGLE CALENDAR
+  if (btnGoogleCalendar) {
+    if (p.estado === "LISTO") {
+      btnGoogleCalendar.style.display = "inline-flex";
+
+      if (pedidoYaEnCalendar(p.id)) {
+        btnGoogleCalendar.textContent = "📅 Ya agregado";
+        btnGoogleCalendar.disabled = true;
+      } else {
+        btnGoogleCalendar.textContent = "📅 Google Calendar";
+        btnGoogleCalendar.disabled = false;
+        btnGoogleCalendar.onclick = () => abrirEnGoogleCalendar(p);
+      }
+    } else {
+      btnGoogleCalendar.style.display = "none";
+    }
+  }
+
+  document.getElementById("modalCalendario")
+    .classList.remove("hidden");
 }
 
 document.getElementById("calCerrar").onclick = () => {
-  document.getElementById("modalCalendario").classList.add("hidden");
+  document.getElementById("modalCalendario")
+    .classList.add("hidden");
 };
 
-/* ===============================
+/* =====================================================
    NAVEGACIÓN MESES
-================================ */
+===================================================== */
 document.getElementById("prevMes").onclick = () => {
   fechaActual.setMonth(fechaActual.getMonth() - 1);
   renderCalendario();
@@ -156,26 +200,13 @@ document.getElementById("nextMes").onclick = () => {
   renderCalendario();
 };
 
-/* ===============================
-   INIT
-================================ */
-(async function init() {
-  await cargarPedidos();
-  renderAvisoManiana();
-  renderCalendario();
-})();
-/* ===============================
+/* =====================================================
    GOOGLE CALENDAR
-================================ */
-
-const btnGoogleCalendar = document.getElementById("calGoogleCalendar");
-let pedidoModalActual = null;
-
+===================================================== */
 function abrirEnGoogleCalendar(p) {
   if (!p || !p.fecha) return;
 
   const fecha = new Date(p.fecha);
-
   const yyyy = fecha.getFullYear();
   const mm = String(fecha.getMonth() + 1).padStart(2, "0");
   const dd = String(fecha.getDate()).padStart(2, "0");
@@ -184,7 +215,6 @@ function abrirEnGoogleCalendar(p) {
   const fechaGCal = `${yyyy}${mm}${dd}/${yyyy}${mm}${dd}`;
 
   const titulo = `Pedido Pixel – ${p.clienteNombre}`;
-
   const detalles = `
 Cliente: ${p.clienteNombre}
 Estado: ${p.estado}
@@ -199,4 +229,36 @@ ${p.nota ? `Nota: ${p.nota}` : ""}
     `&details=${encodeURIComponent(detalles)}`;
 
   window.open(url, "_blank");
+
+  marcarPedidoEnCalendar(p.id);
+  renderCalendario();
 }
+
+function pedidoYaEnCalendar(id) {
+  const data = JSON.parse(
+    localStorage.getItem("pixel_calendar_pedidos") || "[]"
+  );
+  return data.includes(id);
+}
+
+function marcarPedidoEnCalendar(id) {
+  const data = JSON.parse(
+    localStorage.getItem("pixel_calendar_pedidos") || "[]"
+  );
+  if (!data.includes(id)) {
+    data.push(id);
+    localStorage.setItem(
+      "pixel_calendar_pedidos",
+      JSON.stringify(data)
+    );
+  }
+}
+
+/* =====================================================
+   INIT
+===================================================== */
+(async function init() {
+  await cargarPedidos();
+  renderAvisoManiana();
+  renderCalendario();
+})();
