@@ -122,6 +122,12 @@ function renderCalendario() {
    MODAL
 ================================ */
 function abrirModal(p) {
+    pedidoModalActual = p;
+
+  if (btnGoogleCalendar) {
+    btnGoogleCalendar.onclick = () => abrirEnGoogleCalendar(p);
+  }
+
   document.getElementById("calTitulo").textContent = `Pedido de ${p.clienteNombre}`;
   document.getElementById("calEstado").textContent = `Estado: ${p.estado}`;
   document.getElementById("calFecha").textContent =
@@ -158,3 +164,39 @@ document.getElementById("nextMes").onclick = () => {
   renderAvisoManiana();
   renderCalendario();
 })();
+/* ===============================
+   GOOGLE CALENDAR
+================================ */
+
+const btnGoogleCalendar = document.getElementById("calGoogleCalendar");
+let pedidoModalActual = null;
+
+function abrirEnGoogleCalendar(p) {
+  if (!p || !p.fecha) return;
+
+  const fecha = new Date(p.fecha);
+
+  const yyyy = fecha.getFullYear();
+  const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dd = String(fecha.getDate()).padStart(2, "0");
+
+  // Evento de día completo
+  const fechaGCal = `${yyyy}${mm}${dd}/${yyyy}${mm}${dd}`;
+
+  const titulo = `Pedido Pixel – ${p.clienteNombre}`;
+
+  const detalles = `
+Cliente: ${p.clienteNombre}
+Estado: ${p.estado}
+Total: $${p.total}
+${p.nota ? `Nota: ${p.nota}` : ""}
+  `.trim();
+
+  const url =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE` +
+    `&text=${encodeURIComponent(titulo)}` +
+    `&dates=${fechaGCal}` +
+    `&details=${encodeURIComponent(detalles)}`;
+
+  window.open(url, "_blank");
+}
