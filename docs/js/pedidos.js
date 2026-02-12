@@ -417,6 +417,7 @@ function renderLista() {
           <td>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
+            <button class="btn-pp btn-prod" onclick="irAProduccion('${p.id}')">🏭</button>
           </td>
         </tr>`;
     });
@@ -620,4 +621,7 @@ function traducirAccion(accion) {
 // 👉 Exponer pedidos para otros módulos (calendario)
 window.getPedidosCache = function () {
   return pedidosCache || [];
+};
+window.irAProduccion = function(pedidoId) {
+  window.location.href = `produccion.html?pedido=${pedidoId}`;
 };
