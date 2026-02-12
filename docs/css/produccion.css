@@ -95,3 +95,33 @@ body {
   justify-content: space-between;
   margin-top: 8px;
 }
+.column h2 {
+  color: #333;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.board {
+  background: #f7f8fb;
+}
+
+.card-prod {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.progreso {
+  color: #444;
+  font-weight: 500;
+}
+.column {
+  background: #eef2f7;
+  border-radius: 12px;
+  padding: 12px;
+}
+.column h2 {
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: inline-block;
+}
