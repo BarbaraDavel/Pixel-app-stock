@@ -73,7 +73,7 @@ function renderCard(id, task) {
 
   card.innerHTML = `
     <h3>${task.productoNombre}</h3>
-    <div><strong>${task.cliente || ""}</strong></div>
+    <div class="cliente">${task.cliente}</div>
     <div class="progreso">Progreso total: ${progreso}%</div>
 
     <div class="checklist">
