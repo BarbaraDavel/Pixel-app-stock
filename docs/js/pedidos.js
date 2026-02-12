@@ -417,7 +417,6 @@ function renderLista() {
           <td>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
-            <button class="btn-pp btn-prod" onclick="irAProduccion('${p.id}')">🏭</button>
           </td>
         </tr>`;
     });
