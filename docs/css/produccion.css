@@ -124,16 +124,33 @@
 
 /* Checklist mejor alineado */
 .checklist {
-  margin-top: 6px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .checklist label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
   font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  background: #f8f9fa;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
 }
+
+.checklist label:hover {
+  background: #eceff1;
+}
+
+.checklist input[type="checkbox"] {
+  transform: scale(1.1);
+}
+
 
 /* Botones más lindos */
 .buttons-prod {
