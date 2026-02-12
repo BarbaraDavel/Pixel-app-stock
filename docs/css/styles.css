@@ -1166,3 +1166,9 @@ body.home-bg > * {
 .btn-prod:hover {
   background: #ffd8a8;
 }
+.btn-produccion {
+  font-size: 15px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
