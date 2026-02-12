@@ -6,9 +6,16 @@
 
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/produccion.css">
+
+  <!-- 🔥 Drag & Drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 
 <body>
+
+<!-- ============================= -->
+<!-- HEADER -->
+<!-- ============================= -->
 
 <div class="topbar">
   <div class="brand">
@@ -22,6 +29,11 @@
   </div>
 </div>
 
+
+<!-- ============================= -->
+<!-- CONTENIDO -->
+<!-- ============================= -->
+
 <div class="main">
 
   <div class="card">
@@ -31,14 +43,14 @@
     </p>
   </div>
 
-  <!-- 🔥 BOTÓN NUEVA TAREA -->
+  <!-- BOTÓN NUEVA TAREA -->
   <div style="margin: 15px 0;">
     <button id="btnNuevaTarea" class="btn btn-primary">
       ➕ Nueva tarea
     </button>
   </div>
 
-  <!-- 🔥 TABLERO -->
+  <!-- TABLERO -->
   <div class="board">
 
     <div class="column">
@@ -65,9 +77,14 @@
 
 </div>
 
-<!-- 🔥 MODAL NUEVA TAREA -->
+
+<!-- ============================= -->
+<!-- MODAL NUEVA TAREA -->
+<!-- ============================= -->
+
 <div id="modalNuevaTarea" class="modal-backdrop hidden">
   <div class="modal">
+
     <h3>Nueva tarea de producción</h3>
 
     <label>Nombre del producto</label>
@@ -83,8 +100,14 @@
       <button id="ntGuardar" class="btn btn-primary">Crear</button>
       <button id="ntCerrar" class="btn btn-outline">Cancelar</button>
     </div>
+
   </div>
 </div>
+
+
+<!-- ============================= -->
+<!-- SCRIPTS -->
+<!-- ============================= -->
 
 <script type="module" src="js/firebase.js"></script>
 <script type="module" src="js/produccion.js"></script>

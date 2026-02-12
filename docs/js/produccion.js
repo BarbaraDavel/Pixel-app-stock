@@ -29,6 +29,36 @@ const colElements = [
 ];
 
 /* =====================================================
+   DRAG & DROP
+===================================================== */
+
+colElements.forEach((col, index) => {
+  new Sortable(col, {
+    group: "produccion",
+    animation: 200,
+    ghostClass: "drag-ghost",
+    onEnd: async (evt) => {
+      const taskId = evt.item.dataset.id;
+      const newColumnIndex = index;
+
+      const taskRef = doc(db, "productionTasks", taskId);
+      const snap = await getDoc(taskRef);
+      if (!snap.exists()) return;
+
+      const task = snap.data();
+
+      task.etapaIndex = newColumnIndex;
+      task.etapaActual = columnas[newColumnIndex];
+
+      await updateDoc(taskRef, {
+        etapaIndex: task.etapaIndex,
+        etapaActual: task.etapaActual
+      });
+    }
+  });
+});
+
+/* =====================================================
    MODAL NUEVA TAREA
 ===================================================== */
 
@@ -41,7 +71,7 @@ const ntGuardar = document.getElementById("ntGuardar");
 const ntCerrar = document.getElementById("ntCerrar");
 
 /* =====================================================
-   LISTENER EN TIEMPO REAL
+   LISTENER TIEMPO REAL
 ===================================================== */
 
 onSnapshot(collection(db, "productionTasks"), (snapshot) => {
@@ -68,22 +98,27 @@ function renderCard(id, task) {
 
   const card = document.createElement("div");
   card.className = "card-prod";
+  card.dataset.id = id;
 
   const progreso = calcularProgreso(task);
 
   card.innerHTML = `
     <h3>${task.productoNombre}</h3>
-    <div class="cliente">${task.cliente}</div>
-    <div class="progreso">Progreso total: ${progreso}%</div>
+    <div class="cliente">${task.cliente || ""}</div>
+
+    <div class="progreso-bar">
+      <div class="progreso-fill" style="width:${progreso}%"></div>
+    </div>
+    <div class="progreso-text">${progreso}% completado</div>
 
     <div class="checklist">
       ${etapa.checklist.map((item, i) => `
-        <label>
+        <label class="check-item">
           <input type="checkbox"
             ${item.done ? "checked" : ""}
             data-task="${id}"
             data-check="${i}">
-          ${item.nombre}
+          <span>${item.nombre}</span>
         </label>
       `).join("")}
     </div>
@@ -130,7 +165,6 @@ document.addEventListener("change", async (e) => {
 
   const taskRef = doc(db, "productionTasks", taskId);
   const snap = await getDoc(taskRef);
-
   if (!snap.exists()) return;
 
   const task = snap.data();
@@ -165,7 +199,6 @@ window.moverEtapa = async function(taskId, direccion) {
 
   const taskRef = doc(db, "productionTasks", taskId);
   const snap = await getDoc(taskRef);
-
   if (!snap.exists()) return;
 
   const task = snap.data();
@@ -180,7 +213,6 @@ window.moverEtapa = async function(taskId, direccion) {
     etapaIndex: task.etapaIndex,
     etapaActual: task.etapaActual
   });
-
 };
 
 /* =====================================================
@@ -196,11 +228,12 @@ ntCerrar.onclick = () => {
 };
 
 /* =====================================================
-   CARGAR TIPOS DESDE productWorkflows
+   CARGAR TIPOS
 ===================================================== */
 
 async function cargarTiposProduccion() {
   ntTipo.innerHTML = "";
+
   const snap = await getDocs(collection(db, "productWorkflows"));
 
   snap.forEach(d => {
@@ -213,7 +246,7 @@ async function cargarTiposProduccion() {
 cargarTiposProduccion();
 
 /* =====================================================
-   CREAR TAREA MANUAL
+   CREAR TAREA
 ===================================================== */
 
 ntGuardar.onclick = async () => {
@@ -243,7 +276,6 @@ ntGuardar.onclick = async () => {
   }));
 
   await addDoc(collection(db, "productionTasks"), {
-    pedidoId: null,
     cliente: ntCliente.value || "",
     productoNombre: ntProducto.value,
     tipoProduccion: ntTipo.value,
