@@ -5,24 +5,30 @@
   <title>Pedidos - Pixel</title>
   <link rel="stylesheet" href="css/styles.css">
 
+  <!-- html2pdf.js desde CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
 
-<!-- ============================= HEADER ============================= -->
-
+<!-- ================================
+          HEADER
+================================ -->
 <div class="topbar">
   <div class="brand">
     <span class="logo-fox">🦊</span> Pixel
   </div>
 
-  <button class="hamburger" aria-label="Menú">☰</button>
+  <button class="hamburger" aria-label="Menú">
+    ☰
+  </button>
 
   <div class="nav-links">
      <a href="./index.html">Inicio</a>
      <a href="./insumos.html">Insumos</a>
      <a href="./stock.html">Stock</a>
+<!--     <a href="./movimientos_stock.html">Movimientos</a>-->
+<!--     <a href="./recetas.html">Recetas</a>-->
      <a href="./productos.html">Productos</a>
      <a href="./clientes.html">Clientes</a>     
      <a href="./guia.html">Guia</a>
@@ -31,14 +37,15 @@
      <a class="active" href="./pedidos.html">Pedidos</a>
      <a href="./catalogo.html">Catalogo</a>
      <a href="./calendario.html">Calendario</a>
-  </div>
+   </div>
 </div>
 
 
 <div class="main">
 
-<!-- ============================= ENCABEZADO ============================= -->
-
+  <!-- ================================
+        ENCABEZADO
+  ================================= -->
 <div class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
     <div>
@@ -55,148 +62,281 @@
 </div>
 
 
-<!-- ============================= FORMULARIO ============================= -->
 
-<div class="card">
+  <!-- ================================
+        FORMULARIO DEL PEDIDO
+  ================================= -->
+  <div class="card">
+    <h3>Datos del cliente</h3>
 
-  <h3>Datos del cliente</h3>
-
-  <div class="form-grid">
-    <div class="form-group">
-      <label>Cliente</label>
-      <input id="clienteNombre" placeholder="Nombre del cliente" list="clientesDatalist">
-      <datalist id="clientesDatalist"></datalist>
-    </div>
-
-    <div class="form-group">
-      <label>Teléfono</label>
-      <input id="clienteTelefono" placeholder="Teléfono">
-    </div>
-
-    <div class="form-group">
-      <label>Red / Contacto</label>
-      <input id="clienteRed" placeholder="Instagram / WhatsApp">
-    </div>
-  </div>
-
-  <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
-
-  <div class="form-grid">
-    <div class="form-group">
-      <label>Producto</label>
-      <select id="productoSelect">
-        <option value="">Cargando productos...</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Cantidad</label>
-      <input id="cantidadInput" type="number" min="1" value="1">
-    </div>
-
-    <div class="form-group" style="align-self:flex-end;">
-      <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
-    </div>
-  </div>
-
-  <!-- 🔥 BOTÓN ITEM PERSONALIZADO -->
-  <div style="margin-top:12px;">
-    <button type="button" id="btnItemPersonalizado" class="btn btn-outline">
-      ➕ Ítem personalizado
-    </button>
-  </div>
-
-  <!-- 🔥 BLOQUE ITEM PERSONALIZADO -->
-  <div id="itemPersonalizadoBox" style="display:none; margin-top:12px;">
     <div class="form-grid">
-
       <div class="form-group">
-        <label>Descripción</label>
-        <input id="itemPersonalizadoNombre" placeholder="Ej: Trabajo especial, envío, diseño...">
+        <label>Cliente</label>
+        <input id="clienteNombre" placeholder="Nombre del cliente" list="clientesDatalist">
+        <datalist id="clientesDatalist"></datalist>
       </div>
 
       <div class="form-group">
-        <label>Precio</label>
-        <input id="itemPersonalizadoPrecio" type="number" min="0">
+        <label>Teléfono</label>
+        <input id="clienteTelefono" placeholder="Teléfono">
+      </div>
+
+      <div class="form-group">
+        <label>Red / Contacto</label>
+        <input id="clienteRed" placeholder="Instagram / WhatsApp">
+      </div>
+    </div>
+
+
+    <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Producto</label>
+        <select id="productoSelect">
+          <option value="">Cargando productos...</option>
+        </select>
       </div>
 
       <div class="form-group">
         <label>Cantidad</label>
-        <input id="itemPersonalizadoCantidad" type="number" min="1" value="1">
+        <input id="cantidadInput" type="number" min="1" value="1">
       </div>
 
       <div class="form-group" style="align-self:flex-end;">
-        <button id="agregarItemPersonalizadoBtn" class="btn btn-primary">
-          Agregar
-        </button>
+        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
+      </div>
+    </div>
+
+
+    <!-- TABLA ITEMS -->
+    <table class="tabla-stock" style="margin-top:1rem;">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Cant</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pedidoItems"></tbody>
+    </table>
+
+    <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
+      <strong>Total:</strong> $<span id="totalPedido">0</span>
+    </p>
+
+
+    <!-- DATOS DEL PEDIDO -->
+    <div class="form-grid" style="margin-top:1rem;">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input id="pedidoFecha" type="date">
       </div>
 
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="pedidoEstado">
+          <option value="PENDIENTE">🟥 Pendiente</option>
+          <option value="PROCESO">🟨 En proceso</option>
+          <option value="LISTO">🟪 Listo</option>
+          <option value="ENTREGADO">🟩 Entregado</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Nota</label>
+        <input id="pedidoNota" placeholder="Detalles extra (opcional)">
+      </div>
+    </div>
+
+
+    <!-- PAGADO -->
+    <div style="margin-top:0.5rem;">
+      <label style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="pedidoPagado" style="width:18px; height:18px;">
+        <span style="font-size:0.95rem;">Pagado</span>
+      </label>
+    </div>
+
+
+    <!-- BOTONES -->
+    <div style="text-align:right; margin-top:1.2rem;">
+      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
+      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
     </div>
   </div>
 
+  <br>
 
-  <!-- TABLA ITEMS -->
-  <table class="tabla-stock" style="margin-top:1rem;">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Precio</th>
-        <th>Cant</th>
-        <th>Subtotal</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="pedidoItems"></tbody>
-  </table>
+      <!-- ================================
+            RESUMEN SIMPLE
+      ================================= -->
+      <div class="card" style="margin-bzottom:1rem;">
+        <div class="form-grid">
+          <div>
+            <strong>📦 Trabajos pendientes:</strong>
+            <span id="resumenActivos">0</span>
+          </div>
 
-  <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
-    <strong>Total:</strong> $<span id="totalPedido">0</span>
-  </p>
+          <div>
+            <strong>💰 Total no pagado:</strong>
+            $<span id="resumenNoPagado">0</span>
+          </div>
+        </div>
+      </div> 
 
+  <!-- ================================
+        LISTA DE PEDIDOS
+  ================================= -->
+  <div class="card">
+    <h3>Lista de pedidos</h3>
 
-  <!-- DATOS PEDIDO -->
-  <div class="form-grid" style="margin-top:1rem;">
-    <div class="form-group">
-      <label>Fecha</label>
-      <input id="pedidoFecha" type="date">
+    <!-- FILTROS -->
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div>
+        <label>Buscar cliente</label>
+        <input id="filtroBusqueda" placeholder="Buscar por nombre...">
+      </div>
+
+      <div>
+        <label>Filtrar por estado</label>
+        <select id="filtroEstado">
+          <option value="">Todos</option>
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="PROCESO">En proceso</option>
+          <option value="LISTO">Listos</option>
+          <option value="ENTREGADO">Entregados</option>
+        </select>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label>Estado</label>
-      <select id="pedidoEstado">
-        <option value="PENDIENTE">🟥 Pendiente</option>
-        <option value="PROCESO">🟨 En proceso</option>
-        <option value="LISTO">🟪 Listo</option>
-        <option value="ENTREGADO">🟩 Entregado</option>
-      </select>
-    </div>
+    <!-- 🆕 TOGGLE MOSTRAR ENTREGADOS 
+    <div style="margin-bottom:0.8rem;">
+      <label style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="toggleEntregados" style="width:18px; height:18px;">
+        <span style="font-size:0.95rem;">Mostrar pedidos entregados</span>
+      </label>
+    </div>-->
 
-    <div class="form-group">
-      <label>Nota</label>
-      <input id="pedidoNota" placeholder="Detalles extra (opcional)">
-    </div>
-  </div>
-
-  <div style="margin-top:0.5rem;">
-    <label style="display:flex; align-items:center; gap:8px;">
-      <input type="checkbox" id="pedidoPagado" style="width:18px; height:18px;">
-      <span>Pagado</span>
-    </label>
-  </div>
-
-  <div style="text-align:right; margin-top:1.2rem;">
-    <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
-    <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
+    <table class="tabla-stock">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Pagado</th>
+          <th>Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="listaPedidos"></tbody>
+    </table>
   </div>
 
 </div>
 
 
-<!-- ============================= RESTO IGUAL (Lista, Modales, etc) ============================= -->
-<!-- Todo lo que ya tenías debajo queda exactamente igual -->
+<!-- ================================
+      MODAL VER PEDIDO
+================================ -->
+<div id="pedidoModal" class="modal-backdrop hidden">
+  <div class="modal">
 
+    <h3 id="modalTitulo"></h3>
+
+    <p id="modalCliente"></p>
+    <p id="modalEstado"></p>
+    <p id="modalFecha"></p>
+
+    <div id="modalItems" style="margin-top:0.8rem;"></div>
+
+    <p id="modalNota" style="margin-top:0.8rem;"></p>
+    <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
+
+    <!-- 🕓 HISTORIAL -->
+    <div id="modalHistorial" style="margin-top:0.8rem; font-size:0.9rem;"></div>
+
+    <!-- BOTONES -->
+    <div
+      style="
+        text-align:right;
+        margin-top:1rem;
+        display:flex;
+        justify-content:flex-end;
+        gap:0.5rem;
+        flex-wrap:wrap;
+      "
+    >
+      <button id="modalPdf" class="btn btn-outline">PDF</button>
+      <button id="modalWhatsApp" class="btn btn-outline">WhatsApp</button>
+      <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- ================================
+      MODAL EDITAR PEDIDO
+================================ -->
+<div id="editarPedidoModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Editar Pedido</h3>
+
+    <label>Estado</label>
+    <select id="editEstado" class="input-pixel">
+      <option value="PENDIENTE">🟥 Pendiente</option>
+      <option value="PROCESO">🟨 En proceso</option>
+      <option value="LISTO">🟪 Listo</option>
+      <option value="ENTREGADO">🟩 Entregado</option>
+    </select>
+
+    <label>Nota</label>
+    <input id="editNota" class="input-pixel">
+
+    <label>Fecha</label>
+    <input id="editFecha" type="date" class="input-pixel">
+
+    <label style="display:flex; align-items:center; gap:8px; margin-top:0.6rem;">
+      <input type="checkbox" id="editPagado" style="width:18px; height:18px;">
+      <span>Pagado</span>
+    </label>
+
+    <div style="text-align:right;margin-top:1rem;">
+      <button id="editGuardar" class="btn btn-primary">Guardar cambios</button>
+      <button id="editCerrar" class="btn btn-outline">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
+<nav class="bottom-nav">
+  <a href="index.html" class="bn-item">
+    <span class="bn-icon">🏠</span>
+    <span class="bn-label">Inicio</span>
+  </a>
+  <a href="productos.html" class="bn-item">
+    <span class="bn-icon">🏷️</span>
+    <span class="bn-label">Productos</span>
+  </a>
+  <a href="pedidos.html" class="bn-item">
+    <span class="bn-icon">📝</span>
+    <span class="bn-label">Pedidos</span>
+  </a>
+  <a href="clientes.html" class="bn-item">
+    <span class="bn-icon">👥</span>
+    <span class="bn-label">Clientes</span>
+  </a>
+</nav>
+
+
+<!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=3"></script>
+<script type="module" src="js/pedidos.js?v=2"></script>
 
 <script>
   if ("serviceWorker" in navigator) {
