@@ -102,32 +102,33 @@ function renderCard(id, task) {
 
   const progreso = calcularProgreso(task);
 
-  card.innerHTML = `
+card.innerHTML = `
+  <div class="card-header">
     <h3>${task.productoNombre}</h3>
-    <div class="cliente">${task.cliente || ""}</div>
+    <button class="btn-delete" onclick="eliminarTarea('${id}')">🗑</button>
+  </div>
 
-    <div class="progreso-bar">
-      <div class="progreso-fill" style="width:${progreso}%"></div>
-    </div>
-    <div class="progreso-text">${progreso}% completado</div>
+  <div class="cliente">${task.cliente || ""}</div>
+  <div class="progreso-badge">${progreso}% completado</div>
 
-    <div class="checklist">
-      ${etapa.checklist.map((item, i) => `
-        <label class="check-item">
-          <input type="checkbox"
-            ${item.done ? "checked" : ""}
-            data-task="${id}"
-            data-check="${i}">
-          <span>${item.nombre}</span>
-        </label>
-      `).join("")}
-    </div>
+  <div class="checklist">
+    ${etapa.checklist.map((item, i) => `
+      <div class="check-item">
+        <input type="checkbox"
+          ${item.done ? "checked" : ""}
+          data-task="${id}"
+          data-check="${i}">
+        <span>${item.nombre}</span>
+      </div>
+    `).join("")}
+  </div>
 
-    <div class="buttons-prod">
-      <button onclick="moverEtapa('${id}', -1)">◀</button>
-      <button onclick="moverEtapa('${id}', 1)">▶</button>
-    </div>
-  `;
+  <div class="buttons-prod">
+    <button onclick="moverEtapa('${id}', -1)">◀</button>
+    <button onclick="moverEtapa('${id}', 1)">▶</button>
+  </div>
+`;
+
 
   colElements[etapaIndex].appendChild(card);
 }
@@ -288,4 +289,13 @@ ntGuardar.onclick = async () => {
   ntProducto.value = "";
   ntCliente.value = "";
   modalNuevaTarea.classList.add("hidden");
+};
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+window.eliminarTarea = async function(id) {
+
+  const confirmar = confirm("¿Eliminar esta tarea de producción?");
+  if (!confirmar) return;
+
+  await deleteDoc(doc(db, "productionTasks", id));
 };
