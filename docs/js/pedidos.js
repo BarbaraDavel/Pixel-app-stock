@@ -269,10 +269,10 @@ btnGuardar.addEventListener("click", async e => {
   if (pedidoEditandoId) {
     const p = pedidosCache.find(x => x.id === pedidoEditandoId);
     if (p.estado === "ENTREGADO") {
-      alert("Este pedido está ENTREGADO y no se puede editar 🔒");
-      return;
+      if (!confirm("Este pedido está ENTREGADO. ¿Querés modificarlo igual?")) {
+        return;
+      }
     }
-
     await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
       ...baseData,
       historial: [
@@ -506,11 +506,6 @@ Gracias 🤍 Pixel
 window.editarPedido = id => {
   const p = pedidosCache.find(x => x.id === id);
   if (!p) return;
-
-  if (p.estado === "ENTREGADO") {
-    alert("Este pedido está ENTREGADO y no se puede editar 🔒");
-    return;
-  }
 
   pedidoEditandoId = id;
 
