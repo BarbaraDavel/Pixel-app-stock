@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <title>Producción - Pixel</title>
 
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/produccion.css">
-
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/produccion.css">
 </head>
 
 <body>
@@ -32,6 +31,14 @@
     </p>
   </div>
 
+  <!-- 🔥 BOTÓN NUEVA TAREA -->
+  <div style="margin: 15px 0;">
+    <button id="btnNuevaTarea" class="btn btn-primary">
+      ➕ Nueva tarea
+    </button>
+  </div>
+
+  <!-- 🔥 TABLERO -->
   <div class="board">
 
     <div class="column">
@@ -56,6 +63,27 @@
 
   </div>
 
+</div>
+
+<!-- 🔥 MODAL NUEVA TAREA -->
+<div id="modalNuevaTarea" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Nueva tarea de producción</h3>
+
+    <label>Nombre del producto</label>
+    <input id="ntProducto" class="input-pixel" placeholder="Ej: Agenda A5 Juan">
+
+    <label>Cliente (opcional)</label>
+    <input id="ntCliente" class="input-pixel" placeholder="Ej: Juan">
+
+    <label>Tipo de producción</label>
+    <select id="ntTipo" class="input-pixel"></select>
+
+    <div style="text-align:right; margin-top:1rem;">
+      <button id="ntGuardar" class="btn btn-primary">Crear</button>
+      <button id="ntCerrar" class="btn btn-outline">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="js/firebase.js"></script>
