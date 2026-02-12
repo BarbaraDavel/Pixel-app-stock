@@ -3,39 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <title>Producción - Pixel</title>
-  <link rel="stylesheet" href="../css/estilos.css">
-  <link rel="stylesheet" href="../css/produccion.css">
 
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/produccion.css">
 </head>
+
 <body>
 
-  <h1>🏭 Producción</h1>
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
+  </div>
+
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a href="./pedidos.html">Pedidos</a>
+    <a class="active" href="./produccion.html">Producción</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <h1>🏭 Producción</h1>
+    <p class="hint">
+      Gestión interna de fabricación por producto.
+    </p>
+  </div>
 
   <div class="board">
 
-    <div class="column" data-etapa="Preparación">
+    <div class="column">
       <h2>Preparación</h2>
       <div class="cards" id="col-0"></div>
     </div>
 
-    <div class="column" data-etapa="Armado">
+    <div class="column">
       <h2>Armado</h2>
       <div class="cards" id="col-1"></div>
     </div>
 
-    <div class="column" data-etapa="Empaquetado">
+    <div class="column">
       <h2>Empaquetado</h2>
       <div class="cards" id="col-2"></div>
     </div>
 
-    <div class="column" data-etapa="Listo">
+    <div class="column">
       <h2>Listo</h2>
       <div class="cards" id="col-3"></div>
     </div>
 
   </div>
 
-  <script type="module" src="js/produccion.js"></script>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/produccion.js"></script>
 
 </body>
 </html>

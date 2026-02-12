@@ -44,3 +44,54 @@ body {
   display: flex;
   justify-content: space-between;
 }
+.board {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.column {
+  background: #f4f6f9;
+  border-radius: 10px;
+  padding: 10px;
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.column h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.card-prod {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  font-size: 13px;
+}
+
+.card-prod h3 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+}
+
+.checklist label {
+  display: block;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.progreso {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #666;
+}
+
+.buttons-prod {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}

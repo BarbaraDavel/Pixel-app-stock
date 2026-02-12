@@ -3,6 +3,7 @@ import {
   collection,
   onSnapshot,
   doc,
+  getDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
@@ -20,10 +21,8 @@ const colElements = [
   document.getElementById("col-3")
 ];
 
-// Escuchar cambios en tiempo real
 onSnapshot(collection(db, "productionTasks"), (snapshot) => {
 
-  // Limpiar columnas
   colElements.forEach(col => col.innerHTML = "");
 
   snapshot.forEach(docSnap => {
@@ -35,30 +34,32 @@ onSnapshot(collection(db, "productionTasks"), (snapshot) => {
 
 function renderCard(id, task) {
 
-  const etapaIndex = task.etapaIndex;
+  const etapaIndex = task.etapaIndex ?? 0;
   const etapa = task.etapas[etapaIndex];
 
   const card = document.createElement("div");
-  card.className = "card";
+  card.className = "card-prod";
 
-  const progresoTotal = calcularProgresoTotal(task);
+  const progreso = calcularProgreso(task);
 
   card.innerHTML = `
     <h3>${task.productoNombre}</h3>
-    <p><strong>${task.cliente}</strong></p>
-    <p>Progreso: ${progresoTotal}%</p>
+    <div><strong>${task.cliente}</strong></div>
+    <div class="progreso">Progreso total: ${progreso}%</div>
+
     <div class="checklist">
       ${etapa.checklist.map((item, i) => `
         <label>
-          <input type="checkbox" 
-            ${item.done ? "checked" : ""} 
-            data-task="${id}" 
+          <input type="checkbox"
+            ${item.done ? "checked" : ""}
+            data-task="${id}"
             data-check="${i}">
           ${item.nombre}
-        </label><br>
+        </label>
       `).join("")}
     </div>
-    <div class="buttons">
+
+    <div class="buttons-prod">
       <button onclick="moverEtapa('${id}', -1)">◀</button>
       <button onclick="moverEtapa('${id}', 1)">▶</button>
     </div>
@@ -67,21 +68,22 @@ function renderCard(id, task) {
   colElements[etapaIndex].appendChild(card);
 }
 
-function calcularProgresoTotal(task) {
+function calcularProgreso(task) {
   let total = 0;
-  let completados = 0;
+  let done = 0;
 
-  task.etapas.forEach(etapa => {
-    etapa.checklist.forEach(item => {
+  task.etapas.forEach(e => {
+    e.checklist.forEach(c => {
       total++;
-      if (item.done) completados++;
+      if (c.done) done++;
     });
   });
 
-  return Math.round((completados / total) * 100);
+  if (total === 0) return 0;
+
+  return Math.round((done / total) * 100);
 }
 
-// Check automático
 document.addEventListener("change", async (e) => {
 
   if (!e.target.matches("input[type=checkbox]")) return;
@@ -90,33 +92,21 @@ document.addEventListener("change", async (e) => {
   const checkIndex = parseInt(e.target.dataset.check);
 
   const taskRef = doc(db, "productionTasks", taskId);
-  const snapshot = await taskRef.get(); // ⚠️ esto lo ajustamos abajo
-
-});
-import { getDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-
-document.addEventListener("change", async (e) => {
-
-  if (!e.target.matches("input[type=checkbox]")) return;
-
-  const taskId = e.target.dataset.task;
-  const checkIndex = parseInt(e.target.dataset.check);
-
-  const taskRef = doc(db, "productionTasks", taskId);
-  const snapshot = await getDoc(taskRef);
-  const task = snapshot.data();
+  const snap = await getDoc(taskRef);
+  const task = snap.data();
 
   const etapaActual = task.etapas[task.etapaIndex];
 
   etapaActual.checklist[checkIndex].done = e.target.checked;
 
-  // Verificar obligatorios
-  const todosObligatorios = etapaActual.checklist
-    .filter(item => item.obligatorio)
-    .every(item => item.done);
+  const obligatoriosCompletos = etapaActual.checklist
+    .filter(i => i.obligatorio)
+    .every(i => i.done);
 
-  if (todosObligatorios && task.etapaIndex < task.etapas.length - 1) {
-    task.etapaIndex += 1;
+  if (obligatoriosCompletos &&
+      task.etapaIndex < task.etapas.length - 1) {
+
+    task.etapaIndex++;
     task.etapaActual = task.etapas[task.etapaIndex].nombre;
   }
 
@@ -127,15 +117,16 @@ document.addEventListener("change", async (e) => {
   });
 
 });
+
 window.moverEtapa = async function(taskId, direccion) {
 
   const taskRef = doc(db, "productionTasks", taskId);
-  const snapshot = await getDoc(taskRef);
-  const task = snapshot.data();
+  const snap = await getDoc(taskRef);
+  const task = snap.data();
 
   const nuevoIndex = task.etapaIndex + direccion;
 
-  if (nuevoIndex < 0 || nuevoIndex >= columnas.length) return;
+  if (nuevoIndex < 0 || nuevoIndex > 3) return;
 
   task.etapaIndex = nuevoIndex;
   task.etapaActual = columnas[nuevoIndex];
