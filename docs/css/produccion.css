@@ -1,120 +1,140 @@
+/* ===== FONDO GENERAL ===== */
+
+.main {
+  background: #f6f7fb;
+  padding-bottom: 40px;
+}
+
+/* ===== BOARD ===== */
+
 .board {
   display: flex;
-  gap: 20px;
-  padding: 20px;
+  gap: 24px;
+  padding: 30px 20px;
   overflow-x: auto;
+  align-items: flex-start;
 }
 
-/* ===== COLUMNAS BASE ===== */
+/* ===== COLUMNAS ===== */
 
 .column {
-  border-radius: 16px;
-  padding: 14px;
   width: 300px;
   flex-shrink: 0;
-  min-height: 400px;
+  min-height: 420px;
+  border-radius: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
 }
 
+.column:hover {
+  transform: translateY(-3px);
+}
+
+/* TITULOS */
+
 .column h2 {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   text-align: center;
-  padding: 6px 10px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  letter-spacing: 0.5px;
 }
 
 /* ===== COLORES POR ETAPA ===== */
 
-/* Preparación – naranja suave Pixel */
+/* Preparación */
 .column:nth-child(1) {
-  background: #fff4e6;
+  background: linear-gradient(180deg, #fff4e6 0%, #ffe8cc 100%);
 }
 .column:nth-child(1) h2 {
-  background: #ff9f43;
+  background: #ff922b;
   color: white;
 }
 
-/* Armado – lila Pixel */
+/* Armado */
 .column:nth-child(2) {
-  background: #f3eaff;
+  background: linear-gradient(180deg, #f3e8ff 0%, #e5dbff 100%);
 }
 .column:nth-child(2) h2 {
-  background: #b388eb;
+  background: #9c6ade;
   color: white;
 }
 
-/* Empaquetado – gris claro elegante */
+/* Empaquetado */
 .column:nth-child(3) {
-  background: #f1f3f5;
+  background: linear-gradient(180deg, #f1f3f5 0%, #e9ecef 100%);
 }
 .column:nth-child(3) h2 {
-  background: #adb5bd;
+  background: #868e96;
   color: white;
 }
 
-/* Listo – verde suave */
+/* Listo */
 .column:nth-child(4) {
-  background: #e6f9f0;
+  background: linear-gradient(180deg, #e6fcf5 0%, #d3f9d8 100%);
 }
 .column:nth-child(4) h2 {
-  background: #2ecc71;
+  background: #2f9e44;
   color: white;
 }
 
 /* ===== TARJETAS ===== */
 
 .card-prod {
-  background: white;
-  padding: 12px;
-  border-radius: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
   font-size: 13px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
 .card-prod:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.18);
 }
 
 .card-prod h3 {
   margin: 0 0 6px 0;
   font-size: 14px;
-}
-
-.checklist label {
-  display: block;
-  margin-bottom: 4px;
-  cursor: pointer;
-  font-size: 12px;
+  font-weight: 600;
 }
 
 .progreso {
   font-size: 12px;
-  margin-bottom: 6px;
-  color: #555;
-  font-weight: 500;
+  margin-bottom: 10px;
+  color: #444;
+  font-weight: 600;
 }
 
-.buttons-prod {
+/* CHECKLIST */
+
+.checklist label {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-
-.buttons-prod button {
-  border: none;
-  background: #e9ecef;
-  padding: 4px 8px;
-  border-radius: 8px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
   cursor: pointer;
   font-size: 12px;
 }
 
-.buttons-prod button:hover {
-  background: #dee2e6;
+/* BOTONES */
+
+.buttons-prod {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
 }
+
+.buttons-prod button {
+  border: none;
+  background: #f1f3f5;
+  padding: 6px 10px;
+  border-radius: 10px;
