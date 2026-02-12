@@ -1,0 +1,46 @@
+body {
+  font-family: sans-serif;
+  background: #f4f6f9;
+}
+
+.board {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.column {
+  background: #e3e7ee;
+  border-radius: 10px;
+  padding: 10px;
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.column h2 {
+  text-align: center;
+}
+
+.card {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+}
+
+.checklist {
+  font-size: 12px;
+}
+
+.buttons {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+}
