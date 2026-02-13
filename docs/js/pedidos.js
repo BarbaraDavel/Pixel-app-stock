@@ -43,9 +43,11 @@ const filtroBusqueda = document.getElementById("filtroBusqueda");
 const resumenPendientesEl = document.getElementById("resumenPendientes");
 const resumenListosEl = document.getElementById("resumenListos");
 
+
 // Resumen simple
 const resumenActivosEl  = document.getElementById("resumenActivos");
 const resumenNoPagadoEl = document.getElementById("resumenNoPagado");
+
 
 // Modal ver
 const modal        = document.getElementById("pedidoModal");
@@ -61,8 +63,6 @@ const modalWhats   = document.getElementById("modalWhatsApp");
 const modalCerrar  = document.getElementById("modalCerrar");
 const modalHistorial = document.getElementById("modalHistorial");
 
-// ✅ nuevo botón pago en modal
-const modalPago = document.getElementById("modalPago");
 
 // Modal editar chico
 const modalEdit   = document.getElementById("editarPedidoModal");
@@ -108,25 +108,6 @@ function prioridadPedido(p) {
   return 4;
 }
 
-// ✅ pagos parciales
-function getPagos(p) {
-  return Array.isArray(p?.pagos) ? p.pagos : [];
-}
-
-function calcTotalPagado(p) {
-  return getPagos(p).reduce((acc, x) => acc + Number(x?.monto || 0), 0);
-}
-
-function calcSaldo(p) {
-  const total = Number(p?.total || 0);
-  return total - calcTotalPagado(p);
-}
-
-function money(n) {
-  // simple: sin símbolos raros para que quede parecido a lo tuyo
-  return String(Math.round(Number(n || 0)));
-}
-
 /* =====================================================
    CLIENTES
 ===================================================== */
@@ -147,18 +128,19 @@ async function cargarClientes() {
   });
 }
 
-function syncClienteDesdeNombre() {
-  const c = clientesPorNombre[inputClienteNombre.value.trim()];
-  if (!c) return;
+    function syncClienteDesdeNombre() {
+      const c = clientesPorNombre[inputClienteNombre.value.trim()];
+      if (!c) return;
 
-  if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
-  if (!inputClienteRed.value) inputClienteRed.value = c.red;
+      if (!inputClienteTelefono.value) inputClienteTelefono.value = c.telefono;
+      if (!inputClienteRed.value) inputClienteRed.value = c.red;
 
-  // 🆕 autocompletar apodo si existe el input
-  if (inputClienteApodo && c.apodo && !inputClienteApodo.value) {
-    inputClienteApodo.value = c.apodo;
-  }
-}
+      // 🆕 autocompletar apodo si existe el input
+      if (inputClienteApodo && c.apodo && !inputClienteApodo.value) {
+        inputClienteApodo.value = c.apodo;
+      }
+    }
+
 
 inputClienteNombre.addEventListener("change", syncClienteDesdeNombre);
 inputClienteNombre.addEventListener("blur", syncClienteDesdeNombre);
@@ -242,7 +224,6 @@ function limpiarFormulario() {
   inputClienteNombre.value = "";
   inputClienteTelefono.value = "";
   inputClienteRed.value = "";
-  if (inputClienteApodo) inputClienteApodo.value = "";
   inputNota.value = "";
   inputCantidad.value = 1;
   selProducto.value = "";
@@ -280,23 +261,22 @@ btnGuardar.addEventListener("click", async e => {
     fecha: fechaIso,
     estado: selectEstado.value,
     nota: inputNota.value,
-    pagado: inputPagado.checked, // (si después hay pagos parciales, se recalcula igual)
+    pagado: inputPagado.checked,
     total,
     items: itemsPedido
   };
 
   if (pedidoEditandoId) {
     const p = pedidosCache.find(x => x.id === pedidoEditandoId);
-    if (p?.estado === "ENTREGADO") {
+    if (p.estado === "ENTREGADO") {
       if (!confirm("Este pedido está ENTREGADO. ¿Querés modificarlo igual?")) {
         return;
       }
     }
-
     await updateDoc(doc(db, "pedidos", pedidoEditandoId), {
       ...baseData,
       historial: [
-        ...(p?.historial || []),
+        ...(p.historial || []),
         {
           fecha: new Date().toISOString(),
           accion: "EDITADO",
@@ -313,7 +293,6 @@ btnGuardar.addEventListener("click", async e => {
       ...baseData,
       fechaServer: serverTimestamp(),
       stockDescontado: false,
-      pagos: [], // ✅ por default
       historial: [{
         fecha: new Date().toISOString(),
         accion: "CREADO",
@@ -327,66 +306,9 @@ btnGuardar.addEventListener("click", async e => {
   }
 
   limpiarFormulario();
-  await cargarClientes();
-  await cargarPedidos();
+  cargarClientes();
+  cargarPedidos();
 });
-
-/* =====================================================
-   PAGOS PARCIALES
-===================================================== */
-window.registrarPago = async (id) => {
-  const p = pedidosCache.find(x => x.id === id);
-  if (!p) return;
-
-  const raw = prompt("Ingresá el monto del pago (solo número):");
-  if (raw === null) return;
-
-  const monto = Number(String(raw).replace(",", "."));
-  if (!monto || isNaN(monto) || monto <= 0) {
-    alert("Monto inválido.");
-    return;
-  }
-
-  const pagos = getPagos(p);
-  pagos.push({
-    fecha: new Date().toISOString(),
-    monto: monto
-  });
-
-  const totalPagado = pagos.reduce((acc, x) => acc + Number(x.monto || 0), 0);
-  const total = Number(p.total || 0);
-  const saldo = total - totalPagado;
-
-  // ✅ si se completó, queda pagado
-  const pagado = saldo <= 0;
-
-  const nuevoHistorial = [
-    ...(p.historial || []),
-    {
-      fecha: new Date().toISOString(),
-      accion: "PAGO_PARCIAL",
-      monto: monto
-    }
-  ];
-
-  try {
-    await updateDoc(doc(db, "pedidos", id), {
-      pagos,
-      pagado,
-      historial: nuevoHistorial
-    });
-
-    await cargarPedidos();
-
-    // Si tenías el modal abierto, refrescamos el modal con los datos nuevos
-    if (pedidoModalActual?.id === id) {
-      window.verPedido(id);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("No se pudo registrar el pago.");
-  }
-};
 
 /* =====================================================
    LISTA PEDIDOS
@@ -398,33 +320,55 @@ async function cargarPedidos() {
   const snap = await getDocs(collection(db, "pedidos"));
   snap.forEach(d => pedidosCache.push({ id: d.id, ...d.data() }));
 
-  // ✅ recalcular pagado en memoria (por si hay pedidos viejos con pagos)
-  pedidosCache = pedidosCache.map(p => {
-    const pagos = getPagos(p);
-    if (!pagos.length) return p;
-    const saldo = calcSaldo(p);
-    return { ...p, pagado: saldo <= 0 };
-  });
+    pedidosCache.sort((a, b) => {
+      // 1️⃣ No pagados primero
+      if (a.pagado !== b.pagado) {
+        return a.pagado ? 1 : -1;
+      }
 
-  pedidosCache.sort((a, b) => {
-    // 1️⃣ saldo mayor a 0 primero (no terminados)
-    const sa = calcSaldo(a);
-    const sb = calcSaldo(b);
-    const aOk = sa <= 0;
-    const bOk = sb <= 0;
-    if (aOk !== bOk) return aOk ? 1 : -1;
+      // 2️⃣ Orden por estado
+      const ea = ordenEstados[a.estado] || 99;
+      const eb = ordenEstados[b.estado] || 99;
 
-    // 2️⃣ Orden por estado
-    const ea = ordenEstados[a.estado] || 99;
-    const eb = ordenEstados[b.estado] || 99;
-    if (ea !== eb) return ea - eb;
+      if (ea !== eb) {
+        return ea - eb;
+      }
 
-    return 0;
-  });
+      // 3️⃣ Sin importar fecha → quedan como vienen
+      return 0;
+    });
+
 
   renderLista();
-  renderResumenSimple();
+function renderResumenSimple() {
+  let pendientes = 0;
+  let listos = 0;
+  let noPagado = 0;
+
+  pedidosCache.forEach(p => {
+    // 📦 trabajo pendiente
+    if (p.estado === "PENDIENTE" || p.estado === "PROCESO") {
+      pendientes++;
+    }
+
+    // 🟪 listos para entregar
+    if (p.estado === "LISTO") {
+      listos++;
+    }
+
+    // 💰 no pagado (independiente del estado)
+    if (!p.pagado) {
+      noPagado += Number(p.total || 0);
+    }
+  });
+
+  if (resumenPendientesEl) resumenPendientesEl.textContent = pendientes;
+  if (resumenListosEl) resumenListosEl.textContent = listos;
+  if (resumenNoPagadoEl) resumenNoPagadoEl.textContent = noPagado;
 }
+
+}
+
 
 function renderLista() {
   const est = filtroEstado.value;
@@ -435,57 +379,43 @@ function renderLista() {
   pedidosCache
     .filter(p =>
       (!est || p.estado === est) &&
-      (!txt || (p.clienteNombre || "").toLowerCase().includes(txt))
+      (!txt || p.clienteNombre.toLowerCase().includes(txt))
     )
     .forEach(p => {
-      let fila = "tr-ok";
+    let fila = "tr-ok";
 
-      if (p.estado === "PENDIENTE") fila = "tr-urgente";
-      else if (p.estado === "PROCESO") fila = "tr-atencion";
-      else if (p.estado === "LISTO") fila = "tr-listo";
-      else if (p.estado === "ENTREGADO") fila = "tr-ok";
+    if (p.estado === "PENDIENTE") fila = "tr-urgente";
+    else if (p.estado === "PROCESO") fila = "tr-atencion";
+    else if (p.estado === "LISTO") fila = "tr-listo";
+    else if (p.estado === "ENTREGADO") fila = "tr-ok";
 
-      const totalPagado = calcTotalPagado(p);
-      const saldo = calcSaldo(p);
-
-      let badgePago = "";
-      if (saldo <= 0) {
-        badgePago = `<span class="badge badge-pagado">Pagado</span>`;
-      } else if (totalPagado > 0) {
-        // parcial
-        badgePago = `<span class="badge badge-nopagado">Parcial</span>
-          <div style="font-size:0.82rem; opacity:.85;">
-            $${money(totalPagado)} / Saldo $${money(saldo)}
-          </div>`;
-      } else {
-        badgePago = `<span class="badge badge-nopagado">No pagado</span>`;
-      }
 
       listaPedidosBody.innerHTML += `
         <tr class="${fila}">
-          <td
-            class="cliente-click"
-            onclick="verPedido('${p.id}')"
-            style="cursor:pointer;"
-            title="Ver pedido"
-          >
-            ${p.clienteNombre}
-          </td>
+                <td 
+        class="cliente-click"
+        onclick="verPedido('${p.id}')"
+        style="cursor:pointer;"
+        title="Ver pedido"
+      >
+        ${p.clienteNombre}
+      </td>
           <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${String(p.estado || "").toLowerCase()}">${p.estado}</span></td>
-
-          <td
-            style="cursor:pointer;"
-            title="Registrar pago / ver detalle"
-            onclick="verPedido('${p.id}')"
-          >
-            ${badgePago}
-          </td>
-
-          <td>$${money(p.total)}</td>
+          <td><span class="badge badge-${p.estado.toLowerCase()}">${p.estado}</span></td>
+        <td
+          onclick="togglePagado('${p.id}')"
+          style="cursor:pointer;"
+          title="Cambiar estado de pago"
+        >
+          ${
+            p.pagado
+              ? `<span class="badge badge-pagado">Pagado</span>`
+              : `<span class="badge badge-nopagado">No pagado</span>`
+          }
+        </td>
+          <td>$${p.total}</td>
           <td>
             <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp" onclick="registrarPago('${p.id}')" title="Registrar pago">💰</button>
             <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
           </td>
         </tr>`;
@@ -504,63 +434,34 @@ window.verPedido = id => {
 
   pedidoModalActual = p;
 
-  const totalPagado = calcTotalPagado(p);
-  const saldo = calcSaldo(p);
-
   modalTitulo.textContent = `Pedido de ${p.clienteNombre}`;
   modalCliente.textContent = `Cliente: ${p.clienteNombre}`;
   modalEstado.textContent = `Estado: ${p.estado}`;
   modalFecha.textContent = `Fecha: ${new Date(p.fecha).toLocaleString()}`;
-  modalItems.innerHTML = (p.items || [])
-    .map(i => `• ${i.cantidad}× ${i.nombre} ($${money(i.subtotal)})`)
+  modalItems.innerHTML = p.items
+    .map(i => `• ${i.cantidad}× ${i.nombre} ($${i.subtotal})`)
     .join("<br>");
   modalNota.textContent = p.nota || "";
+  modalTotal.textContent = `Total: $${p.total}`;
 
-  // ✅ total + pagado + saldo
-  modalTotal.innerHTML = `
-    <div><strong>Total:</strong> $${money(p.total)}</div>
-    <div><strong>Pagado:</strong> $${money(totalPagado)}</div>
-    <div><strong>Saldo:</strong> $${money(Math.max(0, saldo))}</div>
-  `;
-
-  // 🕓 HISTORIAL + pagos
-  const pagos = getPagos(p);
-  const pagosHtml = pagos.length
-    ? `
-      <div style="margin-top:0.6rem;">
-        <strong>💰 Pagos</strong><br>
-        ${pagos
-          .map(pg => `• ${new Date(pg.fecha).toLocaleString()} – $${money(pg.monto)}`)
-          .join("<br>")}
-      </div>
-    `
-    : "";
-
-  const historialHtml = (p.historial && p.historial.length)
-    ? `
-      <div style="margin-top:0.6rem;">
-        <strong>🕓 Historial</strong><br>
-        ${p.historial
-          .map(h => `• ${new Date(h.fecha).toLocaleString()} – ${traducirAccion(h)}`)
-          .join("<br>")}
-      </div>
-    `
-    : "";
-
-  modalHistorial.innerHTML = `${pagosHtml}${historialHtml}`.trim();
+  // 🕓 HISTORIAL
+  if (p.historial && p.historial.length) {
+    modalHistorial.innerHTML = `
+      <strong>🕓 Historial</strong><br>
+      ${p.historial
+        .map(h =>
+          `• ${new Date(h.fecha).toLocaleString()} – ${traducirAccion(h.accion)}`
+        )
+        .join("<br>")}
+    `;
+  } else {
+    modalHistorial.innerHTML = "";
+  }
 
   modal.classList.remove("hidden");
 };
 
 modalCerrar.onclick = () => modal.classList.add("hidden");
-
-// ✅ botón pago dentro del modal
-if (modalPago) {
-  modalPago.onclick = () => {
-    if (!pedidoModalActual) return;
-    window.registrarPago(pedidoModalActual.id);
-  };
-}
 
 modalWhats.onclick = () => {
   if (!pedidoModalActual) return;
@@ -568,23 +469,22 @@ modalWhats.onclick = () => {
   const p = pedidoModalActual;
   const telefono = (p.clienteTelefono || "").replace(/\D/g, "");
 
-  const items = (p.items || [])
-    .map(i => `• ${i.cantidad} x ${i.nombre} ($${money(i.subtotal)})`)
+  const items = p.items
+    .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
     .join("\n");
-
-  const totalPagado = calcTotalPagado(p);
-  const saldo = calcSaldo(p);
 
   const mensaje = `
 Hola ${p.clienteApodo || p.clienteNombre} 👋
-Te paso el detalle del pedido:
-
+Te paso el detalle de tu pedido:
+ 
 ${items}
 
-💰 Total: $${money(p.total)}
-💵 Pagado: $${money(totalPagado)}
-⏳ Saldo: $${money(Math.max(0, saldo))}
+💰 Total: $${p.total}
 📦 Estado: ${p.estado}
+
+💳 Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):
+👉 barbi-d
+📸 Enviame el comprobante cuando puedas
 
 ✨Si te gustó tu pedido, podés ver más diseños
 y novedades en nuestro Instagram:
@@ -612,15 +512,12 @@ window.editarPedido = id => {
   inputClienteNombre.value = p.clienteNombre;
   inputClienteTelefono.value = p.clienteTelefono || "";
   inputClienteRed.value = p.clienteRed || "";
-  if (inputClienteApodo) inputClienteApodo.value = p.clienteApodo || "";
-  inputFecha.value = (p.fecha || "").slice(0, 10);
+  inputFecha.value = p.fecha.slice(0, 10);
   selectEstado.value = p.estado;
   inputNota.value = p.nota || "";
+  inputPagado.checked = p.pagado;
 
-  // ✅ si tiene pagos, el checkbox “pagado” refleja saldo
-  inputPagado.checked = calcSaldo(p) <= 0 ? true : !!p.pagado;
-
-  itemsPedido = (p.items || []).map(i => ({ ...i }));
+  itemsPedido = p.items.map(i => ({ ...i }));
   renderPedido();
 
   btnGuardar.textContent = "Guardar cambios";
@@ -633,8 +530,43 @@ window.editarPedido = id => {
 window.borrarPedido = async id => {
   if (!confirm("¿Eliminar pedido?")) return;
   await deleteDoc(doc(db, "pedidos", id));
-  await cargarPedidos();
+  cargarPedidos();
 };
+
+window.togglePagado = async id => {
+  const p = pedidosCache.find(x => x.id === id);
+  if (!p) return;
+
+  const nuevoEstado = !p.pagado;
+
+  const mensaje = nuevoEstado
+    ? "¿Marcar este pedido como PAGADO?"
+    : "¿Marcar este pedido como NO PAGADO?";
+
+  if (!confirm(mensaje)) return;
+
+  const nuevoHistorial = [
+    ...(p.historial || []),
+    {
+      fecha: new Date().toISOString(),
+      accion: nuevoEstado ? "PAGADO" : "NO_PAGADO"
+    }
+  ];
+
+  try {
+    await updateDoc(doc(db, "pedidos", id), {
+      pagado: nuevoEstado,
+      historial: nuevoHistorial
+    });
+
+    cargarPedidos();
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo cambiar el estado de pago.");
+  }
+};
+
+
 
 /* =====================================================
    INIT
@@ -656,32 +588,22 @@ function renderResumenSimple() {
       activos++;
     }
 
-    // 💰 saldo pendiente (si hay pagos parciales, descuenta)
-    const saldo = calcSaldo(p);
-    if (saldo > 0) {
-      noPagado += saldo;
+    // 💰 No pagados
+    if (!p.pagado) {
+      noPagado += Number(p.total || 0);
     }
   });
 
-  if (resumenActivosEl) resumenActivosEl.textContent = activos;
-  if (resumenNoPagadoEl) resumenNoPagadoEl.textContent = money(noPagado);
+  if (resumenActivosEl) {
+    resumenActivosEl.textContent = activos;
+  }
 
-  // (estos si existen en algún momento)
-  if (resumenPendientesEl || resumenListosEl) {
-    let pendientes = 0;
-    let listos = 0;
-    pedidosCache.forEach(p => {
-      if (p.estado === "PENDIENTE" || p.estado === "PROCESO") pendientes++;
-      if (p.estado === "LISTO") listos++;
-    });
-    if (resumenPendientesEl) resumenPendientesEl.textContent = pendientes;
-    if (resumenListosEl) resumenListosEl.textContent = listos;
+  if (resumenNoPagadoEl) {
+    resumenNoPagadoEl.textContent = noPagado;
   }
 }
 
-function traducirAccion(h) {
-  const accion = typeof h === "string" ? h : h?.accion;
-
+function traducirAccion(accion) {
   switch (accion) {
     case "CREADO":
       return "Pedido creado";
@@ -691,13 +613,10 @@ function traducirAccion(h) {
       return "Marcado como pagado";
     case "NO_PAGADO":
       return "Marcado como no pagado";
-    case "PAGO_PARCIAL":
-      return `Pago registrado ($${money(h?.monto)})`;
     default:
-      return accion || "";
+      return accion;
   }
 }
-
 // 👉 Exponer pedidos para otros módulos (calendario)
 window.getPedidosCache = function () {
   return pedidosCache || [];
