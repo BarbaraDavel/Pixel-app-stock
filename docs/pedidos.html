@@ -212,14 +212,6 @@
       </div>
     </div>
 
-    <!-- 🆕 TOGGLE MOSTRAR ENTREGADOS 
-    <div style="margin-bottom:0.8rem;">
-      <label style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" id="toggleEntregados" style="width:18px; height:18px;">
-        <span style="font-size:0.95rem;">Mostrar pedidos entregados</span>
-      </label>
-    </div>-->
-
     <table class="tabla-stock">
       <thead>
         <tr>
@@ -271,6 +263,10 @@
     >
       <button id="modalPdf" class="btn btn-outline">PDF</button>
       <button id="modalWhatsApp" class="btn btn-outline">WhatsApp</button>
+
+      <!-- ✅ NUEVO -->
+      <button id="modalPago" class="btn btn-outline">💰 Pago</button>
+
       <button id="modalCerrar" class="btn btn-primary">Cerrar</button>
     </div>
 
@@ -336,7 +332,7 @@
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=2"></script>
+<script type="module" src="js/pedidos.js?v=3"></script>
 
 <script>
   if ("serviceWorker" in navigator) {
