@@ -334,3 +334,21 @@ details[open] .etapa-summary::before {
 .drag-ghost {
   opacity: 0.4;
 }
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-duplicate {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+
+.btn-duplicate:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}

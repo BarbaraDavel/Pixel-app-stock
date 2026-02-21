@@ -103,10 +103,13 @@ function renderCard(id, task) {
 
   if (etapaIndex === 3) {
     card.innerHTML = `
-      <div class="card-header">
-        <h3>${task.productoNombre}</h3>
+    <div class="card-header">
+      <h3>${task.productoNombre}</h3>
+      <div class="card-actions">
+        <button class="btn-duplicate" onclick="duplicarTarea('${id}')">📄</button>
         <button class="btn-delete" onclick="eliminarTarea('${id}')">🗑</button>
       </div>
+    </div>
       <div class="cliente">${task.cliente || ""}</div>
       <div class="finalizado-box">
         <label class="check-final">
@@ -252,12 +255,45 @@ window.eliminarTarea = async function(id) {
 };
 
 /* =====================================================
+   DUPLICAR TAREA
+===================================================== */
+
+window.duplicarTarea = async function(id) {
+
+  const ref = doc(db, "productionTasks", id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+
+  // 🔄 Resetear progreso
+  const etapasReset = data.etapas.map(e => ({
+    nombre: e.nombre,
+    checklist: e.checklist.map(c => ({
+      nombre: c.nombre,
+      obligatorio: c.obligatorio,
+      done: false
+    }))
+  }));
+
+  await addDoc(collection(db, "productionTasks"), {
+    cliente: data.cliente, // si querés que lo deje vacío → ""
+    productoNombre: data.productoNombre + " (copia)",
+    etapaIndex: 0,
+    etapaActual: etapasReset[0].nombre,
+    etapas: etapasReset,
+    fechaCreacion: serverTimestamp()
+  });
+
+};
+
+/* =====================================================
    CREAR TAREA
 ===================================================== */
 
 ntGuardar.onclick = async () => {
 
-  if (!ntProducto.value) {
+  if (!ntProducto.value.trim()) {
     alert("Falta el nombre del producto");
     return;
   }
@@ -273,7 +309,7 @@ ntGuardar.onclick = async () => {
 
   seleccionadas.forEach(input => {
     const etapa = input.dataset.etapa;
-    const nombre = input.nextElementSibling.textContent;
+    const nombre = input.nextElementSibling.textContent.trim();
 
     if (!etapasMap[etapa]) {
       etapasMap[etapa] = [];
@@ -294,18 +330,26 @@ ntGuardar.onclick = async () => {
     }));
 
   await addDoc(collection(db, "productionTasks"), {
-    cliente: ntCliente.value || "",
-    productoNombre: ntProducto.value,
+    cliente: ntCliente.value.trim() || "",
+    productoNombre: ntProducto.value.trim(),
     etapaIndex: 0,
     etapaActual: etapasFinales[0].nombre,
     etapas: etapasFinales,
     fechaCreacion: serverTimestamp()
   });
 
+  /* 🔥 LIMPIEZA COMPLETA */
+
   ntProducto.value = "";
   ntCliente.value = "";
+
+  document
+    .querySelectorAll("#ntTareas input[type=checkbox]")
+    .forEach(cb => cb.checked = false);
+
   modalNuevaTarea.classList.add("hidden");
 };
+
 
 /* =====================================================
    CARGAR TEMPLATES EN ORDEN CORRECTO
