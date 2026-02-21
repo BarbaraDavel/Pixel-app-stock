@@ -1,6 +1,13 @@
 /* =====================================================
    MAIN FULL WIDTH (DASHBOARD REAL)
 ===================================================== */
+.main-full {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 30px 40px 60px 40px;
+  box-sizing: border-box;
+}
 
 .main {
   width: 100%;
