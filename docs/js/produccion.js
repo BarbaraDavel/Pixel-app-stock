@@ -309,26 +309,81 @@ ntGuardar.onclick = async () => {
 
   const workflow = snap.data();
 
-  const etapasClonadas = workflow.etapas.map(etapa => ({
-    nombre: etapa.nombre,
-    checklist: etapa.checklist.map(c => ({
-      nombre: c.nombre,
-      obligatorio: c.obligatorio,
-      done: false
-    }))
-  }));
+  const seleccionadas = document.querySelectorAll("#ntTareas input:checked");
 
-  await addDoc(collection(db, "productionTasks"), {
-    cliente: ntCliente.value || "",
-    productoNombre: ntProducto.value,
-    tipoProduccion: ntTipo.value,
-    etapaIndex: 0,
-    etapaActual: etapasClonadas[0].nombre,
-    etapas: etapasClonadas,
-    fechaCreacion: serverTimestamp()
+const etapasMap = {};
+
+seleccionadas.forEach(input => {
+  const etapa = input.dataset.etapa;
+  const nombre = input.parentElement.textContent.trim();
+
+  if (!etapasMap[etapa]) {
+    etapasMap[etapa] = [];
+  }
+
+  etapasMap[etapa].push({
+    nombre: nombre,
+    obligatorio: true,
+    done: false
   });
+});
+
+const etapasFinales = Object.keys(etapasMap).map(nombreEtapa => ({
+  nombre: nombreEtapa,
+  checklist: etapasMap[nombreEtapa]
+}));
+
+await addDoc(collection(db, "productionTasks"), {
+  cliente: ntCliente.value || "",
+  productoNombre: ntProducto.value,
+  etapaIndex: 0,
+  etapaActual: etapasFinales[0]?.nombre || "Preparación",
+  etapas: etapasFinales,
+  fechaCreacion: serverTimestamp()
+});
 
   ntProducto.value = "";
   ntCliente.value = "";
   modalNuevaTarea.classList.add("hidden");
 };
+const ntTareas = document.getElementById("ntTareas");
+
+async function cargarTemplatesProduccion() {
+  ntTareas.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "productionTemplates"));
+
+  const agrupadas = {};
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+
+    if (!agrupadas[data.etapa]) {
+      agrupadas[data.etapa] = [];
+    }
+
+    agrupadas[data.etapa].push({
+      id: docSnap.id,
+      nombre: data.nombre
+    });
+  });
+
+  Object.keys(agrupadas).forEach(etapa => {
+
+    const bloque = document.createElement("div");
+    bloque.innerHTML = `<h4>${etapa}</h4>`;
+
+    agrupadas[etapa].forEach(t => {
+      bloque.innerHTML += `
+        <label class="check-template">
+          <input type="checkbox" value="${t.id}" data-etapa="${etapa}">
+          ${t.nombre}
+        </label>
+      `;
+    });
+
+    ntTareas.appendChild(bloque);
+  });
+}
+
+cargarTemplatesProduccion();
