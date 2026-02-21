@@ -64,6 +64,7 @@ const ntProducto = document.getElementById("ntProducto");
 const ntCliente = document.getElementById("ntCliente");
 const ntGuardar = document.getElementById("ntGuardar");
 const ntCerrar = document.getElementById("ntCerrar");
+const ntTareas = document.getElementById("ntTareas");
 
 btnNuevaTarea.onclick = () => {
   modalNuevaTarea.classList.remove("hidden");
@@ -78,13 +79,10 @@ ntCerrar.onclick = () => {
 ===================================================== */
 
 onSnapshot(collection(db, "productionTasks"), (snapshot) => {
-
   colElements.forEach(col => col.innerHTML = "");
-
   snapshot.forEach(docSnap => {
     renderCard(docSnap.id, docSnap.data());
   });
-
 });
 
 /* =====================================================
@@ -94,26 +92,22 @@ onSnapshot(collection(db, "productionTasks"), (snapshot) => {
 function renderCard(id, task) {
 
   const etapaIndex = task.etapaIndex ?? 0;
-  const etapa = task.etapas[etapaIndex];
   if (!colElements[etapaIndex]) return;
 
+  const etapa = task.etapas[etapaIndex];
   const card = document.createElement("div");
   card.className = "card-prod";
   card.dataset.id = id;
 
   const progreso = calcularProgreso(task);
 
-  // 🔥 SI ESTÁ EN "LISTO"
   if (etapaIndex === 3) {
-
     card.innerHTML = `
       <div class="card-header">
         <h3>${task.productoNombre}</h3>
         <button class="btn-delete" onclick="eliminarTarea('${id}')">🗑</button>
       </div>
-
       <div class="cliente">${task.cliente || ""}</div>
-
       <div class="finalizado-box">
         <label class="check-final">
           <input type="checkbox" data-final="${id}">
@@ -121,12 +115,10 @@ function renderCard(id, task) {
         </label>
       </div>
     `;
-
     colElements[etapaIndex].appendChild(card);
     return;
   }
 
-  // 🔹 ETAPAS NORMALES
   card.innerHTML = `
     <div class="card-header">
       <h3>${task.productoNombre}</h3>
@@ -185,6 +177,8 @@ document.addEventListener("change", async (e) => {
   if (!e.target.matches("input[type=checkbox]")) return;
 
   const taskId = e.target.dataset.task;
+  if (!taskId) return;
+
   const checkIndex = parseInt(e.target.dataset.check);
 
   const taskRef = doc(db, "productionTasks", taskId);
@@ -196,14 +190,10 @@ document.addEventListener("change", async (e) => {
 
   etapaActual.checklist[checkIndex].done = e.target.checked;
 
-  // 🔥 SOLO AVANZA SI TODOS ESTÁN COMPLETOS
   const todosCompletos = etapaActual.checklist.every(i => i.done);
-
   let nuevoIndex = task.etapaIndex;
 
-  if (todosCompletos &&
-      task.etapaIndex < task.etapas.length - 1) {
-
+  if (todosCompletos && task.etapaIndex < task.etapas.length - 1) {
     nuevoIndex = task.etapaIndex + 1;
   }
 
@@ -212,12 +202,13 @@ document.addEventListener("change", async (e) => {
     etapaIndex: nuevoIndex,
     etapaActual: task.etapas[nuevoIndex].nombre
   });
-
 });
 
-// 🔥 FINALIZAR Y ELIMINAR DESDE "LISTO"
-document.addEventListener("change", async (e) => {
+/* =====================================================
+   FINALIZAR
+===================================================== */
 
+document.addEventListener("change", async (e) => {
   if (!e.target.matches("input[data-final]")) return;
 
   const taskId = e.target.dataset.final;
@@ -228,15 +219,10 @@ document.addEventListener("change", async (e) => {
   }
 
   await deleteDoc(doc(db, "productionTasks", taskId));
-
 });
 
 /* =====================================================
-   MOVER ETAPA MANUAL
-===================================================== */
-
-/* =====================================================
-   MOVER ETAPA MANUAL
+   MOVER ETAPA
 ===================================================== */
 
 window.moverEtapa = async function(taskId, direccion) {
@@ -254,18 +240,14 @@ window.moverEtapa = async function(taskId, direccion) {
     etapaIndex: nuevoIndex,
     etapaActual: columnas[nuevoIndex]
   });
-
 };
 
 /* =====================================================
-   ELIMINAR TAREA
+   ELIMINAR
 ===================================================== */
 
 window.eliminarTarea = async function(id) {
-
-  const confirmar = confirm("¿Eliminar esta tarea de producción?");
-  if (!confirmar) return;
-
+  if (!confirm("¿Eliminar esta tarea de producción?")) return;
   await deleteDoc(doc(db, "productionTasks", id));
 };
 
@@ -276,107 +258,96 @@ window.eliminarTarea = async function(id) {
 ntGuardar.onclick = async () => {
 
   if (!ntProducto.value) {
-  alert("Falta el nombre del producto");
-  return;
-}
-
-  const workflowRef = doc(db, "productWorkflows", ntTipo.value);
-  const snap = await getDoc(workflowRef);
-
-  if (!snap.exists()) {
-    alert("Workflow no encontrado");
+    alert("Falta el nombre del producto");
     return;
   }
 
-  const workflow = snap.data();
-
   const seleccionadas = document.querySelectorAll("#ntTareas input:checked");
 
-const etapasMap = {};
-
-seleccionadas.forEach(input => {
-  const etapa = input.dataset.etapa;
-  const nombre = input.parentElement.textContent.trim();
-
-  if (!etapasMap[etapa]) {
-    etapasMap[etapa] = [];
+  if (seleccionadas.length === 0) {
+    alert("Seleccioná al menos una tarea");
+    return;
   }
 
-  etapasMap[etapa].push({
-    nombre: nombre,
-    obligatorio: true,
-    done: false
+  const etapasMap = {};
+
+  seleccionadas.forEach(input => {
+    const etapa = input.dataset.etapa;
+    const nombre = input.nextElementSibling.textContent;
+
+    if (!etapasMap[etapa]) {
+      etapasMap[etapa] = [];
+    }
+
+    etapasMap[etapa].push({
+      nombre,
+      obligatorio: true,
+      done: false
+    });
   });
-});
 
-const etapasFinales = Object.keys(etapasMap).map(nombreEtapa => ({
-  nombre: nombreEtapa,
-  checklist: etapasMap[nombreEtapa]
-}));
+  const etapasFinales = columnas
+    .filter(e => etapasMap[e])
+    .map(e => ({
+      nombre: e,
+      checklist: etapasMap[e]
+    }));
 
-await addDoc(collection(db, "productionTasks"), {
-  cliente: ntCliente.value || "",
-  productoNombre: ntProducto.value,
-  etapaIndex: 0,
-  etapaActual: etapasFinales[0]?.nombre || "Preparación",
-  etapas: etapasFinales,
-  fechaCreacion: serverTimestamp()
-});
+  await addDoc(collection(db, "productionTasks"), {
+    cliente: ntCliente.value || "",
+    productoNombre: ntProducto.value,
+    etapaIndex: 0,
+    etapaActual: etapasFinales[0].nombre,
+    etapas: etapasFinales,
+    fechaCreacion: serverTimestamp()
+  });
 
   ntProducto.value = "";
   ntCliente.value = "";
   modalNuevaTarea.classList.add("hidden");
 };
-const ntTareas = document.getElementById("ntTareas");
+
+/* =====================================================
+   CARGAR TEMPLATES EN ORDEN CORRECTO
+===================================================== */
 
 async function cargarTemplatesProduccion() {
+
   ntTareas.innerHTML = "";
 
   const snap = await getDocs(collection(db, "productionTemplates"));
-
   const agrupadas = {};
 
   snap.forEach(docSnap => {
     const data = docSnap.data();
-
     if (!agrupadas[data.etapa]) {
       agrupadas[data.etapa] = [];
     }
-
     agrupadas[data.etapa].push({
       id: docSnap.id,
       nombre: data.nombre
     });
   });
 
-  Object.keys(agrupadas).forEach(etapa => {
+  columnas.forEach(etapa => {
 
-const bloque = document.createElement("details");
-bloque.className = "etapa-bloque";
+    if (!agrupadas[etapa]) return;
 
-bloque.innerHTML = `
-  <summary class="etapa-summary">${etapa}</summary>
-  <div class="etapa-contenido"></div>
-`;
+    const bloque = document.createElement("details");
+    bloque.className = "etapa-bloque";
 
-const contenido = bloque.querySelector(".etapa-contenido");
+    bloque.innerHTML = `
+      <summary class="etapa-summary">${etapa}</summary>
+      <div class="etapa-contenido"></div>
+    `;
 
-agrupadas[etapa].forEach(t => {
-  contenido.innerHTML += `
-    <label class="check-template">
-      <input type="checkbox" value="${t.id}" data-etapa="${etapa}">
-      <span>${t.nombre}</span>
-    </label>
-  `;
-});
-
-ntTareas.appendChild(bloque);
+    const contenido = bloque.querySelector(".etapa-contenido");
 
     agrupadas[etapa].forEach(t => {
-      bloque.innerHTML += `
+      contenido.innerHTML += `
         <label class="check-template">
           <input type="checkbox" value="${t.id}" data-etapa="${etapa}">
-          ${t.nombre}
+          <span>${t.nombre}</span>
         </label>
       `;
     });
@@ -385,48 +356,4 @@ ntTareas.appendChild(bloque);
   });
 }
 
-cargarTemplatesProduccion();
-/* =====================================================
-   SCRIPT TEMPORAL - CREAR TEMPLATES BASE
-   ⚠️ Ejecutar una vez y luego borrar
-===================================================== */
-
-async function crearTemplatesBase() {
-
-  const tareasBase = [
-
-    // PREPARACIÓN
-    { nombre: "Diseñar archivo", etapa: "Preparación" },
-    { nombre: "Preparar plancha", etapa: "Preparación" },
-    { nombre: "Armar PDF final", etapa: "Preparación" },
-    { nombre: "Configurar impresión", etapa: "Preparación" },
-    { nombre: "Imprimir interiores", etapa: "Preparación" },
-    { nombre: "Imprimir tapa", etapa: "Preparación" },
-    { nombre: "Elegir Anillo", etapa: "Preparación" },
-    { nombre: "Elegir elástico", etapa: "Preparación" },
-    { nombre: "Elegir ojalillos", etapa: "Preparación" },
-    
-    // ARMADO
-    
-    { nombre: "Cortar hojas", etapa: "Armado" },
-    { nombre: "Abrochar / Anillar", etapa: "Armado" },
-    { nombre: "Plastificar", etapa: "Armado" },
-
-    // EMPAQUETADO
-    { nombre: "Revisar calidad", etapa: "Empaquetado" },
-    { nombre: "Envolver producto", etapa: "Empaquetado" },
-    { nombre: "Colocar tag", etapa: "Empaquetado" },
-    { nombre: "Colocar sticker", etapa: "Empaquetado" },
-    { nombre: "Colocar elástico", etapa: "Empaquetado" },
-
-  ];
-
-  for (const tarea of tareasBase) {
-    await addDoc(collection(db, "productionTemplates"), tarea);
-  }
-
-  console.log("✅ Templates base creados correctamente");
-}
-
-// 🔥 DESCOMENTAR SOLO UNA VEZ
- //crearTemplatesBase();
+//argarTemplatesProduccion();
