@@ -110,6 +110,7 @@ function renderCard(id, task) {
         <button class="btn-delete" onclick="eliminarTarea('${id}')">🗑</button>
       </div>
     </div>
+    </div>
       <div class="cliente">${task.cliente || ""}</div>
       <div class="finalizado-box">
         <label class="check-final">
@@ -177,7 +178,7 @@ function calcularProgreso(task) {
 
 document.addEventListener("change", async (e) => {
 
-  if (!e.target.matches("input[type=checkbox]")) return;
+  if (!e.target.matches("input[data-task]")) return;
 
   const taskId = e.target.dataset.task;
   if (!taskId) return;
