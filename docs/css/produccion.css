@@ -12,6 +12,7 @@
 ===================================================== */
 
 .board {
+  width: 100%;
   display: flex;
   gap: 28px;
   padding: 30px 24px;
@@ -24,8 +25,8 @@
 ===================================================== */
 
 .column {
-  width: 320px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 280px;
   min-height: 500px;
   border-radius: 22px;
   padding: 18px;
