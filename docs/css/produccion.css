@@ -283,11 +283,6 @@
   border-radius: 10px;
 }
 
-.check-template {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 14px;
-}
 .etapa-bloque {
   margin-bottom: 8px;
   background: rgba(255,255,255,0.04);
@@ -323,11 +318,25 @@ details[open] .etapa-summary::before {
 .check-template {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 4px 0;
-  font-size: 14px;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.check-template:hover {
+  background: rgba(255,255,255,0.06);
 }
 
 .check-template input {
-  transform: scale(1.1);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.check-template span {
+  flex: 1;
+  text-align: left;
 }
