@@ -46,8 +46,6 @@ colElements.forEach((col, index) => {
       const snap = await getDoc(taskRef);
       if (!snap.exists()) return;
 
-      const task = snap.data();
-
       await updateDoc(taskRef, {
         etapaIndex: newColumnIndex,
         etapaActual: columnas[newColumnIndex]
@@ -238,6 +236,10 @@ document.addEventListener("change", async (e) => {
    MOVER ETAPA MANUAL
 ===================================================== */
 
+/* =====================================================
+   MOVER ETAPA MANUAL
+===================================================== */
+
 window.moverEtapa = async function(taskId, direccion) {
 
   const taskRef = doc(db, "productionTasks", taskId);
@@ -247,12 +249,13 @@ window.moverEtapa = async function(taskId, direccion) {
   const task = snap.data();
   const nuevoIndex = task.etapaIndex + direccion;
 
-  if (nuevoIndex < 0 || nuevoIndex >= task.etapas.length) return;
+  if (nuevoIndex < 0 || nuevoIndex >= columnas.length) return;
 
   await updateDoc(taskRef, {
     etapaIndex: nuevoIndex,
-    etapaActual: task.etapas[nuevoIndex].nombre
+    etapaActual: columnas[nuevoIndex]
   });
+
 };
 
 /* =====================================================
