@@ -106,6 +106,30 @@ function renderCard(id, task) {
 
   const progreso = calcularProgreso(task);
 
+  // 🔥 SI ESTÁ EN "LISTO"
+  if (etapaIndex === 3) {
+
+    card.innerHTML = `
+      <div class="card-header">
+        <h3>${task.productoNombre}</h3>
+        <button class="btn-delete" onclick="eliminarTarea('${id}')">🗑</button>
+      </div>
+
+      <div class="cliente">${task.cliente || ""}</div>
+
+      <div class="finalizado-box">
+        <label class="check-final">
+          <input type="checkbox" data-final="${id}">
+          <span>Marcar como entregado</span>
+        </label>
+      </div>
+    `;
+
+    colElements[etapaIndex].appendChild(card);
+    return;
+  }
+
+  // 🔹 ETAPAS NORMALES
   card.innerHTML = `
     <div class="card-header">
       <h3>${task.productoNombre}</h3>
@@ -191,6 +215,22 @@ document.addEventListener("change", async (e) => {
     etapaIndex: nuevoIndex,
     etapaActual: task.etapas[nuevoIndex].nombre
   });
+
+});
+
+// 🔥 FINALIZAR Y ELIMINAR DESDE "LISTO"
+document.addEventListener("change", async (e) => {
+
+  if (!e.target.matches("input[data-final]")) return;
+
+  const taskId = e.target.dataset.final;
+
+  if (!confirm("¿Marcar como entregado y quitar del tablero?")) {
+    e.target.checked = false;
+    return;
+  }
+
+  await deleteDoc(doc(db, "productionTasks", taskId));
 
 });
 
