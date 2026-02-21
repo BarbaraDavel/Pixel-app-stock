@@ -94,21 +94,24 @@
     <label>Cliente (opcional)</label>
     <input id="ntCliente" class="input-pixel" placeholder="Ej: Juan">
 
+    <!-- 🔥 ESTE SELECT YA NO ES NECESARIO SI VAS A USAR TEMPLATES -->
+    <!-- Podés borrarlo si querés -->
+    <!--
     <label>Tipo de producción</label>
     <select id="ntTipo" class="input-pixel"></select>
+    -->
+
+    <!-- 🔥 NUEVO BLOQUE -->
+    <label>Tareas a incluir</label>
+    <div id="ntTareas" class="tareas-grid"></div>
 
     <div style="text-align:right; margin-top:1rem;">
-    <button type="button" id="ntGuardar" class="btn btn-primary">Crear</button>
-    <button type="button" id="ntCerrar" class="btn btn-outline">Cancelar</button>
-
-
+      <button type="button" id="ntGuardar" class="btn btn-primary">Crear</button>
+      <button type="button" id="ntCerrar" class="btn btn-outline">Cancelar</button>
     </div>
 
   </div>
 </div>
-
-  <label>Tareas a incluir</label>
-  <div id="ntTareas" class="tareas-grid"></div>
 
 <!-- ============================= -->
 <!-- SCRIPTS -->

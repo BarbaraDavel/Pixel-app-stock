@@ -62,7 +62,6 @@ const btnNuevaTarea = document.getElementById("btnNuevaTarea");
 const modalNuevaTarea = document.getElementById("modalNuevaTarea");
 const ntProducto = document.getElementById("ntProducto");
 const ntCliente = document.getElementById("ntCliente");
-const ntTipo = document.getElementById("ntTipo");
 const ntGuardar = document.getElementById("ntGuardar");
 const ntCerrar = document.getElementById("ntCerrar");
 
@@ -269,24 +268,6 @@ window.eliminarTarea = async function(id) {
 
   await deleteDoc(doc(db, "productionTasks", id));
 };
-
-/* =====================================================
-   CARGAR TIPOS
-===================================================== */
-
-async function cargarTiposProduccion() {
-  ntTipo.innerHTML = "";
-
-  const snap = await getDocs(collection(db, "productWorkflows"));
-
-  snap.forEach(d => {
-    ntTipo.innerHTML += `
-      <option value="${d.id}">${d.id}</option>
-    `;
-  });
-}
-
-cargarTiposProduccion();
 
 /* =====================================================
    CREAR TAREA
