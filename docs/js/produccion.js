@@ -411,4 +411,4 @@ async function crearTemplatesBase() {
 }
 
 // 🔥 DESCOMENTAR SOLO UNA VEZ
- crearTemplatesBase();
+ //crearTemplatesBase();
