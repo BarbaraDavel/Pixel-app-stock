@@ -356,4 +356,4 @@ async function cargarTemplatesProduccion() {
   });
 }
 
-//argarTemplatesProduccion();
+cargarTemplatesProduccion();
