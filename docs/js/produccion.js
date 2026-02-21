@@ -351,8 +351,26 @@ async function cargarTemplatesProduccion() {
 
   Object.keys(agrupadas).forEach(etapa => {
 
-    const bloque = document.createElement("div");
-    bloque.innerHTML = `<h4>${etapa}</h4>`;
+const bloque = document.createElement("details");
+bloque.className = "etapa-bloque";
+
+bloque.innerHTML = `
+  <summary class="etapa-summary">${etapa}</summary>
+  <div class="etapa-contenido"></div>
+`;
+
+const contenido = bloque.querySelector(".etapa-contenido");
+
+agrupadas[etapa].forEach(t => {
+  contenido.innerHTML += `
+    <label class="check-template">
+      <input type="checkbox" value="${t.id}" data-etapa="${etapa}">
+      <span>${t.nombre}</span>
+    </label>
+  `;
+});
+
+ntTareas.appendChild(bloque);
 
     agrupadas[etapa].forEach(t => {
       bloque.innerHTML += `

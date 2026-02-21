@@ -287,3 +287,46 @@
   margin-bottom: 6px;
   font-size: 14px;
 }
+.etapa-bloque {
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.etapa-summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 6px 0;
+  list-style: none;
+}
+
+.etapa-summary::-webkit-details-marker {
+  display: none;
+}
+
+.etapa-summary::before {
+  content: "▶ ";
+  font-size: 12px;
+}
+
+details[open] .etapa-summary::before {
+  content: "▼ ";
+}
+
+.etapa-contenido {
+  margin-top: 6px;
+  padding-left: 6px;
+}
+
+.check-template {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.check-template input {
+  transform: scale(1.1);
+}
