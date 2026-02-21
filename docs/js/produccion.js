@@ -275,10 +275,10 @@ window.eliminarTarea = async function(id) {
 
 ntGuardar.onclick = async () => {
 
-  if (!ntProducto.value || !ntTipo.value) {
-    alert("Faltan datos");
-    return;
-  }
+  if (!ntProducto.value) {
+  alert("Falta el nombre del producto");
+  return;
+}
 
   const workflowRef = doc(db, "productWorkflows", ntTipo.value);
   const snap = await getDoc(workflowRef);
@@ -368,3 +368,47 @@ async function cargarTemplatesProduccion() {
 }
 
 cargarTemplatesProduccion();
+/* =====================================================
+   SCRIPT TEMPORAL - CREAR TEMPLATES BASE
+   ⚠️ Ejecutar una vez y luego borrar
+===================================================== */
+
+async function crearTemplatesBase() {
+
+  const tareasBase = [
+
+    // PREPARACIÓN
+    { nombre: "Diseñar archivo", etapa: "Preparación" },
+    { nombre: "Preparar plancha", etapa: "Preparación" },
+    { nombre: "Armar PDF final", etapa: "Preparación" },
+    { nombre: "Configurar impresión", etapa: "Preparación" },
+    { nombre: "Imprimir interiores", etapa: "Preparación" },
+    { nombre: "Imprimir tapa", etapa: "Preparación" },
+    { nombre: "Elegir Anillo", etapa: "Preparación" },
+    { nombre: "Elegir elástico", etapa: "Preparación" },
+    { nombre: "Elegir ojalillos", etapa: "Preparación" },
+    
+    // ARMADO
+    
+    { nombre: "Cortar hojas", etapa: "Armado" },
+    { nombre: "Abrochar / Anillar", etapa: "Armado" },
+    { nombre: "Plastificar", etapa: "Armado" },
+
+    // EMPAQUETADO
+    { nombre: "Revisar calidad", etapa: "Empaquetado" },
+    { nombre: "Envolver producto", etapa: "Empaquetado" },
+    { nombre: "Colocar tag", etapa: "Empaquetado" },
+    { nombre: "Colocar sticker", etapa: "Empaquetado" },
+    { nombre: "Colocar elástico", etapa: "Empaquetado" },
+
+  ];
+
+  for (const tarea of tareasBase) {
+    await addDoc(collection(db, "productionTemplates"), tarea);
+  }
+
+  console.log("✅ Templates base creados correctamente");
+}
+
+// 🔥 DESCOMENTAR SOLO UNA VEZ
+ crearTemplatesBase();
