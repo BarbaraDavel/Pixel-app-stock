@@ -474,23 +474,23 @@ modalWhats.onclick = () => {
     .join("\n");
 
   const mensaje = `
-Hola ${p.clienteApodo || p.clienteNombre} 👋
+Hola ${p.clienteApodo || p.clienteNombre} \u{1F44B}
 Te paso el detalle de tu pedido:
- 
+
 ${items}
 
-💰 Total: $${p.total}
-📦 Estado: ${p.estado}
+\u{1F4B0} Total: $${p.total}
+\u{1F4E6} Estado: ${p.estado}
 
-💳 Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):
-👉 barbi-d
-📸 Enviame el comprobante cuando puedas
+\u{1F4B3} Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):
+\u{1F449} barbi-d
+\u{1F4F8} Enviame el comprobante cuando puedas
 
-✨Si te gustó tu pedido, podés ver más diseños
+\u{2728} Si te gustó tu pedido, podés ver más diseños
 y novedades en nuestro Instagram:
-👉 https://www.instagram.com/pixel.stickerss/
+\u{1F449} https://www.instagram.com/pixel.stickerss/
 
-Gracias 🤍 Pixel
+Gracias \u{1F90D} Pixel
 `.trim();
 
   const url = telefono
