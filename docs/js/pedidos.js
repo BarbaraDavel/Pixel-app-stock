@@ -473,31 +473,31 @@ modalWhats.onclick = () => {
     .map(i => `• ${i.cantidad} x ${i.nombre} ($${i.subtotal})`)
     .join("\n");
 
-  const mensaje = [
-    `Hola ${p.clienteApodo || p.clienteNombre} 👋`,
-    `Te paso el detalle de tu pedido:`,
-    ``,
-    items,
-    ``,
-    `💰 Total: $${p.total}`,
-    `📦 Estado: ${p.estado}`,
-    ``,
-    `💳 Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):`,
-    `👉 barbi-d`,
-    `📸 Enviame el comprobante cuando puedas`,
-    ``,
-    `✨ Si te gustó tu pedido, podés ver más diseños`,
-    `y novedades en nuestro Instagram:`,
-    `👉 https://www.instagram.com/pixel.stickerss/`,
-    ``,
-    `Gracias 🤍 Pixel`
-  ].join("\n");
+const mensaje = `
+Hola ${p.clienteApodo || p.clienteNombre} 👋
 
-  const url = telefono
-    ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
-    : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+Te paso el detalle de tu pedido:
 
-  window.open(url, "_blank");
+${items}
+
+💰 Total: $${p.total}
+📦 Estado: ${p.estado}
+
+💳 Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):
+👉 barbi-d
+📸 Enviame el comprobante cuando puedas
+
+✨ Si te gustó tu pedido, podés ver más diseños y novedades en nuestro Instagram:
+👉 https://www.instagram.com/pixel.stickerss/
+
+Gracias 🤍 Pixel
+`.trim();
+
+const url = telefono
+  ? `https://api.whatsapp.com/send?phone=${telefono}&text=${encodeURIComponent(mensaje)}`
+  : `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+
+window.open(url, "_blank");
 };
 
 /* =====================================================
