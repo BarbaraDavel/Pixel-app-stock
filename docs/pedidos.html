@@ -46,20 +46,20 @@
   <!-- ================================
         ENCABEZADO
   ================================= -->
-<div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-    <div>
-      <h1>Pedidos</h1>
-      <p class="hint">
-        Pedidos con uno o varios productos, se calcula el total y se genera un detalle para enviar por WhatsApp 💸.
-      </p>
-    </div>
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h1>Pedidos</h1>
+        <p class="hint">
+          Pedidos con uno o varios productos, se calcula el total y se genera un detalle para enviar por WhatsApp 💸.
+        </p>
+      </div>
 
-    <a href="produccion.html" class="btn btn-primary btn-produccion">
-      🏭 Ir a Producción
-    </a>
+      <a href="produccion.html" class="btn btn-primary btn-produccion">
+        🏭 Ir a Producción
+      </a>
+    </div>
   </div>
-</div>
 
 
 
@@ -91,6 +91,16 @@
     <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
 
     <div class="form-grid">
+      <div class="form-group">
+        <label>Buscar producto</label>
+        <input
+          id="productoBuscar"
+          type="text"
+          placeholder="Escribí para buscar por nombre..."
+          autocomplete="off"
+        >
+      </div>
+
       <div class="form-group">
         <label>Producto</label>
         <select id="productoSelect">
@@ -170,23 +180,6 @@
 
   <br>
 
-      <!-- ================================
-            RESUMEN SIMPLE
-      ================================= -->
-      <div class="card" style="margin-bzottom:1rem;">
-        <div class="form-grid">
-          <div>
-            <strong>📦 Trabajos pendientes:</strong>
-            <span id="resumenActivos">0</span>
-          </div>
-
-          <div>
-            <strong>💰 Total no pagado:</strong>
-            $<span id="resumenNoPagado">0</span>
-          </div>
-        </div>
-      </div> 
-
   <!-- ================================
         LISTA DE PEDIDOS
   ================================= -->
@@ -211,14 +204,6 @@
         </select>
       </div>
     </div>
-
-    <!-- 🆕 TOGGLE MOSTRAR ENTREGADOS 
-    <div style="margin-bottom:0.8rem;">
-      <label style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" id="toggleEntregados" style="width:18px; height:18px;">
-        <span style="font-size:0.95rem;">Mostrar pedidos entregados</span>
-      </label>
-    </div>-->
 
     <table class="tabla-stock">
       <thead>
@@ -336,7 +321,7 @@
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=99"></script>
+<script type="module" src="js/pedidos.js?v=100"></script>
 
 <script>
   if ("serviceWorker" in navigator) {
