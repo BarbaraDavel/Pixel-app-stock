@@ -542,8 +542,8 @@ ${items}
 💰 Total: $${p.total}
 📦 Estado: ${p.estado}
 
-💳 Podés pagar por transferencia al alias (cuenta de astropay a nombre de Barbara Davel):
-👉 barbi-mp
+💳 Podés pagar en efectivo o por transferencia al alias:
+👉 barbi-mp (a nombre de Barbara Davel)
 📸 Enviame el comprobante cuando puedas
 
 ✨ Si te gustó tu pedido, podés ver más diseños y novedades en nuestro Instagram:
