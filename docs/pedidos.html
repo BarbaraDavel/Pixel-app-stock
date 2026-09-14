@@ -122,113 +122,104 @@
       MODAL NUEVO / EDITAR PEDIDO
 ================================ -->
 <div id="formularioPedidoModal" class="modal-backdrop hidden">
-  <div class="modal modal-pedido-form">
-    <div class="modal-pedido-header">
+  <div class="modal modal-pedido-form modal-pedido-ux">
+    <div class="modal-pedido-header ux-modal-header">
       <div>
         <h2 id="formularioPedidoTitulo" style="margin:0;">Nuevo pedido</h2>
-        <p class="hint" style="margin:.25rem 0 0;">Cargá todo sin salir de esta pantalla.</p>
+        <p class="hint ux-subtitle">Cliente, productos y pago. Nada más.</p>
       </div>
       <button id="cerrarFormularioPedidoBtn" class="modal-x" aria-label="Cerrar">✕</button>
     </div>
 
-    <div class="modal-pedido-body">
-      <section class="pedido-seccion">
-        <h3>Cliente</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Cliente</label>
-            <input id="clienteNombre" placeholder="Escribí un nombre..." list="clientesDatalist" autocomplete="off">
-            <datalist id="clientesDatalist"></datalist>
-            <div id="clienteEstado" class="hint" style="margin-top:6px;"></div>
-          </div>
-          <div class="form-group">
-            <label>Teléfono <span class="hint">(opcional)</span></label>
-            <input id="clienteTelefono" placeholder="Teléfono">
-          </div>
-          <div class="form-group">
-            <label>Red / Contacto <span class="hint">(opcional)</span></label>
-            <input id="clienteRed" placeholder="Instagram / WhatsApp">
-          </div>
-        </div>
-        <p class="hint" style="margin-top:8px;">Si el cliente no existe, se guarda automáticamente con el pedido.</p>
-      </section>
+    <div class="modal-pedido-body ux-modal-body">
+      <div class="ux-core-grid">
+        <section class="ux-card ux-cliente-card">
+          <label class="ux-label" for="clienteNombre">Cliente</label>
+          <input id="clienteNombre" class="ux-input-lg" placeholder="Nombre del cliente" list="clientesDatalist" autocomplete="off">
+          <datalist id="clientesDatalist"></datalist>
+          <div id="clienteEstado" class="hint ux-inline-hint"></div>
+        </section>
 
-      <section class="pedido-seccion">
-        <div class="pedido-seccion-titulo">
-          <h3>Agregar al pedido</h3>
-          <span class="hint">Puede ser un producto guardado o algo nuevo.</span>
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Buscar producto existente <span class="hint">(opcional)</span></label>
-            <input id="productoBuscar" type="text" placeholder="Ej: señalador, sticker..." autocomplete="off">
+        <section class="ux-card ux-item-card">
+          <div class="ux-section-head">
+            <div>
+              <span class="ux-eyebrow">Agregar al pedido</span>
+              <h3>Producto o trabajo</h3>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Producto guardado <span class="hint">(opcional)</span></label>
-            <select id="productoSelect"><option value="">Cargando productos...</option></select>
-          </div>
-          <div class="form-group pedido-item-nombre">
-            <label>Nombre del ítem</label>
-            <input id="itemNombre" placeholder="Ej: 60 etiquetas XV">
-          </div>
-          <div class="form-group">
-            <label>Cantidad</label>
-            <input id="cantidadInput" type="number" min="1" step="1" value="1">
-          </div>
-          <div class="form-group">
-            <label>Precio</label>
-            <input id="itemPrecio" type="number" min="0" step="0.01" placeholder="0">
-          </div>
-          <div class="form-group">
-            <label>Ese precio es...</label>
-            <select id="tipoPrecio">
-              <option value="UNITARIO">Por unidad</option>
-              <option value="TOTAL">Por todo el ítem</option>
-            </select>
-          </div>
-          <div class="form-group" style="align-self:flex-end;">
-            <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
-          </div>
-        </div>
 
-        <div class="tabla-scroll" style="margin-top:1rem;">
-          <table class="tabla-stock tabla-items-pedido">
-            <thead><tr><th>Producto</th><th>Precio</th><th>Cant</th><th>Subtotal</th><th></th></tr></thead>
-            <tbody id="pedidoItems"></tbody>
-          </table>
-        </div>
-        <div class="pedido-total-linea"><strong>Total:</strong> $<span id="totalPedido">0</span></div>
-      </section>
+          <div class="ux-item-row">
+            <div class="ux-field ux-field-grow">
+              <label for="itemNombre">Descripción</label>
+              <input id="itemNombre" placeholder="Ej: 60 etiquetas XV" list="productosDatalist" autocomplete="off">
+              <datalist id="productosDatalist"></datalist>
+            </div>
+            <div class="ux-field ux-cantidad">
+              <label for="cantidadInput">Cantidad</label>
+              <input id="cantidadInput" type="number" min="1" step="1" value="1">
+            </div>
+            <div class="ux-field ux-precio">
+              <label for="itemPrecio">Precio</label>
+              <input id="itemPrecio" type="number" min="0" step="0.01" placeholder="0">
+            </div>
+            <div class="ux-field ux-tipo-precio">
+              <label for="tipoPrecio">Tipo</label>
+              <select id="tipoPrecio">
+                <option value="TOTAL" selected>Total</option>
+                <option value="UNITARIO">Por unidad</option>
+              </select>
+            </div>
+            <button id="agregarItemBtn" class="btn btn-primary ux-add-item" type="button">Agregar</button>
+          </div>
 
-      <section class="pedido-seccion">
-        <h3>Datos del pedido</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Fecha</label><input id="pedidoFecha" type="date"></div>
-          <div class="form-group"><label>Estado</label><select id="pedidoEstado"><option value="PENDIENTE">🟥 Pendiente</option><option value="PROCESO">🟨 En proceso</option><option value="LISTO">🟪 Listo</option><option value="ENTREGADO">🟩 Entregado</option></select></div>
-          <div class="form-group"><label>Nota</label><input id="pedidoNota" placeholder="Detalles extra (opcional)"></div>
-        </div>
-      </section>
+          <div id="itemsPedidoVacio" class="ux-empty-items">Todavía no agregaste nada.</div>
+          <div class="tabla-scroll ux-items-wrap">
+            <table class="tabla-stock tabla-items-pedido ux-items-table">
+              <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th></th></tr></thead>
+              <tbody id="pedidoItems"></tbody>
+            </table>
+          </div>
+        </section>
 
-      <section class="pedido-seccion pedido-pago-box">
-        <div class="pedido-seccion-titulo">
-          <h3>Pagos / señas</h3>
-          <span class="hint">Podés registrar uno o varios pagos.</span>
-        </div>
-        <div class="form-grid">
-          <div class="form-group"><label>Monto</label><input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0"></div>
-          <div class="form-group"><label>Medio de pago</label><select id="pagoMedio"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
-          <div class="form-group"><label>Fecha</label><input id="pagoFecha" type="date"></div>
-          <div class="form-group" style="align-self:flex-end;"><button id="agregarPagoBtn" class="btn btn-secondary">+ Agregar pago</button></div>
-        </div>
-        <div id="listaPagosPedido" class="pagos-pedido-lista"></div>
-        <p class="hint" id="resumenPagos" style="margin:8px 0 0;">Pagado: $0 · Pendiente: $0</p>
-      </section>
+        <section class="ux-card ux-pago-card">
+          <div class="ux-payment-summary">
+            <div><span>Total</span><strong>$<span id="totalPedido">0</span></strong></div>
+            <div><span id="resumenPagos">Pagado: $0 · Pendiente: $0</span></div>
+            <button id="mostrarPagoBtn" class="btn btn-secondary ux-small-btn" type="button">+ Registrar pago</button>
+          </div>
+
+          <div id="pagoFormulario" class="ux-payment-form hidden">
+            <div class="ux-field"><label>Monto</label><input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0"></div>
+            <div class="ux-field"><label>Medio</label><select id="pagoMedio"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
+            <div class="ux-field"><label>Fecha</label><input id="pagoFecha" type="date"></div>
+            <button id="agregarPagoBtn" class="btn btn-primary ux-add-payment" type="button">Agregar pago</button>
+          </div>
+          <div id="listaPagosPedido" class="pagos-pedido-lista ux-payment-list"></div>
+        </section>
+
+        <details class="ux-more-options">
+          <summary>Más opciones</summary>
+          <div class="ux-more-grid">
+            <div class="ux-field"><label>Fecha</label><input id="pedidoFecha" type="date"></div>
+            <div class="ux-field"><label>Estado</label><select id="pedidoEstado"><option value="PENDIENTE">Pendiente</option><option value="PROCESO">En proceso</option><option value="LISTO">Listo</option><option value="ENTREGADO">Entregado</option></select></div>
+            <div class="ux-field"><label>Teléfono <span class="hint">(opcional)</span></label><input id="clienteTelefono" placeholder="WhatsApp"></div>
+            <div class="ux-field"><label>Red / contacto <span class="hint">(opcional)</span></label><input id="clienteRed" placeholder="Instagram u otro"></div>
+            <div class="ux-field ux-note-field"><label>Nota <span class="hint">(opcional)</span></label><input id="pedidoNota" placeholder="Algún detalle que quieras recordar"></div>
+          </div>
+        </details>
+      </div>
     </div>
 
-    <div class="modal-pedido-actions">
-      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
-      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
+    <div class="modal-pedido-actions ux-modal-actions">
+      <div class="ux-footer-total">Total <strong>$<span id="totalPedidoFooter">0</span></strong></div>
+      <div class="ux-footer-buttons">
+        <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
+      </div>
     </div>
+
+    <!-- Compatibilidad interna: ya no se muestran como controles separados -->
+    <input id="productoBuscar" type="hidden">
+    <select id="productoSelect" class="hidden"></select>
   </div>
 </div>
 

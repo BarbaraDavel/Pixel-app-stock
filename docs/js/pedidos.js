@@ -27,6 +27,9 @@ const inputItemPrecio     = document.getElementById("itemPrecio");
 const selTipoPrecio       = document.getElementById("tipoPrecio");
 const tbodyItems          = document.getElementById("pedidoItems");
 const spanTotal           = document.getElementById("totalPedido");
+const spanTotalFooter     = document.getElementById("totalPedidoFooter");
+const productosDatalist   = document.getElementById("productosDatalist");
+const itemsPedidoVacio    = document.getElementById("itemsPedidoVacio");
 
 const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
@@ -42,6 +45,8 @@ const inputPagoFecha = document.getElementById("pagoFecha");
 const btnAgregarPago = document.getElementById("agregarPagoBtn");
 const listaPagosPedido = document.getElementById("listaPagosPedido");
 const resumenPagos = document.getElementById("resumenPagos");
+const mostrarPagoBtn = document.getElementById("mostrarPagoBtn");
+const pagoFormulario = document.getElementById("pagoFormulario");
 
 const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado     = document.getElementById("filtroEstado");
@@ -211,22 +216,36 @@ async function guardarClienteSiHaceFalta() {
 ===================================================== */
 function renderOpcionesProductos(textoBusqueda = "") {
   const texto = normalizarTexto(textoBusqueda);
-  const actual = selProducto.value;
-
   const filtrados = texto
     ? productos.filter(p => normalizarTexto(obtenerNombreProducto(p)).includes(texto))
     : productos;
 
-  selProducto.innerHTML = `<option value="">No usar producto guardado</option>`;
+  if (selProducto) {
+    selProducto.innerHTML = `<option value="">No usar producto guardado</option>`;
+    filtrados.forEach(p => {
+      selProducto.innerHTML += `<option value="${p.id}">${obtenerNombreProducto(p)}</option>`;
+    });
+  }
 
-  filtrados.forEach(p => {
-    selProducto.innerHTML += `
-      <option value="${p.id}">
-        ${obtenerNombreProducto(p)} — $${money(obtenerPrecioProducto(p))}
-      </option>`;
-  });
+  if (productosDatalist) {
+    productosDatalist.innerHTML = filtrados
+      .map(p => `<option value="${obtenerNombreProducto(p)}"></option>`)
+      .join("");
+  }
+}
 
-  if (filtrados.some(p => p.id === actual)) selProducto.value = actual;
+function sincronizarProductoPorNombre() {
+  const nombre = inputItemNombre.value.trim();
+  const prod = productos.find(p => normalizarTexto(obtenerNombreProducto(p)) === normalizarTexto(nombre));
+
+  if (!prod) {
+    if (selProducto) selProducto.value = "";
+    return;
+  }
+
+  if (selProducto) selProducto.value = prod.id;
+  inputItemPrecio.value = obtenerPrecioProducto(prod);
+  selTipoPrecio.value = "UNITARIO";
 }
 
 async function cargarProductos() {
@@ -251,6 +270,12 @@ selProducto?.addEventListener("change", () => {
   selTipoPrecio.value = "UNITARIO";
 });
 
+inputItemNombre?.addEventListener("input", () => {
+  if (selProducto) selProducto.value = "";
+});
+inputItemNombre?.addEventListener("change", sincronizarProductoPorNombre);
+inputItemNombre?.addEventListener("blur", sincronizarProductoPorNombre);
+
 /* =====================================================
    ITEMS
 ===================================================== */
@@ -268,7 +293,6 @@ function renderPedido() {
           ${i.nombre}
           ${i.productoId ? "" : `<div class="hint">Ítem personalizado</div>`}
         </td>
-        <td>${precioLabel}</td>
         <td>${i.cantidad}</td>
         <td>$${money(i.subtotal)}</td>
         <td>
@@ -278,7 +302,10 @@ function renderPedido() {
       </tr>`;
   });
 
-  spanTotal.textContent = money(obtenerTotalPedidoActual());
+  const totalActual = obtenerTotalPedidoActual();
+  spanTotal.textContent = money(totalActual);
+  if (spanTotalFooter) spanTotalFooter.textContent = money(totalActual);
+  if (itemsPedidoVacio) itemsPedidoVacio.classList.toggle("hidden", itemsPedido.length > 0);
   renderResumenPagos();
 }
 
@@ -288,7 +315,7 @@ function limpiarCargaItem() {
   inputItemNombre.value = "";
   inputItemPrecio.value = "";
   inputCantidad.value = 1;
-  selTipoPrecio.value = "UNITARIO";
+  selTipoPrecio.value = "TOTAL";
   renderOpcionesProductos();
 }
 
@@ -363,14 +390,14 @@ function renderResumenPagos() {
   const pagado = obtenerPagadoActual();
   const pendiente = Math.max(total - pagado, 0);
 
-  resumenPagos.textContent = `Pagado: $${money(pagado)} · Pendiente: $${money(pendiente)}`;
+  resumenPagos.textContent = `Pagado $${money(pagado)} · Debe $${money(pendiente)}`;
 }
 
 function renderPagosPedido() {
   if (!listaPagosPedido) return;
 
   if (!pagosPedido.length) {
-    listaPagosPedido.innerHTML = '<p class="hint" style="margin:.7rem 0 0;">Todavía no hay pagos registrados.</p>';
+    listaPagosPedido.innerHTML = '';
     renderResumenPagos();
     return;
   }
@@ -418,11 +445,19 @@ function agregarPagoDesdeFormulario() {
   pagosPedido.push(pago);
   inputPagoMonto.value = '';
   renderPagosPedido();
+  pagoFormulario?.classList.add("hidden");
 }
 
 btnAgregarPago?.addEventListener('click', e => {
   e.preventDefault();
   agregarPagoDesdeFormulario();
+});
+
+mostrarPagoBtn?.addEventListener("click", () => {
+  pagoFormulario?.classList.toggle("hidden");
+  if (!pagoFormulario?.classList.contains("hidden")) {
+    setTimeout(() => inputPagoMonto?.focus(), 20);
+  }
 });
 
 listaPagosPedido?.addEventListener('click', e => {
@@ -486,6 +521,7 @@ function limpiarFormulario() {
   inputPagoMonto.value = "";
   selectPagoMedio.value = "TRANSFERENCIA";
   if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
+  pagoFormulario?.classList.add("hidden");
 
   pedidoEditandoId = null;
   btnGuardar.textContent = "Guardar pedido";
