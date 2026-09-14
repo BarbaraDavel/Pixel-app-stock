@@ -72,49 +72,72 @@
     <div class="form-grid">
       <div class="form-group">
         <label>Cliente</label>
-        <input id="clienteNombre" placeholder="Nombre del cliente" list="clientesDatalist">
+        <input id="clienteNombre" placeholder="Escribí un nombre..." list="clientesDatalist" autocomplete="off">
         <datalist id="clientesDatalist"></datalist>
+        <div id="clienteEstado" class="hint" style="margin-top:6px;"></div>
       </div>
 
       <div class="form-group">
-        <label>Teléfono</label>
+        <label>Teléfono <span class="hint">(opcional)</span></label>
         <input id="clienteTelefono" placeholder="Teléfono">
       </div>
 
       <div class="form-group">
-        <label>Red / Contacto</label>
+        <label>Red / Contacto <span class="hint">(opcional)</span></label>
         <input id="clienteRed" placeholder="Instagram / WhatsApp">
       </div>
     </div>
 
+    <p class="hint" style="margin-top:8px;">
+      Si el cliente no existe, se guarda automáticamente al guardar el pedido.
+    </p>
 
-    <h3 style="margin-top:1.5rem;">Productos del pedido</h3>
+
+    <h3 style="margin-top:1.5rem;">Agregar al pedido</h3>
 
     <div class="form-grid">
       <div class="form-group">
-        <label>Buscar producto</label>
+        <label>Buscar producto existente <span class="hint">(opcional)</span></label>
         <input
           id="productoBuscar"
           type="text"
-          placeholder="Escribí para buscar por nombre..."
+          placeholder="Ej: señalador, sticker..."
           autocomplete="off"
         >
       </div>
 
       <div class="form-group">
-        <label>Producto</label>
+        <label>Producto guardado <span class="hint">(opcional)</span></label>
         <select id="productoSelect">
           <option value="">Cargando productos...</option>
         </select>
       </div>
 
       <div class="form-group">
+        <label>Nombre del ítem</label>
+        <input id="itemNombre" placeholder="Ej: 60 etiquetas XV">
+      </div>
+
+      <div class="form-group">
         <label>Cantidad</label>
-        <input id="cantidadInput" type="number" min="1" value="1">
+        <input id="cantidadInput" type="number" min="1" step="1" value="1">
+      </div>
+
+      <div class="form-group">
+        <label>Precio</label>
+        <input id="itemPrecio" type="number" min="0" step="0.01" placeholder="0">
+      </div>
+
+      <div class="form-group">
+        <label>Ese precio es...</label>
+        <select id="tipoPrecio">
+          <option value="UNITARIO">Por unidad</option>
+          <option value="TOTAL">Por todo el ítem</option>
+        </select>
       </div>
 
       <div class="form-group" style="align-self:flex-end;">
-        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
+        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar al pedido</button>
       </div>
     </div>
 
@@ -162,12 +185,28 @@
     </div>
 
 
-    <!-- PAGADO -->
-    <div style="margin-top:0.5rem;">
-      <label style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" id="pedidoPagado" style="width:18px; height:18px;">
-        <span style="font-size:0.95rem;">Pagado</span>
-      </label>
+    <!-- PAGOS -->
+    <div class="card" style="margin-top:1rem; background:rgba(255,255,255,0.45);">
+      <h3 style="margin-top:0;">Pago / seña</h3>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Registrar un pago ahora <span class="hint">(opcional)</span></label>
+          <input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0">
+        </div>
+
+        <div class="form-group">
+          <label>Medio de pago</label>
+          <select id="pagoMedio">
+            <option value="TRANSFERENCIA">Transferencia</option>
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="MERCADO_PAGO">Mercado Pago</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="hint" id="resumenPagos" style="margin:8px 0 0;">Pagado: $0 · Pendiente: $0</p>
     </div>
 
 
@@ -211,7 +250,7 @@
           <th>Cliente</th>
           <th>Fecha</th>
           <th>Estado</th>
-          <th>Pagado</th>
+          <th>Pago</th>
           <th>Total</th>
           <th>Acciones</th>
         </tr>
@@ -239,6 +278,7 @@
 
     <p id="modalNota" style="margin-top:0.8rem;"></p>
     <p id="modalTotal" style="margin-top:0.8rem; font-weight:700;"></p>
+    <p id="modalPago" style="margin-top:0.4rem;"></p>
 
     <!-- 🕓 HISTORIAL -->
     <div id="modalHistorial" style="margin-top:0.8rem; font-size:0.9rem;"></div>
@@ -321,7 +361,7 @@
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=100"></script>
+<script type="module" src="js/pedidos.js?v=200"></script>
 
 <script>
   if ("serviceWorker" in navigator) {
