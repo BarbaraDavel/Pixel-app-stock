@@ -1172,3 +1172,178 @@ body.home-bg > * {
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
+/* ========================================== PEDIDOS REMASTER V1.1 ========================================== */
+body.modal-open {
+  overflow: hidden;
+}
+
+.pedidos-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.pedidos-filtros {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) minmax(180px, 1fr);
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+
+.tabla-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabla-pedidos-compacta {
+  margin: 0;
+}
+
+.tabla-pedidos-compacta td,
+.tabla-pedidos-compacta th {
+  padding-top: .7rem;
+  padding-bottom: .7rem;
+}
+
+.acciones-pedido {
+  white-space: nowrap;
+}
+
+.pedidos-lista-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modal-pedido-form {
+  width: min(960px, 94vw);
+  max-width: 960px;
+  max-height: 92vh;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-pedido-header {
+  padding: 1.2rem 1.4rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.modal-x {
+  border: 0;
+  background: rgba(255,255,255,.10);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+
+.modal-x:hover {
+  background: rgba(255,255,255,.18);
+}
+
+.modal-pedido-body {
+  padding: 1rem 1.4rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pedido-seccion {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.pedido-seccion:first-child {
+  padding-top: 0;
+}
+
+.pedido-seccion:last-child {
+  border-bottom: 0;
+}
+
+.pedido-seccion h3 {
+  margin: 0 0 .8rem;
+}
+
+.pedido-seccion-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+
+.pedido-item-nombre {
+  grid-column: span 2;
+}
+
+.pedido-total-linea {
+  text-align: right;
+  margin-top: .8rem;
+  font-size: 1.1rem;
+}
+
+.pedido-pago-box {
+  background: rgba(255,255,255,.05);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-top: .5rem;
+}
+
+.modal-pedido-actions {
+  padding: 1rem 1.4rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+  border-top: 1px solid rgba(255,255,255,.12);
+  background: #2b1b39;
+}
+
+@media (max-width: 720px) {
+  .pedidos-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .pedidos-toolbar .btn {
+    width: 100%;
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+
+  .modal-pedido-form {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94vh;
+    border-radius: 1.3rem 1.3rem 0 0;
+  }
+
+  .modal-pedido-header,
+  .modal-pedido-body,
+  .modal-pedido-actions {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .pedido-item-nombre {
+    grid-column: auto;
+  }
+
+  .modal-pedido-actions .btn {
+    flex: 1;
+  }
+}

@@ -64,169 +64,18 @@
 
 
   <!-- ================================
-        FORMULARIO DEL PEDIDO
-  ================================= -->
-  <div class="card">
-    <h3>Datos del cliente</h3>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Cliente</label>
-        <input id="clienteNombre" placeholder="Escribí un nombre..." list="clientesDatalist" autocomplete="off">
-        <datalist id="clientesDatalist"></datalist>
-        <div id="clienteEstado" class="hint" style="margin-top:6px;"></div>
-      </div>
-
-      <div class="form-group">
-        <label>Teléfono <span class="hint">(opcional)</span></label>
-        <input id="clienteTelefono" placeholder="Teléfono">
-      </div>
-
-      <div class="form-group">
-        <label>Red / Contacto <span class="hint">(opcional)</span></label>
-        <input id="clienteRed" placeholder="Instagram / WhatsApp">
-      </div>
-    </div>
-
-    <p class="hint" style="margin-top:8px;">
-      Si el cliente no existe, se guarda automáticamente al guardar el pedido.
-    </p>
-
-
-    <h3 style="margin-top:1.5rem;">Agregar al pedido</h3>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Buscar producto existente <span class="hint">(opcional)</span></label>
-        <input
-          id="productoBuscar"
-          type="text"
-          placeholder="Ej: señalador, sticker..."
-          autocomplete="off"
-        >
-      </div>
-
-      <div class="form-group">
-        <label>Producto guardado <span class="hint">(opcional)</span></label>
-        <select id="productoSelect">
-          <option value="">Cargando productos...</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Nombre del ítem</label>
-        <input id="itemNombre" placeholder="Ej: 60 etiquetas XV">
-      </div>
-
-      <div class="form-group">
-        <label>Cantidad</label>
-        <input id="cantidadInput" type="number" min="1" step="1" value="1">
-      </div>
-
-      <div class="form-group">
-        <label>Precio</label>
-        <input id="itemPrecio" type="number" min="0" step="0.01" placeholder="0">
-      </div>
-
-      <div class="form-group">
-        <label>Ese precio es...</label>
-        <select id="tipoPrecio">
-          <option value="UNITARIO">Por unidad</option>
-          <option value="TOTAL">Por todo el ítem</option>
-        </select>
-      </div>
-
-      <div class="form-group" style="align-self:flex-end;">
-        <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar al pedido</button>
-      </div>
-    </div>
-
-
-    <!-- TABLA ITEMS -->
-    <table class="tabla-stock" style="margin-top:1rem;">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cant</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="pedidoItems"></tbody>
-    </table>
-
-    <p style="text-align:right; margin-top:1rem; font-size:1.05rem;">
-      <strong>Total:</strong> $<span id="totalPedido">0</span>
-    </p>
-
-
-    <!-- DATOS DEL PEDIDO -->
-    <div class="form-grid" style="margin-top:1rem;">
-      <div class="form-group">
-        <label>Fecha</label>
-        <input id="pedidoFecha" type="date">
-      </div>
-
-      <div class="form-group">
-        <label>Estado</label>
-        <select id="pedidoEstado">
-          <option value="PENDIENTE">🟥 Pendiente</option>
-          <option value="PROCESO">🟨 En proceso</option>
-          <option value="LISTO">🟪 Listo</option>
-          <option value="ENTREGADO">🟩 Entregado</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Nota</label>
-        <input id="pedidoNota" placeholder="Detalles extra (opcional)">
-      </div>
-    </div>
-
-
-    <!-- PAGOS -->
-    <div class="card" style="margin-top:1rem; background:rgba(255,255,255,0.45);">
-      <h3 style="margin-top:0;">Pago / seña</h3>
-
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Registrar un pago ahora <span class="hint">(opcional)</span></label>
-          <input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0">
-        </div>
-
-        <div class="form-group">
-          <label>Medio de pago</label>
-          <select id="pagoMedio">
-            <option value="TRANSFERENCIA">Transferencia</option>
-            <option value="EFECTIVO">Efectivo</option>
-            <option value="MERCADO_PAGO">Mercado Pago</option>
-            <option value="OTRO">Otro</option>
-          </select>
-        </div>
-      </div>
-
-      <p class="hint" id="resumenPagos" style="margin:8px 0 0;">Pagado: $0 · Pendiente: $0</p>
-    </div>
-
-
-    <!-- BOTONES -->
-    <div style="text-align:right; margin-top:1.2rem;">
-      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
-      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
-    </div>
-  </div>
-
-  <br>
-
-  <!-- ================================
         LISTA DE PEDIDOS
   ================================= -->
-  <div class="card">
-    <h3>Lista de pedidos</h3>
+  <div class="card pedidos-lista-card">
+    <div class="pedidos-toolbar">
+      <div>
+        <h3 style="margin:0;">Pedidos</h3>
+        <p class="hint" style="margin:.3rem 0 0;">Mostramos primero los pedidos activos y recientes.</p>
+      </div>
+      <button id="nuevoPedidoBtn" class="btn btn-primary">➕ Nuevo pedido</button>
+    </div>
 
-    <!-- FILTROS -->
-    <div class="form-grid" style="margin-bottom:1rem;">
+    <div class="pedidos-filtros">
       <div>
         <label>Buscar cliente</label>
         <input id="filtroBusqueda" placeholder="Buscar por nombre...">
@@ -235,6 +84,7 @@
       <div>
         <label>Filtrar por estado</label>
         <select id="filtroEstado">
+          <option value="ACTIVOS" selected>Activos</option>
           <option value="">Todos</option>
           <option value="PENDIENTE">Pendientes</option>
           <option value="PROCESO">En proceso</option>
@@ -244,23 +94,140 @@
       </div>
     </div>
 
-    <table class="tabla-stock">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Fecha</th>
-          <th>Estado</th>
-          <th>Pago</th>
-          <th>Total</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="listaPedidos"></tbody>
-    </table>
+    <div class="tabla-scroll">
+      <table class="tabla-stock tabla-pedidos-compacta">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Pago</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="listaPedidos"></tbody>
+      </table>
+    </div>
+
+    <div class="pedidos-lista-footer">
+      <span id="contadorPedidos" class="hint"></span>
+      <button id="cargarMasPedidosBtn" class="btn btn-secondary">Cargar más</button>
+    </div>
   </div>
+
+
 
 </div>
 
+
+<!-- ================================
+      MODAL NUEVO / EDITAR PEDIDO
+================================ -->
+<div id="formularioPedidoModal" class="modal-backdrop hidden">
+  <div class="modal modal-pedido-form">
+    <div class="modal-pedido-header">
+      <div>
+        <h2 id="formularioPedidoTitulo" style="margin:0;">Nuevo pedido</h2>
+        <p class="hint" style="margin:.25rem 0 0;">Cargá todo sin salir de esta pantalla.</p>
+      </div>
+      <button id="cerrarFormularioPedidoBtn" class="modal-x" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-pedido-body">
+      <section class="pedido-seccion">
+        <h3>Cliente</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cliente</label>
+            <input id="clienteNombre" placeholder="Escribí un nombre..." list="clientesDatalist" autocomplete="off">
+            <datalist id="clientesDatalist"></datalist>
+            <div id="clienteEstado" class="hint" style="margin-top:6px;"></div>
+          </div>
+          <div class="form-group">
+            <label>Teléfono <span class="hint">(opcional)</span></label>
+            <input id="clienteTelefono" placeholder="Teléfono">
+          </div>
+          <div class="form-group">
+            <label>Red / Contacto <span class="hint">(opcional)</span></label>
+            <input id="clienteRed" placeholder="Instagram / WhatsApp">
+          </div>
+        </div>
+        <p class="hint" style="margin-top:8px;">Si el cliente no existe, se guarda automáticamente con el pedido.</p>
+      </section>
+
+      <section class="pedido-seccion">
+        <div class="pedido-seccion-titulo">
+          <h3>Agregar al pedido</h3>
+          <span class="hint">Puede ser un producto guardado o algo nuevo.</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Buscar producto existente <span class="hint">(opcional)</span></label>
+            <input id="productoBuscar" type="text" placeholder="Ej: señalador, sticker..." autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Producto guardado <span class="hint">(opcional)</span></label>
+            <select id="productoSelect"><option value="">Cargando productos...</option></select>
+          </div>
+          <div class="form-group pedido-item-nombre">
+            <label>Nombre del ítem</label>
+            <input id="itemNombre" placeholder="Ej: 60 etiquetas XV">
+          </div>
+          <div class="form-group">
+            <label>Cantidad</label>
+            <input id="cantidadInput" type="number" min="1" step="1" value="1">
+          </div>
+          <div class="form-group">
+            <label>Precio</label>
+            <input id="itemPrecio" type="number" min="0" step="0.01" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Ese precio es...</label>
+            <select id="tipoPrecio">
+              <option value="UNITARIO">Por unidad</option>
+              <option value="TOTAL">Por todo el ítem</option>
+            </select>
+          </div>
+          <div class="form-group" style="align-self:flex-end;">
+            <button id="agregarItemBtn" class="btn btn-primary">➕ Agregar</button>
+          </div>
+        </div>
+
+        <div class="tabla-scroll" style="margin-top:1rem;">
+          <table class="tabla-stock tabla-items-pedido">
+            <thead><tr><th>Producto</th><th>Precio</th><th>Cant</th><th>Subtotal</th><th></th></tr></thead>
+            <tbody id="pedidoItems"></tbody>
+          </table>
+        </div>
+        <div class="pedido-total-linea"><strong>Total:</strong> $<span id="totalPedido">0</span></div>
+      </section>
+
+      <section class="pedido-seccion">
+        <h3>Datos del pedido</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input id="pedidoFecha" type="date"></div>
+          <div class="form-group"><label>Estado</label><select id="pedidoEstado"><option value="PENDIENTE">🟥 Pendiente</option><option value="PROCESO">🟨 En proceso</option><option value="LISTO">🟪 Listo</option><option value="ENTREGADO">🟩 Entregado</option></select></div>
+          <div class="form-group"><label>Nota</label><input id="pedidoNota" placeholder="Detalles extra (opcional)"></div>
+        </div>
+      </section>
+
+      <section class="pedido-seccion pedido-pago-box">
+        <h3>Pago / seña</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>Registrar un pago ahora <span class="hint">(opcional)</span></label><input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0"></div>
+          <div class="form-group"><label>Medio de pago</label><select id="pagoMedio"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
+        </div>
+        <p class="hint" id="resumenPagos" style="margin:8px 0 0;">Pagado: $0 · Pendiente: $0</p>
+      </section>
+    </div>
+
+    <div class="modal-pedido-actions">
+      <button id="limpiarPedidoBtn" class="btn btn-secondary">Limpiar</button>
+      <button id="guardarPedidoBtn" class="btn btn-primary">Guardar pedido</button>
+    </div>
+  </div>
+</div>
 
 <!-- ================================
       MODAL VER PEDIDO
@@ -361,7 +328,7 @@
 
 <!-- SCRIPTS -->
 <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/pedidos.js?v=200"></script>
+<script type="module" src="js/pedidos.js?v=210"></script>
 
 <script>
   if ("serviceWorker" in navigator) {

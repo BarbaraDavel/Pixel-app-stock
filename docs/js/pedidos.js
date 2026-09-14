@@ -43,6 +43,12 @@ const resumenPagos = document.getElementById("resumenPagos");
 const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado     = document.getElementById("filtroEstado");
 const filtroBusqueda   = document.getElementById("filtroBusqueda");
+const nuevoPedidoBtn          = document.getElementById("nuevoPedidoBtn");
+const formularioPedidoModal   = document.getElementById("formularioPedidoModal");
+const formularioPedidoTitulo  = document.getElementById("formularioPedidoTitulo");
+const cerrarFormularioBtn     = document.getElementById("cerrarFormularioPedidoBtn");
+const cargarMasPedidosBtn     = document.getElementById("cargarMasPedidosBtn");
+const contadorPedidos         = document.getElementById("contadorPedidos");
 
 const modal          = document.getElementById("pedidoModal");
 const modalTitulo    = document.getElementById("modalTitulo");
@@ -67,6 +73,7 @@ let pagosPedido = [];
 let pedidosCache = [];
 let pedidoEditandoId = null;
 let pedidoModalActual = null;
+let limitePedidos = 20;
 
 const ordenEstados = {
   PENDIENTE: 1,
@@ -376,6 +383,40 @@ inputPagoMonto?.addEventListener("input", () => {
 });
 
 /* =====================================================
+   MODAL NUEVO / EDITAR
+===================================================== */
+function abrirFormularioPedido(modo = "nuevo") {
+  if (!formularioPedidoModal) return;
+  formularioPedidoTitulo.textContent = modo === "editar" ? "Editar pedido" : "Nuevo pedido";
+  formularioPedidoModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  setTimeout(() => inputClienteNombre?.focus(), 50);
+}
+
+function cerrarFormularioPedido() {
+  if (!formularioPedidoModal) return;
+  formularioPedidoModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+nuevoPedidoBtn?.addEventListener("click", () => {
+  limpiarFormulario();
+  abrirFormularioPedido("nuevo");
+});
+
+cerrarFormularioBtn?.addEventListener("click", cerrarFormularioPedido);
+
+formularioPedidoModal?.addEventListener("click", e => {
+  if (e.target === formularioPedidoModal) cerrarFormularioPedido();
+});
+
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !formularioPedidoModal?.classList.contains("hidden")) {
+    cerrarFormularioPedido();
+  }
+});
+
+/* =====================================================
    FORM
 ===================================================== */
 function limpiarFormulario() {
@@ -487,6 +528,7 @@ btnGuardar?.addEventListener("click", async e => {
   }
 
   limpiarFormulario();
+  cerrarFormularioPedido();
   await cargarClientes();
   await cargarPedidos();
 });
@@ -518,42 +560,73 @@ function renderLista() {
 
   listaPedidosBody.innerHTML = "";
 
-  pedidosCache
-    .filter(p =>
-      (!est || p.estado === est) &&
-      (!txt || normalizarTexto(p.clienteNombre || "").includes(txt))
-    )
-    .forEach(p => {
-      let fila = "tr-ok";
-      if (p.estado === "PENDIENTE") fila = "tr-urgente";
-      else if (p.estado === "PROCESO") fila = "tr-atencion";
-      else if (p.estado === "LISTO") fila = "tr-listo";
+  const filtrados = pedidosCache.filter(p => {
+    const coincideEstado = est === "ACTIVOS"
+      ? ["PENDIENTE", "PROCESO", "LISTO"].includes(p.estado || "PENDIENTE")
+      : (!est || p.estado === est);
 
-      const montoPagado = obtenerPagadoPedido(p);
-      const pendiente = Math.max(toNumber(p.total) - montoPagado, 0);
-      const pagoHtml = pendiente <= 0 && toNumber(p.total) > 0
-        ? `<span class="badge badge-pagado">Pagado</span>`
-        : `<span class="badge badge-nopagado">Debe $${money(pendiente)}</span>`;
+    const coincideTexto = !txt || normalizarTexto(p.clienteNombre || "").includes(txt);
+    return coincideEstado && coincideTexto;
+  });
 
-      listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
-          <td class="cliente-click" onclick="verPedido('${p.id}')" style="cursor:pointer;" title="Ver pedido">
-            ${p.clienteNombre || "Sin nombre"}
-          </td>
-          <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${String(p.estado || "PENDIENTE").toLowerCase()}">${p.estado || "PENDIENTE"}</span></td>
-          <td>${pagoHtml}</td>
-          <td>$${money(p.total)}</td>
-          <td>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
-          </td>
-        </tr>`;
-    });
+  const visibles = filtrados.slice(0, limitePedidos);
+
+  visibles.forEach(p => {
+    let fila = "tr-ok";
+    if (p.estado === "PENDIENTE") fila = "tr-urgente";
+    else if (p.estado === "PROCESO") fila = "tr-atencion";
+    else if (p.estado === "LISTO") fila = "tr-listo";
+
+    const montoPagado = obtenerPagadoPedido(p);
+    const pendiente = Math.max(toNumber(p.total) - montoPagado, 0);
+    const pagoHtml = pendiente <= 0 && toNumber(p.total) > 0
+      ? `<span class="badge badge-pagado">Pagado</span>`
+      : `<span class="badge badge-nopagado">Debe $${money(pendiente)}</span>`;
+
+    listaPedidosBody.innerHTML += `
+      <tr class="${fila}">
+        <td class="cliente-click" onclick="verPedido('${p.id}')" style="cursor:pointer;" title="Ver pedido">
+          ${p.clienteNombre || "Sin nombre"}
+        </td>
+        <td>${new Date(p.fecha).toLocaleDateString()}</td>
+        <td><span class="badge badge-${String(p.estado || "PENDIENTE").toLowerCase()}">${p.estado || "PENDIENTE"}</span></td>
+        <td>${pagoHtml}</td>
+        <td>$${money(p.total)}</td>
+        <td class="acciones-pedido">
+          <button class="btn-pp" onclick="editarPedido('${p.id}')" title="Editar">✏️</button>
+          <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')" title="Eliminar">🗑️</button>
+        </td>
+      </tr>`;
+  });
+
+  if (!visibles.length) {
+    listaPedidosBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem;" class="hint">No hay pedidos para mostrar.</td></tr>`;
+  }
+
+  if (contadorPedidos) {
+    const mostrados = Math.min(visibles.length, filtrados.length);
+    contadorPedidos.textContent = filtrados.length
+      ? `Mostrando ${mostrados} de ${filtrados.length} pedidos`
+      : "0 pedidos";
+  }
+
+  if (cargarMasPedidosBtn) {
+    cargarMasPedidosBtn.classList.toggle("hidden", visibles.length >= filtrados.length);
+  }
 }
 
-filtroEstado?.addEventListener("change", renderLista);
-filtroBusqueda?.addEventListener("input", renderLista);
+function reiniciarListado() {
+  limitePedidos = 20;
+  renderLista();
+}
+
+filtroEstado?.addEventListener("change", reiniciarListado);
+filtroBusqueda?.addEventListener("input", reiniciarListado);
+
+cargarMasPedidosBtn?.addEventListener("click", () => {
+  limitePedidos += 20;
+  renderLista();
+});
 
 /* =====================================================
    MODAL VER + WHATSAPP
@@ -670,7 +743,7 @@ window.editarPedido = id => {
   renderPedido();
 
   btnGuardar.textContent = "Guardar cambios";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  abrirFormularioPedido("editar");
 };
 
 /* =====================================================
