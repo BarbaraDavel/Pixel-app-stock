@@ -1,4 +1,4 @@
-const CACHE_NAME = "pixel-stock-v4";
+const CACHE_NAME = "pixel-stock-v5";
 const URLS_TO_CACHE = [
   "/",
   "/index.html",

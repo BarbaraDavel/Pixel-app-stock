@@ -144,6 +144,33 @@ function clienteExistentePorNombre(nombre) {
 }
 
 /* =====================================================
+   FEEDBACK / TOASTS
+===================================================== */
+function mostrarToast(mensaje, tipo = "ok") {
+  let contenedor = document.getElementById("pixelToastContainer");
+  if (!contenedor) {
+    contenedor = document.createElement("div");
+    contenedor.id = "pixelToastContainer";
+    contenedor.className = "pixel-toast-container";
+    document.body.appendChild(contenedor);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `pixel-toast pixel-toast-${tipo}`;
+  toast.innerHTML = `
+    <span class="pixel-toast-icon">${tipo === "error" ? "!" : "✓"}</span>
+    <span>${mensaje}</span>
+  `;
+  contenedor.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("visible"));
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 220);
+  }, 2600);
+}
+
+/* =====================================================
    CLIENTES
 ===================================================== */
 async function cargarClientes() {
@@ -197,13 +224,37 @@ async function guardarClienteSiHaceFalta() {
   const nombre = inputClienteNombre.value.trim();
   if (!nombre) return null;
 
+  const telefono = inputClienteTelefono.value.trim();
+  const red = inputClienteRed.value.trim();
   const existente = clienteExistentePorNombre(nombre);
-  if (existente) return existente.id;
+
+  if (existente) {
+    // Si completaste o corregiste datos desde el pedido, también actualizamos
+    // la ficha del cliente para que no queden guiones en Clientes.
+    const cambios = {};
+    if (telefono && telefono !== (existente.telefono || existente.whatsapp || "")) {
+      cambios.telefono = telefono;
+      cambios.whatsapp = telefono; // compatibilidad con registros anteriores
+    }
+    if (red && red !== (existente.red || existente.instagram || "")) {
+      cambios.red = red;
+      cambios.instagram = red; // compatibilidad con registros anteriores
+    }
+
+    if (Object.keys(cambios).length) {
+      await updateDoc(doc(db, "clientes", existente.id), cambios);
+      Object.assign(existente, cambios);
+    }
+    return existente.id;
+  }
 
   const ref = await addDoc(collection(db, "clientes"), {
     nombre,
-    whatsapp: inputClienteTelefono.value.trim(),
-    instagram: inputClienteRed.value.trim(),
+    telefono,
+    red,
+    // Dejamos también estos alias por compatibilidad con código viejo.
+    whatsapp: telefono,
+    instagram: red,
     creadoDesdePedido: true,
     fechaCreacion: serverTimestamp()
   });
@@ -326,9 +377,9 @@ function agregarItemDesdeFormulario() {
   const tipoPrecio = selTipoPrecio.value;
   const prod = productos.find(p => p.id === selProducto.value);
 
-  if (!nombre) return alert("Escribí el nombre del producto o trabajo.");
-  if (cantidad <= 0) return alert("La cantidad debe ser mayor a 0.");
-  if (precioIngresado < 0) return alert("El precio no puede ser negativo.");
+  if (!nombre) { mostrarToast("Escribí el nombre del producto o trabajo.", "error"); return; }
+  if (cantidad <= 0) { mostrarToast("La cantidad debe ser mayor a 0.", "error"); return; }
+  if (precioIngresado < 0) { mostrarToast("El precio no puede ser negativo.", "error"); return; }
 
   const subtotal = tipoPrecio === "TOTAL"
     ? precioIngresado
@@ -434,7 +485,7 @@ function tomarPagoDelFormulario() {
 
 function agregarPagoDesdeFormulario() {
   const pago = tomarPagoDelFormulario();
-  if (!pago) return alert('Ingresá un monto mayor a 0.');
+  if (!pago) { mostrarToast('Ingresá un monto mayor a 0.', 'error'); return; }
 
   const total = obtenerTotalPedidoActual();
   const pagadoActual = obtenerPagadoActual();
@@ -544,8 +595,8 @@ btnGuardar?.addEventListener("click", async e => {
   e.preventDefault();
 
   const clienteNombre = inputClienteNombre.value.trim();
-  if (!clienteNombre) return alert("Escribí el nombre del cliente.");
-  if (!itemsPedido.length) return alert("Agregá al menos un producto o trabajo al pedido.");
+  if (!clienteNombre) { mostrarToast("Escribí el nombre del cliente.", "error"); return; }
+  if (!itemsPedido.length) { mostrarToast("Agregá al menos un producto o trabajo al pedido.", "error"); return; }
 
   const pagoNuevo = tomarPagoDelFormulario();
   const pagosFinales = pagoNuevo ? [...pagosPedido, pagoNuevo] : [...pagosPedido];
@@ -598,7 +649,7 @@ btnGuardar?.addEventListener("click", async e => {
       ]
     });
 
-    alert("Pedido actualizado ✔");
+    mostrarToast("Pedido actualizado");
   } else {
     await addDoc(collection(db, "pedidos"), {
       ...baseData,
@@ -616,7 +667,7 @@ btnGuardar?.addEventListener("click", async e => {
       ]
     });
 
-    alert("Pedido guardado ✔");
+    mostrarToast("Pedido guardado");
   }
 
   limpiarFormulario();
