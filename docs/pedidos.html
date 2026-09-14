@@ -224,6 +224,42 @@
 </div>
 
 <!-- ================================
+      MODAL COSTO DE ÍTEM
+================================ -->
+<div id="costoItemModal" class="modal-backdrop hidden">
+  <div class="modal modal-costo-item">
+    <div class="modal-pedido-header ux-modal-header">
+      <div>
+        <h2 style="margin:0;">Calcular costo</h2>
+        <p id="costoItemTitulo" class="hint ux-subtitle">Producto o trabajo</p>
+      </div>
+      <button id="cerrarCostoItemBtn" class="modal-x" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="costo-item-body">
+      <div class="costo-item-toolbar">
+        <button id="agregarInsumoCostoBtn" class="btn btn-secondary" type="button">+ Agregar insumo</button>
+        <button id="agregarGastoRapidoBtn" class="btn btn-secondary" type="button">+ Gasto rápido</button>
+      </div>
+
+      <div id="costoItemVacio" class="ux-empty-items">Todavía no agregaste costos.</div>
+      <div id="costoItemLineas" class="costo-item-lineas"></div>
+
+      <div class="costo-item-resumen">
+        <div><span>Costo estimado</span><strong>$<span id="costoItemTotal">0</span></strong></div>
+        <div><span>Precio de venta</span><strong>$<span id="costoItemVenta">0</span></strong></div>
+        <div><span>Ganancia estimada</span><strong>$<span id="costoItemGanancia">0</span></strong></div>
+        <div><span>Margen</span><strong><span id="costoItemMargen">0</span>%</strong></div>
+      </div>
+    </div>
+
+    <div class="modal-pedido-actions ux-modal-actions">
+      <button id="guardarCostoItemBtn" class="btn btn-primary" type="button">Guardar costo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================
       MODAL VER PEDIDO
 ================================ -->
 <div id="pedidoModal" class="modal-backdrop hidden">

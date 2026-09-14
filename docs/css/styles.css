@@ -1738,3 +1738,128 @@ body.modal-open {
     max-width: none;
   }
 }
+
+/* ================================
+   COSTO OPCIONAL DENTRO DE PEDIDOS
+================================ */
+.modal-costo-item {
+  width: min(760px, calc(100vw - 2rem));
+  max-height: 88vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.costo-item-body {
+  padding: 1rem 1.15rem 1.2rem;
+  overflow-y: auto;
+}
+
+.costo-item-toolbar {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .9rem;
+}
+
+.costo-item-lineas {
+  display: grid;
+  gap: .7rem;
+}
+
+.costo-linea {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 140px 120px 32px;
+  gap: .65rem;
+  align-items: end;
+  padding: .8rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  background: rgba(18, 10, 31, .28);
+}
+
+.costo-linea-gasto {
+  grid-template-columns: minmax(220px, 1fr) 170px 32px;
+}
+
+.costo-subtotal-linea {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding-bottom: .55rem;
+}
+
+.costo-subtotal-linea span {
+  font-size: .75rem;
+  opacity: .7;
+}
+
+.costo-quitar {
+  margin-bottom: .55rem;
+}
+
+.costo-item-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .7rem;
+  margin-top: 1rem;
+}
+
+.costo-item-resumen > div {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .8rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,.045);
+}
+
+.costo-item-resumen span {
+  font-size: .78rem;
+  opacity: .75;
+}
+
+.costo-item-resumen strong {
+  font-size: 1rem;
+}
+
+.item-actions-ux {
+  white-space: nowrap;
+}
+
+.costo-item-hint {
+  margin-top: .2rem;
+}
+
+@media (max-width: 720px) {
+  .costo-linea,
+  .costo-linea-gasto {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .costo-insumo-select,
+  .costo-nombre-gasto {
+    grid-column: 1 / -1;
+  }
+
+  .costo-quitar {
+    justify-self: end;
+  }
+
+  .costo-item-resumen {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .costo-linea,
+  .costo-linea-gasto,
+  .costo-item-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .costo-insumo-select,
+  .costo-nombre-gasto {
+    grid-column: auto;
+  }
+}

@@ -31,6 +31,19 @@ const spanTotalFooter     = document.getElementById("totalPedidoFooter");
 const productosDatalist   = document.getElementById("productosDatalist");
 const itemsPedidoVacio    = document.getElementById("itemsPedidoVacio");
 
+const costoItemModal        = document.getElementById("costoItemModal");
+const costoItemTitulo       = document.getElementById("costoItemTitulo");
+const cerrarCostoItemBtn    = document.getElementById("cerrarCostoItemBtn");
+const agregarInsumoCostoBtn = document.getElementById("agregarInsumoCostoBtn");
+const agregarGastoRapidoBtn = document.getElementById("agregarGastoRapidoBtn");
+const costoItemLineas       = document.getElementById("costoItemLineas");
+const costoItemVacio        = document.getElementById("costoItemVacio");
+const costoItemTotal        = document.getElementById("costoItemTotal");
+const costoItemVenta        = document.getElementById("costoItemVenta");
+const costoItemGanancia     = document.getElementById("costoItemGanancia");
+const costoItemMargen       = document.getElementById("costoItemMargen");
+const guardarCostoItemBtn   = document.getElementById("guardarCostoItemBtn");
+
 const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
 const btnLimpiar = document.getElementById("limpiarPedidoBtn");
@@ -79,6 +92,9 @@ let productos = [];
 let itemsPedido = [];
 let pagosPedido = [];
 let pedidosCache = [];
+let insumos = [];
+let costoItemIndex = null;
+let lineasCostoItem = [];
 let pedidoEditandoId = null;
 let pedidoModalActual = null;
 let limitePedidos = 20;
@@ -141,6 +157,22 @@ function obtenerPagadoActual() {
 function clienteExistentePorNombre(nombre) {
   const buscado = normalizarTexto(nombre);
   return clientes.find(c => normalizarTexto(c.nombre) === buscado) || null;
+}
+
+function costoUnitarioInsumo(ins) {
+  if (!ins) return 0;
+  const guardado = toNumber(ins.costoUnitario);
+  if (guardado > 0) return guardado;
+  const cantidad = toNumber(ins.cantidadPaquete);
+  return cantidad > 0 ? toNumber(ins.costoPaquete) / cantidad : 0;
+}
+
+function calcularCostoLineas(lineas = []) {
+  return lineas.reduce((acc, linea) => {
+    if (linea.tipo === "gasto") return acc + toNumber(linea.costo);
+    const ins = insumos.find(i => i.id === linea.insumoId);
+    return acc + costoUnitarioInsumo(ins) * toNumber(linea.cantidad);
+  }, 0);
 }
 
 /* =====================================================
@@ -263,6 +295,16 @@ async function guardarClienteSiHaceFalta() {
 }
 
 /* =====================================================
+   INSUMOS PARA COSTOS RÁPIDOS
+===================================================== */
+async function cargarInsumosParaCostos() {
+  insumos = [];
+  const snap = await getDocs(collection(db, "insumos"));
+  snap.forEach(d => insumos.push({ id: d.id, ...d.data() }));
+  insumos.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es", { sensitivity: "base" }));
+}
+
+/* =====================================================
    PRODUCTOS
 ===================================================== */
 function renderOpcionesProductos(textoBusqueda = "") {
@@ -343,12 +385,14 @@ function renderPedido() {
         <td>
           ${i.nombre}
           ${i.productoId ? "" : `<div class="hint">Ítem personalizado</div>`}
+          ${toNumber(i.costoEstimado) > 0 ? `<div class="hint costo-item-hint">Costo $${money(i.costoEstimado)} · Ganancia $${money(toNumber(i.subtotal) - toNumber(i.costoEstimado))}</div>` : ""}
         </td>
         <td>${i.cantidad}</td>
         <td>$${money(i.subtotal)}</td>
-        <td>
-          <button class="btn-pp" onclick="editarItem(${idx})">✏️</button>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+        <td class="item-actions-ux">
+          <button class="btn-pp" onclick="abrirCostoItem(${idx})" title="Calcular costo">🧮</button>
+          <button class="btn-pp" onclick="editarItem(${idx})" title="Editar">✏️</button>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})" title="Eliminar">✖</button>
         </td>
       </tr>`;
   });
@@ -430,6 +474,148 @@ window.editarItem = idx => {
   renderPedido();
   inputItemNombre.focus();
 };
+
+/* =====================================================
+   COSTO OPCIONAL POR ÍTEM
+===================================================== */
+function cerrarCostoItem() {
+  costoItemModal?.classList.add("hidden");
+  costoItemIndex = null;
+  lineasCostoItem = [];
+}
+
+function renderCostoItem() {
+  if (!costoItemLineas || costoItemIndex === null) return;
+  const item = itemsPedido[costoItemIndex];
+  if (!item) return;
+
+  costoItemLineas.innerHTML = lineasCostoItem.map((linea, idx) => {
+    if (linea.tipo === "gasto") {
+      return `
+        <div class="costo-linea costo-linea-gasto">
+          <div class="ux-field costo-nombre-gasto">
+            <label>Gasto</label>
+            <input data-costo-gasto-nombre="${idx}" value="${linea.nombre || ""}" placeholder="Ej: cinta, envío, impresión">
+          </div>
+          <div class="ux-field costo-importe-gasto">
+            <label>Importe</label>
+            <input data-costo-gasto-importe="${idx}" type="number" min="0" step="0.01" value="${toNumber(linea.costo)}">
+          </div>
+          <button class="pago-quitar-btn costo-quitar" data-costo-quitar="${idx}" type="button" aria-label="Quitar">✕</button>
+        </div>`;
+    }
+
+    const ins = insumos.find(i => i.id === linea.insumoId);
+    const unitario = costoUnitarioInsumo(ins);
+    const subtotal = unitario * toNumber(linea.cantidad);
+    return `
+      <div class="costo-linea">
+        <div class="ux-field costo-insumo-select">
+          <label>Insumo</label>
+          <select data-costo-insumo="${idx}">
+            ${insumos.map(i => `<option value="${i.id}" ${i.id === linea.insumoId ? "selected" : ""}>${i.nombre || "Sin nombre"}</option>`).join("")}
+          </select>
+          <span class="hint">$${money(unitario)} por unidad</span>
+        </div>
+        <div class="ux-field costo-cantidad-insumo">
+          <label>Cantidad usada</label>
+          <input data-costo-cantidad="${idx}" type="number" min="0" step="0.01" value="${toNumber(linea.cantidad)}">
+        </div>
+        <div class="costo-subtotal-linea">
+          <span>Subtotal</span>
+          <strong>$${money(subtotal)}</strong>
+        </div>
+        <button class="pago-quitar-btn costo-quitar" data-costo-quitar="${idx}" type="button" aria-label="Quitar">✕</button>
+      </div>`;
+  }).join("");
+
+  costoItemVacio?.classList.toggle("hidden", lineasCostoItem.length > 0);
+
+  const costo = calcularCostoLineas(lineasCostoItem);
+  const venta = toNumber(item.subtotal);
+  const ganancia = venta - costo;
+  const margen = venta > 0 ? (ganancia / venta) * 100 : 0;
+
+  costoItemTotal.textContent = money(costo);
+  costoItemVenta.textContent = money(venta);
+  costoItemGanancia.textContent = money(ganancia);
+  costoItemMargen.textContent = margen.toLocaleString("es-AR", { maximumFractionDigits: 1 });
+}
+
+window.abrirCostoItem = idx => {
+  const item = itemsPedido[idx];
+  if (!item) return;
+
+  costoItemIndex = idx;
+  lineasCostoItem = Array.isArray(item.costosDetalle)
+    ? item.costosDetalle.map(x => ({ ...x }))
+    : [];
+
+  costoItemTitulo.textContent = item.nombre || "Producto o trabajo";
+  costoItemModal?.classList.remove("hidden");
+  renderCostoItem();
+};
+
+cerrarCostoItemBtn?.addEventListener("click", cerrarCostoItem);
+costoItemModal?.addEventListener("click", e => {
+  if (e.target === costoItemModal) cerrarCostoItem();
+});
+
+agregarInsumoCostoBtn?.addEventListener("click", () => {
+  if (!insumos.length) {
+    mostrarToast("Primero necesitás al menos un insumo cargado.", "error");
+    return;
+  }
+  lineasCostoItem.push({ tipo: "insumo", insumoId: insumos[0].id, cantidad: 1 });
+  renderCostoItem();
+});
+
+agregarGastoRapidoBtn?.addEventListener("click", () => {
+  lineasCostoItem.push({ tipo: "gasto", nombre: "", costo: 0 });
+  renderCostoItem();
+  setTimeout(() => costoItemLineas?.querySelector('[data-costo-gasto-nombre]:last-of-type')?.focus(), 20);
+});
+
+costoItemLineas?.addEventListener("input", e => {
+  const idxCantidad = e.target.dataset.costoCantidad;
+  const idxGastoImporte = e.target.dataset.costoGastoImporte;
+  const idxGastoNombre = e.target.dataset.costoGastoNombre;
+
+  if (idxCantidad !== undefined) lineasCostoItem[Number(idxCantidad)].cantidad = toNumber(e.target.value);
+  if (idxGastoImporte !== undefined) lineasCostoItem[Number(idxGastoImporte)].costo = toNumber(e.target.value);
+  if (idxGastoNombre !== undefined) lineasCostoItem[Number(idxGastoNombre)].nombre = e.target.value;
+
+  if (idxCantidad !== undefined || idxGastoImporte !== undefined) renderCostoItem();
+});
+
+costoItemLineas?.addEventListener("change", e => {
+  const idx = e.target.dataset.costoInsumo;
+  if (idx === undefined) return;
+  lineasCostoItem[Number(idx)].insumoId = e.target.value;
+  renderCostoItem();
+});
+
+costoItemLineas?.addEventListener("click", e => {
+  const btn = e.target.closest("[data-costo-quitar]");
+  if (!btn) return;
+  lineasCostoItem.splice(Number(btn.dataset.costoQuitar), 1);
+  renderCostoItem();
+});
+
+guardarCostoItemBtn?.addEventListener("click", () => {
+  if (costoItemIndex === null || !itemsPedido[costoItemIndex]) return;
+
+  const costo = calcularCostoLineas(lineasCostoItem);
+  itemsPedido[costoItemIndex] = {
+    ...itemsPedido[costoItemIndex],
+    costosDetalle: lineasCostoItem.map(x => ({ ...x })),
+    costoEstimado: costo
+  };
+
+  renderPedido();
+  cerrarCostoItem();
+  mostrarToast("Costo guardado en el ítem");
+});
 
 /* =====================================================
    PAGOS
@@ -551,7 +737,12 @@ formularioPedidoModal?.addEventListener("click", e => {
 });
 
 window.addEventListener("keydown", e => {
-  if (e.key === "Escape" && !formularioPedidoModal?.classList.contains("hidden")) {
+  if (e.key !== "Escape") return;
+  if (!costoItemModal?.classList.contains("hidden")) {
+    cerrarCostoItem();
+    return;
+  }
+  if (!formularioPedidoModal?.classList.contains("hidden")) {
     cerrarFormularioPedido();
   }
 });
@@ -923,6 +1114,7 @@ window.getPedidosCache = () => pedidosCache || [];
   if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
   await cargarClientes();
   await cargarProductos();
+  await cargarInsumosParaCostos();
   await cargarPedidos();
   renderPedido();
 })();
