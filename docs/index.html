@@ -1,101 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Pixel - Inicio</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pixel · Gestión</title>
+  <meta name="theme-color" content="#15101f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./app/css/app.css" />
 </head>
-
-
-<body class="home-bg">
-
-<!-- <div class="topbar">
-  <div class="brand">
-    <span class="logo-fox">🦊</span> Pixel
-  </div>
-</div> -->
-
-<div class="main">
-
-  <div class="home-brand-card">
-    <h1>Bienvenida a Pixel</h1>
-  </div>
-
-    <div class="home-summary-card">
-      <div class="summary-item">
-        <span class="summary-icon">📦</span>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark">P</div>
         <div>
-          <div class="summary-label">Pendientes</div>
-          <div class="summary-value" id="homePendientes">0</div>
+          <strong>Pixel</strong>
+          <span>Gestión</span>
         </div>
       </div>
 
-      <div class="summary-item">
-        <span class="summary-icon">🟪</span>
-        <div>
-          <div class="summary-label">Listos para entregar</div>
-          <div class="summary-value" id="homeListos">0</div>
-        </div>
-      </div>
+      <nav class="nav-group" aria-label="Principal">
+        <button class="nav-link active" data-view="inicio"><span>⌂</span> Inicio</button>
+        <button class="nav-link" data-view="pedidos"><span>▤</span> Pedidos</button>
+        <button class="nav-link" data-view="clientes"><span>♙</span> Clientes</button>
+        <button class="nav-link" data-view="productos"><span>□</span> Productos</button>
+        <button class="nav-link" data-view="insumos"><span>◇</span> Insumos</button>
+        <button class="nav-link" data-view="caja"><span>$</span> Caja</button>
+        <button class="nav-link" data-view="biblioteca"><span>▣</span> Biblioteca</button>
+      </nav>
 
-      <div class="summary-item">
-        <span class="summary-icon">💰</span>
-        <div>
-          <div class="summary-label">No pagado</div>
-          <div class="summary-value" id="homeNoPagado">$0</div>
-        </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-label">Versión anterior</div>
+        <a href="./pedidos.html" class="legacy-link">Abrir Pixel clásica ↗</a>
       </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
+        <div>
+          <h1 id="pageTitle">Inicio</h1>
+          <p id="pageSubtitle">Lo importante de Pixel, sin vueltas.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn primary" id="globalNewOrderBtn">+ Nuevo pedido</button>
+        </div>
+      </header>
+
+      <main class="content" id="appContent"></main>
     </div>
-
-
-<div class="home-grid">
-  <a class="home-card" href="./pedidos.html">Pedidos</a>
-  <a class="home-card" href="./clientes.html">Clientes</a>
-  <a class="home-card" href="./productos.html">Productos</a>
-  <a class="home-card" href="./produccion.html">Producción</a>
-</div>
-
-<div class="home-grid">
-  <a class="home-card" href="./insumos.html">Insumos</a>
-  <a class="home-card" href="./costos.html">Costos</a>
-  <a class="home-card" href="./recetas_borrador.html">Recetas guardadas</a>
-  <a class="home-card" href="./guia.html">Guía</a>
-</div>
-
-
-  <div class="home-footer-card">
-    <p>Hecho con 💜 por <strong>Pixel</strong> 🦊</p>
-    <p class="tiny">Hecho con amor para acompañar este hermoso viaje ✨</p>
   </div>
 
-</div>
-<!-- BOTTOM NAV (solo se ve en mobile por CSS) -->
-<nav class="bottom-nav">
-  <a href="index.html" class="bn-item">
-    <span class="bn-icon">🏠</span>
-    <span class="bn-label">Inicio</span>
-  </a>
-  <a href="productos.html" class="bn-item">
-    <span class="bn-icon">🏷️</span>
-    <span class="bn-label">Productos</span>
-  </a>
-  <a href="pedidos.html" class="bn-item">
-    <span class="bn-icon">📝</span>
-    <span class="bn-label">Pedidos</span>
-  </a>
-  <a href="clientes.html" class="bn-item">
-    <span class="bn-icon">👥</span>
-    <span class="bn-label">Clientes</span>
-  </a>
-</nav>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <span class="eyebrow" id="drawerEyebrow"></span>
+        <h2 id="drawerTitle"></h2>
+      </div>
+      <button class="icon-btn" id="drawerCloseBtn" aria-label="Cerrar">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer" id="drawerFooter"></div>
+  </aside>
 
-<!-- <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-</script> -->
-<script type="module" src="./app.js"></script>
+  <div class="toast-stack" id="toastStack"></div>
+  <datalist id="clientesList"></datalist>
+  <datalist id="productosList"></datalist>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="module" src="./app/js/app.js"></script>
 </body>
 </html>
