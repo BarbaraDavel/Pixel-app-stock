@@ -1,4 +1,4 @@
-const CACHE_NAME = "pixel-stock-v6";
+const CACHE_NAME = "pixel-stock-v7";
 const URLS_TO_CACHE = [
   "/",
   "/index.html",
@@ -9,6 +9,9 @@ const URLS_TO_CACHE = [
   "/productos.html",
   "/clientes.html",
   "/pedidos.html",
+  "/biblioteca.html",
+  "/css/biblioteca.css",
+  "/js/biblioteca.js",
   "/css/styles.css",
   "/js/firebase.js",
   "/js/pedidos.js"
