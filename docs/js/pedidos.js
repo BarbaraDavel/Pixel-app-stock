@@ -38,6 +38,9 @@ const inputNota    = document.getElementById("pedidoNota");
 
 const inputPagoMonto = document.getElementById("pagoMonto");
 const selectPagoMedio = document.getElementById("pagoMedio");
+const inputPagoFecha = document.getElementById("pagoFecha");
+const btnAgregarPago = document.getElementById("agregarPagoBtn");
+const listaPagosPedido = document.getElementById("listaPagosPedido");
 const resumenPagos = document.getElementById("resumenPagos");
 
 const listaPedidosBody = document.getElementById("listaPedidos");
@@ -363,24 +366,75 @@ function renderResumenPagos() {
   resumenPagos.textContent = `Pagado: $${money(pagado)} · Pendiente: $${money(pendiente)}`;
 }
 
+function renderPagosPedido() {
+  if (!listaPagosPedido) return;
+
+  if (!pagosPedido.length) {
+    listaPagosPedido.innerHTML = '<p class="hint" style="margin:.7rem 0 0;">Todavía no hay pagos registrados.</p>';
+    renderResumenPagos();
+    return;
+  }
+
+  listaPagosPedido.innerHTML = pagosPedido.map((pago, idx) => {
+    const fecha = pago.fecha ? new Date(pago.fecha).toLocaleDateString('es-AR') : '-';
+    const medio = (pago.medio || 'OTRO').replaceAll('_', ' ');
+    return `
+      <div class="pago-pedido-item">
+        <span>${fecha}</span>
+        <span>${medio}</span>
+        <strong>$${money(pago.monto)}</strong>
+        <button type="button" class="pago-quitar-btn" data-pago-index="${idx}" aria-label="Quitar pago">✕</button>
+      </div>`;
+  }).join('');
+
+  renderResumenPagos();
+}
+
 function tomarPagoDelFormulario() {
   const monto = toNumber(inputPagoMonto.value);
   if (monto <= 0) return null;
 
+  const fechaBase = inputPagoFecha?.value
+    ? new Date(inputPagoFecha.value + 'T12:00:00').toISOString()
+    : new Date().toISOString();
+
   return {
     monto,
-    medio: selectPagoMedio.value || "OTRO",
-    fecha: new Date().toISOString()
+    medio: selectPagoMedio.value || 'OTRO',
+    fecha: fechaBase
   };
 }
 
-inputPagoMonto?.addEventListener("input", () => {
-  const temporal = tomarPagoDelFormulario();
-  const original = [...pagosPedido];
-  if (temporal) pagosPedido.push(temporal);
-  renderResumenPagos();
-  pagosPedido = original;
+function agregarPagoDesdeFormulario() {
+  const pago = tomarPagoDelFormulario();
+  if (!pago) return alert('Ingresá un monto mayor a 0.');
+
+  const total = obtenerTotalPedidoActual();
+  const pagadoActual = obtenerPagadoActual();
+  if (total > 0 && pagadoActual + pago.monto > total) {
+    if (!confirm('El pago supera el saldo pendiente. ¿Querés registrarlo igual?')) return;
+  }
+
+  pagosPedido.push(pago);
+  inputPagoMonto.value = '';
+  renderPagosPedido();
+}
+
+btnAgregarPago?.addEventListener('click', e => {
+  e.preventDefault();
+  agregarPagoDesdeFormulario();
 });
+
+listaPagosPedido?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-pago-index]');
+  if (!btn) return;
+  const idx = Number(btn.dataset.pagoIndex);
+  if (!Number.isInteger(idx)) return;
+  pagosPedido.splice(idx, 1);
+  renderPagosPedido();
+});
+
+inputPagoMonto?.addEventListener('input', renderResumenPagos);
 
 /* =====================================================
    MODAL NUEVO / EDITAR
@@ -431,6 +485,7 @@ function limpiarFormulario() {
   selectEstado.value = "PENDIENTE";
   inputPagoMonto.value = "";
   selectPagoMedio.value = "TRANSFERENCIA";
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
 
   pedidoEditandoId = null;
   btnGuardar.textContent = "Guardar pedido";
@@ -438,6 +493,7 @@ function limpiarFormulario() {
   limpiarCargaItem();
   actualizarEstadoCliente();
   renderPedido();
+  renderPagosPedido();
 }
 
 btnLimpiar?.addEventListener("click", e => {
@@ -738,9 +794,11 @@ window.editarPedido = id => {
     : (p.pagado ? [{ monto: toNumber(p.total), medio: "HISTORICO", fecha: p.fecha || new Date().toISOString() }] : []);
 
   inputPagoMonto.value = "";
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
   limpiarCargaItem();
   actualizarEstadoCliente();
   renderPedido();
+  renderPagosPedido();
 
   btnGuardar.textContent = "Guardar cambios";
   abrirFormularioPedido("editar");
@@ -769,15 +827,13 @@ function traducirAccion(accion) {
 }
 
 window.getPedidosCache = () => pedidosCache || [];
-window.irAProduccion = pedidoId => {
-  window.location.href = `produccion.html?pedido=${pedidoId}`;
-};
 
 /* =====================================================
    INIT
 ===================================================== */
 (async function init() {
   inputFecha.value = new Date().toISOString().slice(0, 10);
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
   await cargarClientes();
   await cargarProductos();
   await cargarPedidos();

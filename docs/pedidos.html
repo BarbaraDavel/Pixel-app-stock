@@ -55,9 +55,6 @@
         </p>
       </div>
 
-      <a href="produccion.html" class="btn btn-primary btn-produccion">
-        🏭 Ir a Producción
-      </a>
     </div>
   </div>
 
@@ -213,11 +210,17 @@
       </section>
 
       <section class="pedido-seccion pedido-pago-box">
-        <h3>Pago / seña</h3>
-        <div class="form-grid">
-          <div class="form-group"><label>Registrar un pago ahora <span class="hint">(opcional)</span></label><input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0"></div>
-          <div class="form-group"><label>Medio de pago</label><select id="pagoMedio"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
+        <div class="pedido-seccion-titulo">
+          <h3>Pagos / señas</h3>
+          <span class="hint">Podés registrar uno o varios pagos.</span>
         </div>
+        <div class="form-grid">
+          <div class="form-group"><label>Monto</label><input id="pagoMonto" type="number" min="0" step="0.01" placeholder="0"></div>
+          <div class="form-group"><label>Medio de pago</label><select id="pagoMedio"><option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option><option value="MERCADO_PAGO">Mercado Pago</option><option value="OTRO">Otro</option></select></div>
+          <div class="form-group"><label>Fecha</label><input id="pagoFecha" type="date"></div>
+          <div class="form-group" style="align-self:flex-end;"><button id="agregarPagoBtn" class="btn btn-secondary">+ Agregar pago</button></div>
+        </div>
+        <div id="listaPagosPedido" class="pagos-pedido-lista"></div>
         <p class="hint" id="resumenPagos" style="margin:8px 0 0;">Pagado: $0 · Pendiente: $0</p>
       </section>
     </div>
