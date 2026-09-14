@@ -17,7 +17,7 @@ const productosList = $("#productosList");
 
 // Google Drive: este Client ID es publico por diseno en una app web.
 // Nunca agregar el Client Secret al frontend ni al repositorio.
-const GOOGLE_CLIENT_ID = "342382119563-4pgth5tn1fp5fsjip2uuknja767evk5d.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "342382110563-4pgth5tn1fp5fsjp2uuknja767evk5d.apps.googleusercontent.com";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 let driveTokenClient = null;
 
@@ -453,16 +453,30 @@ function disconnectDrive(){
   if(state.driveAccessToken && window.google?.accounts?.oauth2) google.accounts.oauth2.revoke(state.driveAccessToken,()=>{});
   state.driveAccessToken="";state.driveConnected=false;state.driveResults=[];state.driveLastQuery="";state.driveError="";renderLibrary();
 }
+async function driveQuery(q){
+  const params=new URLSearchParams({q,pageSize:"100",orderBy:"modifiedTime desc",fields:"files(id,name,mimeType,webViewLink,thumbnailLink,modifiedTime,description,iconLink,size)"});
+  const res=await fetch(`https://www.googleapis.com/drive/v3/files?${params}`,{headers:{Authorization:`Bearer ${state.driveAccessToken}`}});
+  if(res.status===401){state.driveAccessToken="";state.driveConnected=false;throw new Error("La sesión de Drive venció. Volvé a conectarla.");}
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||"No pude consultar Google Drive.");}
+  return (await res.json()).files||[];
+}
 async function searchDrive(query){
   const q=query.trim(); if(!state.driveAccessToken||q.length<2){state.driveResults=[];state.driveLastQuery=q;renderLibrary();return;}
   state.driveLoading=true;state.driveError="";state.driveLastQuery=q;renderLibrary();
   try{
     const escaped = q.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-    const params=new URLSearchParams({q:`trashed = false and fullText contains '${escaped}'`,pageSize:"60",orderBy:"modifiedTime desc",fields:"files(id,name,mimeType,webViewLink,thumbnailLink,modifiedTime,description,iconLink,size)"});
-    const res=await fetch(`https://www.googleapis.com/drive/v3/files?${params}`,{headers:{Authorization:`Bearer ${state.driveAccessToken}`}});
-    if(res.status===401){state.driveAccessToken="";state.driveConnected=false;throw new Error("La sesión de Drive venció. Volvé a conectarla.");}
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||"No pude consultar Google Drive.");}
-    const data=await res.json();state.driveResults=data.files||[];
+    const nq=norm(q);
+    const seed=(nq.match(/[a-z0-9]+/i)?.[0]||nq).slice(0,Math.min(4,Math.max(2,nq.length)));
+    const escapedSeed=seed.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const [contentHits,nameCandidates]=await Promise.all([
+      driveQuery(`trashed = false and fullText contains '${escaped}'`),
+      driveQuery(`trashed = false and name contains '${escapedSeed}'`)
+    ]);
+    const byId=new Map(contentHits.map(f=>[f.id,f]));
+    nameCandidates
+      .filter(f=>norm(f.name||"").includes(nq))
+      .forEach(f=>byId.set(f.id,f));
+    state.driveResults=[...byId.values()].sort((a,b)=>String(b.modifiedTime||"").localeCompare(String(a.modifiedTime||"")));
   }catch(err){console.error(err);state.driveResults=[];state.driveError=err.message||"No pude buscar en Drive.";}
   finally{state.driveLoading=false;renderLibrary();}
 }
