@@ -17,7 +17,7 @@ const productosList = $("#productosList");
 
 // Google Drive: este Client ID es publico por diseno en una app web.
 // Nunca agregar el Client Secret al frontend ni al repositorio.
-const GOOGLE_CLIENT_ID = "342382110563-4pgth5tn1fp5fsjp2uuknja767evk5d.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "342382119563-4pgth5tn1fp5fsjip2uuknja767evk5d.apps.googleusercontent.com";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 let driveTokenClient = null;
 
