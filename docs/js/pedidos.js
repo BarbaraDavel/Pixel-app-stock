@@ -27,6 +27,22 @@ const inputItemPrecio     = document.getElementById("itemPrecio");
 const selTipoPrecio       = document.getElementById("tipoPrecio");
 const tbodyItems          = document.getElementById("pedidoItems");
 const spanTotal           = document.getElementById("totalPedido");
+const spanTotalFooter     = document.getElementById("totalPedidoFooter");
+const productosDatalist   = document.getElementById("productosDatalist");
+const itemsPedidoVacio    = document.getElementById("itemsPedidoVacio");
+
+const costoItemModal        = document.getElementById("costoItemModal");
+const costoItemTitulo       = document.getElementById("costoItemTitulo");
+const cerrarCostoItemBtn    = document.getElementById("cerrarCostoItemBtn");
+const agregarInsumoCostoBtn = document.getElementById("agregarInsumoCostoBtn");
+const agregarGastoRapidoBtn = document.getElementById("agregarGastoRapidoBtn");
+const costoItemLineas       = document.getElementById("costoItemLineas");
+const costoItemVacio        = document.getElementById("costoItemVacio");
+const costoItemTotal        = document.getElementById("costoItemTotal");
+const costoItemVenta        = document.getElementById("costoItemVenta");
+const costoItemGanancia     = document.getElementById("costoItemGanancia");
+const costoItemMargen       = document.getElementById("costoItemMargen");
+const guardarCostoItemBtn   = document.getElementById("guardarCostoItemBtn");
 
 const btnAgregar = document.getElementById("agregarItemBtn");
 const btnGuardar = document.getElementById("guardarPedidoBtn");
@@ -38,11 +54,22 @@ const inputNota    = document.getElementById("pedidoNota");
 
 const inputPagoMonto = document.getElementById("pagoMonto");
 const selectPagoMedio = document.getElementById("pagoMedio");
+const inputPagoFecha = document.getElementById("pagoFecha");
+const btnAgregarPago = document.getElementById("agregarPagoBtn");
+const listaPagosPedido = document.getElementById("listaPagosPedido");
 const resumenPagos = document.getElementById("resumenPagos");
+const mostrarPagoBtn = document.getElementById("mostrarPagoBtn");
+const pagoFormulario = document.getElementById("pagoFormulario");
 
 const listaPedidosBody = document.getElementById("listaPedidos");
 const filtroEstado     = document.getElementById("filtroEstado");
 const filtroBusqueda   = document.getElementById("filtroBusqueda");
+const nuevoPedidoBtn          = document.getElementById("nuevoPedidoBtn");
+const formularioPedidoModal   = document.getElementById("formularioPedidoModal");
+const formularioPedidoTitulo  = document.getElementById("formularioPedidoTitulo");
+const cerrarFormularioBtn     = document.getElementById("cerrarFormularioPedidoBtn");
+const cargarMasPedidosBtn     = document.getElementById("cargarMasPedidosBtn");
+const contadorPedidos         = document.getElementById("contadorPedidos");
 
 const modal          = document.getElementById("pedidoModal");
 const modalTitulo    = document.getElementById("modalTitulo");
@@ -65,8 +92,12 @@ let productos = [];
 let itemsPedido = [];
 let pagosPedido = [];
 let pedidosCache = [];
+let insumos = [];
+let costoItemIndex = null;
+let lineasCostoItem = [];
 let pedidoEditandoId = null;
 let pedidoModalActual = null;
+let limitePedidos = 20;
 
 const ordenEstados = {
   PENDIENTE: 1,
@@ -128,6 +159,49 @@ function clienteExistentePorNombre(nombre) {
   return clientes.find(c => normalizarTexto(c.nombre) === buscado) || null;
 }
 
+function costoUnitarioInsumo(ins) {
+  if (!ins) return 0;
+  const guardado = toNumber(ins.costoUnitario);
+  if (guardado > 0) return guardado;
+  const cantidad = toNumber(ins.cantidadPaquete);
+  return cantidad > 0 ? toNumber(ins.costoPaquete) / cantidad : 0;
+}
+
+function calcularCostoLineas(lineas = []) {
+  return lineas.reduce((acc, linea) => {
+    if (linea.tipo === "gasto") return acc + toNumber(linea.costo);
+    const ins = insumos.find(i => i.id === linea.insumoId);
+    return acc + costoUnitarioInsumo(ins) * toNumber(linea.cantidad);
+  }, 0);
+}
+
+/* =====================================================
+   FEEDBACK / TOASTS
+===================================================== */
+function mostrarToast(mensaje, tipo = "ok") {
+  let contenedor = document.getElementById("pixelToastContainer");
+  if (!contenedor) {
+    contenedor = document.createElement("div");
+    contenedor.id = "pixelToastContainer";
+    contenedor.className = "pixel-toast-container";
+    document.body.appendChild(contenedor);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `pixel-toast pixel-toast-${tipo}`;
+  toast.innerHTML = `
+    <span class="pixel-toast-icon">${tipo === "error" ? "!" : "✓"}</span>
+    <span>${mensaje}</span>
+  `;
+  contenedor.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("visible"));
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 220);
+  }, 2600);
+}
+
 /* =====================================================
    CLIENTES
 ===================================================== */
@@ -182,13 +256,37 @@ async function guardarClienteSiHaceFalta() {
   const nombre = inputClienteNombre.value.trim();
   if (!nombre) return null;
 
+  const telefono = inputClienteTelefono.value.trim();
+  const red = inputClienteRed.value.trim();
   const existente = clienteExistentePorNombre(nombre);
-  if (existente) return existente.id;
+
+  if (existente) {
+    // Si completaste o corregiste datos desde el pedido, también actualizamos
+    // la ficha del cliente para que no queden guiones en Clientes.
+    const cambios = {};
+    if (telefono && telefono !== (existente.telefono || existente.whatsapp || "")) {
+      cambios.telefono = telefono;
+      cambios.whatsapp = telefono; // compatibilidad con registros anteriores
+    }
+    if (red && red !== (existente.red || existente.instagram || "")) {
+      cambios.red = red;
+      cambios.instagram = red; // compatibilidad con registros anteriores
+    }
+
+    if (Object.keys(cambios).length) {
+      await updateDoc(doc(db, "clientes", existente.id), cambios);
+      Object.assign(existente, cambios);
+    }
+    return existente.id;
+  }
 
   const ref = await addDoc(collection(db, "clientes"), {
     nombre,
-    whatsapp: inputClienteTelefono.value.trim(),
-    instagram: inputClienteRed.value.trim(),
+    telefono,
+    red,
+    // Dejamos también estos alias por compatibilidad con código viejo.
+    whatsapp: telefono,
+    instagram: red,
     creadoDesdePedido: true,
     fechaCreacion: serverTimestamp()
   });
@@ -197,26 +295,50 @@ async function guardarClienteSiHaceFalta() {
 }
 
 /* =====================================================
+   INSUMOS PARA COSTOS RÁPIDOS
+===================================================== */
+async function cargarInsumosParaCostos() {
+  insumos = [];
+  const snap = await getDocs(collection(db, "insumos"));
+  snap.forEach(d => insumos.push({ id: d.id, ...d.data() }));
+  insumos.sort((a, b) => String(a.nombre || "").localeCompare(String(b.nombre || ""), "es", { sensitivity: "base" }));
+}
+
+/* =====================================================
    PRODUCTOS
 ===================================================== */
 function renderOpcionesProductos(textoBusqueda = "") {
   const texto = normalizarTexto(textoBusqueda);
-  const actual = selProducto.value;
-
   const filtrados = texto
     ? productos.filter(p => normalizarTexto(obtenerNombreProducto(p)).includes(texto))
     : productos;
 
-  selProducto.innerHTML = `<option value="">No usar producto guardado</option>`;
+  if (selProducto) {
+    selProducto.innerHTML = `<option value="">No usar producto guardado</option>`;
+    filtrados.forEach(p => {
+      selProducto.innerHTML += `<option value="${p.id}">${obtenerNombreProducto(p)}</option>`;
+    });
+  }
 
-  filtrados.forEach(p => {
-    selProducto.innerHTML += `
-      <option value="${p.id}">
-        ${obtenerNombreProducto(p)} — $${money(obtenerPrecioProducto(p))}
-      </option>`;
-  });
+  if (productosDatalist) {
+    productosDatalist.innerHTML = filtrados
+      .map(p => `<option value="${obtenerNombreProducto(p)}"></option>`)
+      .join("");
+  }
+}
 
-  if (filtrados.some(p => p.id === actual)) selProducto.value = actual;
+function sincronizarProductoPorNombre() {
+  const nombre = inputItemNombre.value.trim();
+  const prod = productos.find(p => normalizarTexto(obtenerNombreProducto(p)) === normalizarTexto(nombre));
+
+  if (!prod) {
+    if (selProducto) selProducto.value = "";
+    return;
+  }
+
+  if (selProducto) selProducto.value = prod.id;
+  inputItemPrecio.value = obtenerPrecioProducto(prod);
+  selTipoPrecio.value = "UNITARIO";
 }
 
 async function cargarProductos() {
@@ -241,6 +363,12 @@ selProducto?.addEventListener("change", () => {
   selTipoPrecio.value = "UNITARIO";
 });
 
+inputItemNombre?.addEventListener("input", () => {
+  if (selProducto) selProducto.value = "";
+});
+inputItemNombre?.addEventListener("change", sincronizarProductoPorNombre);
+inputItemNombre?.addEventListener("blur", sincronizarProductoPorNombre);
+
 /* =====================================================
    ITEMS
 ===================================================== */
@@ -257,18 +385,22 @@ function renderPedido() {
         <td>
           ${i.nombre}
           ${i.productoId ? "" : `<div class="hint">Ítem personalizado</div>`}
+          ${toNumber(i.costoEstimado) > 0 ? `<div class="hint costo-item-hint">Costo $${money(i.costoEstimado)} · Ganancia $${money(toNumber(i.subtotal) - toNumber(i.costoEstimado))}</div>` : ""}
         </td>
-        <td>${precioLabel}</td>
         <td>${i.cantidad}</td>
         <td>$${money(i.subtotal)}</td>
-        <td>
-          <button class="btn-pp" onclick="editarItem(${idx})">✏️</button>
-          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})">✖</button>
+        <td class="item-actions-ux">
+          <button class="btn-pp" onclick="abrirCostoItem(${idx})" title="Calcular costo">🧮</button>
+          <button class="btn-pp" onclick="editarItem(${idx})" title="Editar">✏️</button>
+          <button class="btn-pp btn-delete-pp" onclick="eliminarItem(${idx})" title="Eliminar">✖</button>
         </td>
       </tr>`;
   });
 
-  spanTotal.textContent = money(obtenerTotalPedidoActual());
+  const totalActual = obtenerTotalPedidoActual();
+  spanTotal.textContent = money(totalActual);
+  if (spanTotalFooter) spanTotalFooter.textContent = money(totalActual);
+  if (itemsPedidoVacio) itemsPedidoVacio.classList.toggle("hidden", itemsPedido.length > 0);
   renderResumenPagos();
 }
 
@@ -278,7 +410,7 @@ function limpiarCargaItem() {
   inputItemNombre.value = "";
   inputItemPrecio.value = "";
   inputCantidad.value = 1;
-  selTipoPrecio.value = "UNITARIO";
+  selTipoPrecio.value = "TOTAL";
   renderOpcionesProductos();
 }
 
@@ -289,9 +421,9 @@ function agregarItemDesdeFormulario() {
   const tipoPrecio = selTipoPrecio.value;
   const prod = productos.find(p => p.id === selProducto.value);
 
-  if (!nombre) return alert("Escribí el nombre del producto o trabajo.");
-  if (cantidad <= 0) return alert("La cantidad debe ser mayor a 0.");
-  if (precioIngresado < 0) return alert("El precio no puede ser negativo.");
+  if (!nombre) { mostrarToast("Escribí el nombre del producto o trabajo.", "error"); return; }
+  if (cantidad <= 0) { mostrarToast("La cantidad debe ser mayor a 0.", "error"); return; }
+  if (precioIngresado < 0) { mostrarToast("El precio no puede ser negativo.", "error"); return; }
 
   const subtotal = tipoPrecio === "TOTAL"
     ? precioIngresado
@@ -344,6 +476,148 @@ window.editarItem = idx => {
 };
 
 /* =====================================================
+   COSTO OPCIONAL POR ÍTEM
+===================================================== */
+function cerrarCostoItem() {
+  costoItemModal?.classList.add("hidden");
+  costoItemIndex = null;
+  lineasCostoItem = [];
+}
+
+function renderCostoItem() {
+  if (!costoItemLineas || costoItemIndex === null) return;
+  const item = itemsPedido[costoItemIndex];
+  if (!item) return;
+
+  costoItemLineas.innerHTML = lineasCostoItem.map((linea, idx) => {
+    if (linea.tipo === "gasto") {
+      return `
+        <div class="costo-linea costo-linea-gasto">
+          <div class="ux-field costo-nombre-gasto">
+            <label>Gasto</label>
+            <input data-costo-gasto-nombre="${idx}" value="${linea.nombre || ""}" placeholder="Ej: cinta, envío, impresión">
+          </div>
+          <div class="ux-field costo-importe-gasto">
+            <label>Importe</label>
+            <input data-costo-gasto-importe="${idx}" type="number" min="0" step="0.01" value="${toNumber(linea.costo)}">
+          </div>
+          <button class="pago-quitar-btn costo-quitar" data-costo-quitar="${idx}" type="button" aria-label="Quitar">✕</button>
+        </div>`;
+    }
+
+    const ins = insumos.find(i => i.id === linea.insumoId);
+    const unitario = costoUnitarioInsumo(ins);
+    const subtotal = unitario * toNumber(linea.cantidad);
+    return `
+      <div class="costo-linea">
+        <div class="ux-field costo-insumo-select">
+          <label>Insumo</label>
+          <select data-costo-insumo="${idx}">
+            ${insumos.map(i => `<option value="${i.id}" ${i.id === linea.insumoId ? "selected" : ""}>${i.nombre || "Sin nombre"}</option>`).join("")}
+          </select>
+          <span class="hint">$${money(unitario)} por unidad</span>
+        </div>
+        <div class="ux-field costo-cantidad-insumo">
+          <label>Cantidad usada</label>
+          <input data-costo-cantidad="${idx}" type="number" min="0" step="0.01" value="${toNumber(linea.cantidad)}">
+        </div>
+        <div class="costo-subtotal-linea">
+          <span>Subtotal</span>
+          <strong>$${money(subtotal)}</strong>
+        </div>
+        <button class="pago-quitar-btn costo-quitar" data-costo-quitar="${idx}" type="button" aria-label="Quitar">✕</button>
+      </div>`;
+  }).join("");
+
+  costoItemVacio?.classList.toggle("hidden", lineasCostoItem.length > 0);
+
+  const costo = calcularCostoLineas(lineasCostoItem);
+  const venta = toNumber(item.subtotal);
+  const ganancia = venta - costo;
+  const margen = venta > 0 ? (ganancia / venta) * 100 : 0;
+
+  costoItemTotal.textContent = money(costo);
+  costoItemVenta.textContent = money(venta);
+  costoItemGanancia.textContent = money(ganancia);
+  costoItemMargen.textContent = margen.toLocaleString("es-AR", { maximumFractionDigits: 1 });
+}
+
+window.abrirCostoItem = idx => {
+  const item = itemsPedido[idx];
+  if (!item) return;
+
+  costoItemIndex = idx;
+  lineasCostoItem = Array.isArray(item.costosDetalle)
+    ? item.costosDetalle.map(x => ({ ...x }))
+    : [];
+
+  costoItemTitulo.textContent = item.nombre || "Producto o trabajo";
+  costoItemModal?.classList.remove("hidden");
+  renderCostoItem();
+};
+
+cerrarCostoItemBtn?.addEventListener("click", cerrarCostoItem);
+costoItemModal?.addEventListener("click", e => {
+  if (e.target === costoItemModal) cerrarCostoItem();
+});
+
+agregarInsumoCostoBtn?.addEventListener("click", () => {
+  if (!insumos.length) {
+    mostrarToast("Primero necesitás al menos un insumo cargado.", "error");
+    return;
+  }
+  lineasCostoItem.push({ tipo: "insumo", insumoId: insumos[0].id, cantidad: 1 });
+  renderCostoItem();
+});
+
+agregarGastoRapidoBtn?.addEventListener("click", () => {
+  lineasCostoItem.push({ tipo: "gasto", nombre: "", costo: 0 });
+  renderCostoItem();
+  setTimeout(() => costoItemLineas?.querySelector('[data-costo-gasto-nombre]:last-of-type')?.focus(), 20);
+});
+
+costoItemLineas?.addEventListener("input", e => {
+  const idxCantidad = e.target.dataset.costoCantidad;
+  const idxGastoImporte = e.target.dataset.costoGastoImporte;
+  const idxGastoNombre = e.target.dataset.costoGastoNombre;
+
+  if (idxCantidad !== undefined) lineasCostoItem[Number(idxCantidad)].cantidad = toNumber(e.target.value);
+  if (idxGastoImporte !== undefined) lineasCostoItem[Number(idxGastoImporte)].costo = toNumber(e.target.value);
+  if (idxGastoNombre !== undefined) lineasCostoItem[Number(idxGastoNombre)].nombre = e.target.value;
+
+  if (idxCantidad !== undefined || idxGastoImporte !== undefined) renderCostoItem();
+});
+
+costoItemLineas?.addEventListener("change", e => {
+  const idx = e.target.dataset.costoInsumo;
+  if (idx === undefined) return;
+  lineasCostoItem[Number(idx)].insumoId = e.target.value;
+  renderCostoItem();
+});
+
+costoItemLineas?.addEventListener("click", e => {
+  const btn = e.target.closest("[data-costo-quitar]");
+  if (!btn) return;
+  lineasCostoItem.splice(Number(btn.dataset.costoQuitar), 1);
+  renderCostoItem();
+});
+
+guardarCostoItemBtn?.addEventListener("click", () => {
+  if (costoItemIndex === null || !itemsPedido[costoItemIndex]) return;
+
+  const costo = calcularCostoLineas(lineasCostoItem);
+  itemsPedido[costoItemIndex] = {
+    ...itemsPedido[costoItemIndex],
+    costosDetalle: lineasCostoItem.map(x => ({ ...x })),
+    costoEstimado: costo
+  };
+
+  renderPedido();
+  cerrarCostoItem();
+  mostrarToast("Costo guardado en el ítem");
+});
+
+/* =====================================================
    PAGOS
 ===================================================== */
 function renderResumenPagos() {
@@ -353,26 +627,124 @@ function renderResumenPagos() {
   const pagado = obtenerPagadoActual();
   const pendiente = Math.max(total - pagado, 0);
 
-  resumenPagos.textContent = `Pagado: $${money(pagado)} · Pendiente: $${money(pendiente)}`;
+  resumenPagos.textContent = `Pagado $${money(pagado)} · Debe $${money(pendiente)}`;
+}
+
+function renderPagosPedido() {
+  if (!listaPagosPedido) return;
+
+  if (!pagosPedido.length) {
+    listaPagosPedido.innerHTML = '';
+    renderResumenPagos();
+    return;
+  }
+
+  listaPagosPedido.innerHTML = pagosPedido.map((pago, idx) => {
+    const fecha = pago.fecha ? new Date(pago.fecha).toLocaleDateString('es-AR') : '-';
+    const medio = (pago.medio || 'OTRO').replaceAll('_', ' ');
+    return `
+      <div class="pago-pedido-item">
+        <span>${fecha}</span>
+        <span>${medio}</span>
+        <strong>$${money(pago.monto)}</strong>
+        <button type="button" class="pago-quitar-btn" data-pago-index="${idx}" aria-label="Quitar pago">✕</button>
+      </div>`;
+  }).join('');
+
+  renderResumenPagos();
 }
 
 function tomarPagoDelFormulario() {
   const monto = toNumber(inputPagoMonto.value);
   if (monto <= 0) return null;
 
+  const fechaBase = inputPagoFecha?.value
+    ? new Date(inputPagoFecha.value + 'T12:00:00').toISOString()
+    : new Date().toISOString();
+
   return {
     monto,
-    medio: selectPagoMedio.value || "OTRO",
-    fecha: new Date().toISOString()
+    medio: selectPagoMedio.value || 'OTRO',
+    fecha: fechaBase
   };
 }
 
-inputPagoMonto?.addEventListener("input", () => {
-  const temporal = tomarPagoDelFormulario();
-  const original = [...pagosPedido];
-  if (temporal) pagosPedido.push(temporal);
-  renderResumenPagos();
-  pagosPedido = original;
+function agregarPagoDesdeFormulario() {
+  const pago = tomarPagoDelFormulario();
+  if (!pago) { mostrarToast('Ingresá un monto mayor a 0.', 'error'); return; }
+
+  const total = obtenerTotalPedidoActual();
+  const pagadoActual = obtenerPagadoActual();
+  if (total > 0 && pagadoActual + pago.monto > total) {
+    if (!confirm('El pago supera el saldo pendiente. ¿Querés registrarlo igual?')) return;
+  }
+
+  pagosPedido.push(pago);
+  inputPagoMonto.value = '';
+  renderPagosPedido();
+  pagoFormulario?.classList.add("hidden");
+}
+
+btnAgregarPago?.addEventListener('click', e => {
+  e.preventDefault();
+  agregarPagoDesdeFormulario();
+});
+
+mostrarPagoBtn?.addEventListener("click", () => {
+  pagoFormulario?.classList.toggle("hidden");
+  if (!pagoFormulario?.classList.contains("hidden")) {
+    setTimeout(() => inputPagoMonto?.focus(), 20);
+  }
+});
+
+listaPagosPedido?.addEventListener('click', e => {
+  const btn = e.target.closest('[data-pago-index]');
+  if (!btn) return;
+  const idx = Number(btn.dataset.pagoIndex);
+  if (!Number.isInteger(idx)) return;
+  pagosPedido.splice(idx, 1);
+  renderPagosPedido();
+});
+
+inputPagoMonto?.addEventListener('input', renderResumenPagos);
+
+/* =====================================================
+   MODAL NUEVO / EDITAR
+===================================================== */
+function abrirFormularioPedido(modo = "nuevo") {
+  if (!formularioPedidoModal) return;
+  formularioPedidoTitulo.textContent = modo === "editar" ? "Editar pedido" : "Nuevo pedido";
+  formularioPedidoModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  setTimeout(() => inputClienteNombre?.focus(), 50);
+}
+
+function cerrarFormularioPedido() {
+  if (!formularioPedidoModal) return;
+  formularioPedidoModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+nuevoPedidoBtn?.addEventListener("click", () => {
+  limpiarFormulario();
+  abrirFormularioPedido("nuevo");
+});
+
+cerrarFormularioBtn?.addEventListener("click", cerrarFormularioPedido);
+
+formularioPedidoModal?.addEventListener("click", e => {
+  if (e.target === formularioPedidoModal) cerrarFormularioPedido();
+});
+
+window.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!costoItemModal?.classList.contains("hidden")) {
+    cerrarCostoItem();
+    return;
+  }
+  if (!formularioPedidoModal?.classList.contains("hidden")) {
+    cerrarFormularioPedido();
+  }
 });
 
 /* =====================================================
@@ -390,6 +762,8 @@ function limpiarFormulario() {
   selectEstado.value = "PENDIENTE";
   inputPagoMonto.value = "";
   selectPagoMedio.value = "TRANSFERENCIA";
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
+  pagoFormulario?.classList.add("hidden");
 
   pedidoEditandoId = null;
   btnGuardar.textContent = "Guardar pedido";
@@ -397,6 +771,7 @@ function limpiarFormulario() {
   limpiarCargaItem();
   actualizarEstadoCliente();
   renderPedido();
+  renderPagosPedido();
 }
 
 btnLimpiar?.addEventListener("click", e => {
@@ -411,8 +786,8 @@ btnGuardar?.addEventListener("click", async e => {
   e.preventDefault();
 
   const clienteNombre = inputClienteNombre.value.trim();
-  if (!clienteNombre) return alert("Escribí el nombre del cliente.");
-  if (!itemsPedido.length) return alert("Agregá al menos un producto o trabajo al pedido.");
+  if (!clienteNombre) { mostrarToast("Escribí el nombre del cliente.", "error"); return; }
+  if (!itemsPedido.length) { mostrarToast("Agregá al menos un producto o trabajo al pedido.", "error"); return; }
 
   const pagoNuevo = tomarPagoDelFormulario();
   const pagosFinales = pagoNuevo ? [...pagosPedido, pagoNuevo] : [...pagosPedido];
@@ -465,7 +840,7 @@ btnGuardar?.addEventListener("click", async e => {
       ]
     });
 
-    alert("Pedido actualizado ✔");
+    mostrarToast("Pedido actualizado");
   } else {
     await addDoc(collection(db, "pedidos"), {
       ...baseData,
@@ -483,10 +858,11 @@ btnGuardar?.addEventListener("click", async e => {
       ]
     });
 
-    alert("Pedido guardado ✔");
+    mostrarToast("Pedido guardado");
   }
 
   limpiarFormulario();
+  cerrarFormularioPedido();
   await cargarClientes();
   await cargarPedidos();
 });
@@ -518,42 +894,73 @@ function renderLista() {
 
   listaPedidosBody.innerHTML = "";
 
-  pedidosCache
-    .filter(p =>
-      (!est || p.estado === est) &&
-      (!txt || normalizarTexto(p.clienteNombre || "").includes(txt))
-    )
-    .forEach(p => {
-      let fila = "tr-ok";
-      if (p.estado === "PENDIENTE") fila = "tr-urgente";
-      else if (p.estado === "PROCESO") fila = "tr-atencion";
-      else if (p.estado === "LISTO") fila = "tr-listo";
+  const filtrados = pedidosCache.filter(p => {
+    const coincideEstado = est === "ACTIVOS"
+      ? ["PENDIENTE", "PROCESO", "LISTO"].includes(p.estado || "PENDIENTE")
+      : (!est || p.estado === est);
 
-      const montoPagado = obtenerPagadoPedido(p);
-      const pendiente = Math.max(toNumber(p.total) - montoPagado, 0);
-      const pagoHtml = pendiente <= 0 && toNumber(p.total) > 0
-        ? `<span class="badge badge-pagado">Pagado</span>`
-        : `<span class="badge badge-nopagado">Debe $${money(pendiente)}</span>`;
+    const coincideTexto = !txt || normalizarTexto(p.clienteNombre || "").includes(txt);
+    return coincideEstado && coincideTexto;
+  });
 
-      listaPedidosBody.innerHTML += `
-        <tr class="${fila}">
-          <td class="cliente-click" onclick="verPedido('${p.id}')" style="cursor:pointer;" title="Ver pedido">
-            ${p.clienteNombre || "Sin nombre"}
-          </td>
-          <td>${new Date(p.fecha).toLocaleDateString()}</td>
-          <td><span class="badge badge-${String(p.estado || "PENDIENTE").toLowerCase()}">${p.estado || "PENDIENTE"}</span></td>
-          <td>${pagoHtml}</td>
-          <td>$${money(p.total)}</td>
-          <td>
-            <button class="btn-pp" onclick="editarPedido('${p.id}')">✏️</button>
-            <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')">🗑️</button>
-          </td>
-        </tr>`;
-    });
+  const visibles = filtrados.slice(0, limitePedidos);
+
+  visibles.forEach(p => {
+    let fila = "tr-ok";
+    if (p.estado === "PENDIENTE") fila = "tr-urgente";
+    else if (p.estado === "PROCESO") fila = "tr-atencion";
+    else if (p.estado === "LISTO") fila = "tr-listo";
+
+    const montoPagado = obtenerPagadoPedido(p);
+    const pendiente = Math.max(toNumber(p.total) - montoPagado, 0);
+    const pagoHtml = pendiente <= 0 && toNumber(p.total) > 0
+      ? `<span class="badge badge-pagado">Pagado</span>`
+      : `<span class="badge badge-nopagado">Debe $${money(pendiente)}</span>`;
+
+    listaPedidosBody.innerHTML += `
+      <tr class="${fila}">
+        <td class="cliente-click" onclick="verPedido('${p.id}')" style="cursor:pointer;" title="Ver pedido">
+          ${p.clienteNombre || "Sin nombre"}
+        </td>
+        <td>${new Date(p.fecha).toLocaleDateString()}</td>
+        <td><span class="badge badge-${String(p.estado || "PENDIENTE").toLowerCase()}">${p.estado || "PENDIENTE"}</span></td>
+        <td>${pagoHtml}</td>
+        <td>$${money(p.total)}</td>
+        <td class="acciones-pedido">
+          <button class="btn-pp" onclick="editarPedido('${p.id}')" title="Editar">✏️</button>
+          <button class="btn-pp btn-delete-pp" onclick="borrarPedido('${p.id}')" title="Eliminar">🗑️</button>
+        </td>
+      </tr>`;
+  });
+
+  if (!visibles.length) {
+    listaPedidosBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem;" class="hint">No hay pedidos para mostrar.</td></tr>`;
+  }
+
+  if (contadorPedidos) {
+    const mostrados = Math.min(visibles.length, filtrados.length);
+    contadorPedidos.textContent = filtrados.length
+      ? `Mostrando ${mostrados} de ${filtrados.length} pedidos`
+      : "0 pedidos";
+  }
+
+  if (cargarMasPedidosBtn) {
+    cargarMasPedidosBtn.classList.toggle("hidden", visibles.length >= filtrados.length);
+  }
 }
 
-filtroEstado?.addEventListener("change", renderLista);
-filtroBusqueda?.addEventListener("input", renderLista);
+function reiniciarListado() {
+  limitePedidos = 20;
+  renderLista();
+}
+
+filtroEstado?.addEventListener("change", reiniciarListado);
+filtroBusqueda?.addEventListener("input", reiniciarListado);
+
+cargarMasPedidosBtn?.addEventListener("click", () => {
+  limitePedidos += 20;
+  renderLista();
+});
 
 /* =====================================================
    MODAL VER + WHATSAPP
@@ -665,12 +1072,14 @@ window.editarPedido = id => {
     : (p.pagado ? [{ monto: toNumber(p.total), medio: "HISTORICO", fecha: p.fecha || new Date().toISOString() }] : []);
 
   inputPagoMonto.value = "";
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
   limpiarCargaItem();
   actualizarEstadoCliente();
   renderPedido();
+  renderPagosPedido();
 
   btnGuardar.textContent = "Guardar cambios";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  abrirFormularioPedido("editar");
 };
 
 /* =====================================================
@@ -696,17 +1105,16 @@ function traducirAccion(accion) {
 }
 
 window.getPedidosCache = () => pedidosCache || [];
-window.irAProduccion = pedidoId => {
-  window.location.href = `produccion.html?pedido=${pedidoId}`;
-};
 
 /* =====================================================
    INIT
 ===================================================== */
 (async function init() {
   inputFecha.value = new Date().toISOString().slice(0, 10);
+  if (inputPagoFecha) inputPagoFecha.value = new Date().toISOString().slice(0, 10);
   await cargarClientes();
   await cargarProductos();
+  await cargarInsumosParaCostos();
   await cargarPedidos();
   renderPedido();
 })();

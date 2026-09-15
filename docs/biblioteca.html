@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/biblioteca.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><span class="logo-fox">🦊</span> Pixel</div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">☰</button>
+    <div class="nav-links">
+      <a href="./index.html">Inicio</a>
+      <a href="./insumos.html">Insumos</a>
+      <a href="./stock.html">Stock</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./clientes.html">Clientes</a>
+      <a class="active" href="./biblioteca.html">Biblioteca</a>
+      <a href="./guia.html">Guía</a>
+      <a href="./costos.html">Costos</a>
+      <a href="./recetas_borrador.html">Recetas guardadas</a>
+      <a href="./pedidos.html">Pedidos</a>
+      <a href="./catalogo.html">Catalogo</a>
+      <a href="./calendario.html">Calendario</a>
+    </div>
+  </div>
+
+  <main class="main biblioteca-main">
+    <section class="biblioteca-hero">
+      <div>
+        <span class="eyebrow">RECURSOS DE PIXEL</span>
+        <h1>Biblioteca</h1>
+        <p>Guardá instructivos, moldes, PDFs, imágenes y recursos de Drive para encontrarlos después sin acordarte del nombre exacto.</p>
+      </div>
+      <button id="btnNuevoRecurso" class="btn btn-primary biblioteca-nuevo">+ Agregar recurso</button>
+    </section>
+
+    <section class="card biblioteca-search-card">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input id="bibliotecaBuscar" type="search" autocomplete="off" placeholder="Buscar por nombre, descripción o palabra clave...">
+      </div>
+
+      <div class="biblioteca-filtros">
+        <button class="filter-chip active" data-categoria="todas">Todos <span id="countTodas">0</span></button>
+        <button class="filter-chip" data-categoria="instructivo">Instructivos</button>
+        <button class="filter-chip" data-categoria="molde">Moldes</button>
+        <button class="filter-chip" data-categoria="imagen">Imágenes</button>
+        <button class="filter-chip" data-categoria="pdf">PDF</button>
+        <button class="filter-chip" data-categoria="diseno">Diseños</button>
+        <button class="filter-chip" data-categoria="material">Materiales</button>
+        <button class="filter-chip" data-categoria="packaging">Packaging</button>
+        <button class="filter-chip" data-categoria="otro">Otros</button>
+      </div>
+    </section>
+
+    <section class="biblioteca-toolbar">
+      <div>
+        <strong id="resultadoTexto">0 recursos</strong>
+        <span id="resultadoDetalle" class="hint"></span>
+      </div>
+      <select id="bibliotecaOrden" aria-label="Ordenar recursos">
+        <option value="reciente">Más recientes</option>
+        <option value="nombre">Nombre A-Z</option>
+        <option value="categoria">Categoría</option>
+      </select>
+    </section>
+
+    <section id="bibliotecaVacia" class="biblioteca-empty hidden">
+      <div class="empty-icon">📚</div>
+      <h2>Todavía no hay recursos</h2>
+      <p>Agregá tu primer instructivo, molde, PDF o imagen y después encontralo por palabras clave.</p>
+      <button class="btn btn-primary" id="btnPrimerRecurso">Agregar primer recurso</button>
+    </section>
+
+    <section id="bibliotecaSinResultados" class="biblioteca-empty hidden">
+      <div class="empty-icon">🔎</div>
+      <h2>No encontré coincidencias</h2>
+      <p>Probá con otra palabra o quitá algún filtro.</p>
+      <button class="btn btn-outline" id="btnLimpiarBusqueda">Limpiar búsqueda</button>
+    </section>
+
+    <section id="bibliotecaGrid" class="biblioteca-grid"></section>
+  </main>
+
+  <div id="recursoModal" class="modal-backdrop hidden">
+    <div class="modal biblioteca-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <div class="biblioteca-modal-header">
+        <div>
+          <span class="eyebrow">BIBLIOTECA</span>
+          <h3 id="modalTitulo">Agregar recurso</h3>
+        </div>
+        <button id="cerrarRecursoModal" class="icon-btn" aria-label="Cerrar">×</button>
+      </div>
+
+      <form id="recursoForm" class="biblioteca-form">
+        <div class="field full">
+          <label for="recursoNombre">Nombre *</label>
+          <input id="recursoNombre" required placeholder="Ej: Molde cajita tipo bolsita">
+        </div>
+
+        <div class="field">
+          <label for="recursoCategoria">Categoría *</label>
+          <select id="recursoCategoria" required>
+            <option value="instructivo">Instructivo</option>
+            <option value="molde">Molde</option>
+            <option value="imagen">Imagen</option>
+            <option value="pdf">PDF</option>
+            <option value="diseno">Diseño</option>
+            <option value="material">Material</option>
+            <option value="packaging">Packaging</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="recursoTipo">Tipo de archivo</label>
+          <select id="recursoTipo">
+            <option value="drive">Google Drive</option>
+            <option value="pdf">PDF</option>
+            <option value="imagen">Imagen</option>
+            <option value="doc">Documento</option>
+            <option value="sheet">Planilla</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="recursoUrl">Enlace de Google Drive o archivo</label>
+          <input id="recursoUrl" type="url" placeholder="https://drive.google.com/..."><span class="field-help">Pegá el enlace del archivo original. Pixel no mueve ni duplica el archivo.</span>
+        </div>
+
+        <div class="field full">
+          <label for="recursoDescripcion">Descripción</label>
+          <textarea id="recursoDescripcion" rows="3" placeholder="¿Qué contiene? ¿Para qué sirve?"></textarea>
+        </div>
+
+        <div class="field full">
+          <label for="recursoTags">Palabras clave</label>
+          <input id="recursoTags" placeholder="cajita, souvenir, packaging, cumpleaños">
+          <span class="field-help">Separalas con comas. También se buscan aunque no estén en el nombre.</span>
+        </div>
+
+        <div class="modal-actions biblioteca-modal-actions">
+          <button type="button" id="cancelarRecurso" class="btn btn-outline">Cancelar</button>
+          <button type="submit" id="guardarRecurso" class="btn btn-primary">Guardar recurso</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal-backdrop hidden">
+    <div class="modal confirm-modal" role="dialog" aria-modal="true">
+      <div class="confirm-icon">🗑️</div>
+      <h3>¿Eliminar este recurso?</h3>
+      <p class="hint">Se elimina de la Biblioteca de Pixel, pero el archivo original de Drive no se toca.</p>
+      <div class="modal-actions">
+        <button id="cancelarEliminar" class="btn btn-outline">Cancelar</button>
+        <button id="confirmarEliminar" class="btn btn-primary">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pixelToast" class="pixel-toast hidden" role="status"></div>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="bn-item"><span class="bn-icon">🏠</span><span class="bn-label">Inicio</span></a>
+    <a href="productos.html" class="bn-item"><span class="bn-icon">🏷️</span><span class="bn-label">Productos</span></a>
+    <a href="biblioteca.html" class="bn-item active"><span class="bn-icon">📚</span><span class="bn-label">Biblioteca</span></a>
+    <a href="pedidos.html" class="bn-item"><span class="bn-icon">📝</span><span class="bn-label">Pedidos</span></a>
+  </nav>
+
+  <script type="module" src="js/biblioteca.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
+  </script>
+</body>
+</html>
