@@ -168,6 +168,7 @@ function openOrderDetail(id){
     <div class="block-title">Pagos</div>
     ${payments.length?payments.map(x=>`<div class="payment-row"><div><strong>${esc(x.medio||"Pago")}</strong><div class="meta">${dateText(x.fecha)}</div></div><strong>${money(x.monto)}</strong></div>`).join(""):`<div class="muted">Todavía no hay pagos detallados.</div>`}
     ${p.nota?`<div class="block-title">Nota</div><div class="mini-card">${esc(p.nota)}</div>`:""}
+<<<<<<< HEAD
   `,footer:`<button class="btn danger" id="detailDelete">Eliminar pedido</button><span class="footer-spacer"></span><button class="btn ghost" id="detailClose">Cerrar</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
   $("#detailClose").addEventListener("click",closeDrawer);
   $("#detailEdit").addEventListener("click",()=>openOrderForm(p));
@@ -199,6 +200,11 @@ function openDeleteOrderConfirm(p){
       $("#deleteOrderError").textContent="No se pudo eliminar el pedido. Probá de nuevo.";
     }
   });
+=======
+  `,footer:`<button class="btn ghost" id="detailClose">Cerrar</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
+  $("#detailClose").addEventListener("click",closeDrawer);
+  $("#detailEdit").addEventListener("click",()=>openOrderForm(p));
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
 }
 
 function productByName(name){ return state.productos.find(p=>norm(p.nombre||p.producto||p.titulo)===norm(name)); }
@@ -488,6 +494,7 @@ async function driveQuery(q){
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||"No pude consultar Google Drive.");}
   return (await res.json()).files||[];
 }
+<<<<<<< HEAD
 let driveSearchTimer=null;
 let driveSearchSeq=0;
 
@@ -501,6 +508,11 @@ async function searchDrive(query){
   }
   state.driveLoading=true;state.driveError="";state.driveLastQuery=q;
   updateLibraryResults();
+=======
+async function searchDrive(query){
+  const q=query.trim(); if(!state.driveAccessToken||q.length<2){state.driveResults=[];state.driveLastQuery=q;renderLibrary();return;}
+  state.driveLoading=true;state.driveError="";state.driveLastQuery=q;renderLibrary();
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
   try{
     const escaped = q.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
     const nq=norm(q);
@@ -510,13 +522,17 @@ async function searchDrive(query){
       driveQuery(`trashed = false and fullText contains '${escaped}'`),
       driveQuery(`trashed = false and name contains '${escapedSeed}'`)
     ]);
+<<<<<<< HEAD
     // Si el usuario siguió escribiendo, esta respuesta ya quedó vieja.
     if(seq!==driveSearchSeq || q!==state.librarySearch.trim()) return;
+=======
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
     const byId=new Map(contentHits.map(f=>[f.id,f]));
     nameCandidates
       .filter(f=>norm(f.name||"").includes(nq))
       .forEach(f=>byId.set(f.id,f));
     state.driveResults=[...byId.values()].sort((a,b)=>String(b.modifiedTime||"").localeCompare(String(a.modifiedTime||"")));
+<<<<<<< HEAD
   }catch(err){
     if(seq!==driveSearchSeq) return;
     console.error(err);state.driveResults=[];state.driveError=err.message||"No pude buscar en Drive.";
@@ -531,11 +547,27 @@ function scheduleDriveSearch(q){
 }
 function libraryParts(){
   const q=norm(state.librarySearch);
+=======
+  }catch(err){console.error(err);state.driveResults=[];state.driveError=err.message||"No pude buscar en Drive.";}
+  finally{state.driveLoading=false;renderLibrary();}
+}
+let driveSearchTimer=null;
+function scheduleDriveSearch(q){clearTimeout(driveSearchTimer);driveSearchTimer=setTimeout(()=>searchDrive(q),450)}
+function renderLibrary(){
+  const q=norm(state.librarySearch);
+  const cats=[["TODOS","Todos"],["INSTRUCTIVO","Instructivos"],["MOLDE","Moldes"],["IMAGEN","Imágenes"],["PDF","PDF"],["DISENO","Diseños"],["MATERIAL","Materiales"],["PACKAGING","Packaging"],["OTRO","Otros"]];
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
   const list=state.biblioteca.filter(x=>{
     const matches=!q||norm([x.nombre,x.descripcion,(x.tags||[]).join(" "),x.categoria].join(" ")).includes(q);
     return matches&&(state.libraryFilter==="TODOS"||String(x.categoria||"OTRO").toUpperCase()===state.libraryFilter);
   });
   const driveList=state.driveResults.filter(x=>state.libraryFilter==="TODOS"||driveCategory(x)===state.libraryFilter);
+<<<<<<< HEAD
+=======
+  const driveStatus=state.driveConnected
+    ? `<div class="drive-status connected"><span>● Drive conectado</span><button class="btn ghost small" id="disconnectDriveBtn">Desconectar</button></div>`
+    : `<div class="drive-connect"><div><strong>Buscá directamente en tu Google Drive</strong><p>Pixel solo tendrá acceso de lectura: no puede modificar ni borrar tus archivos.</p></div><button class="btn primary" id="connectDriveBtn">Conectar Google Drive</button></div>`;
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
   let driveBody="";
   if(state.driveConnected){
     if(state.driveLoading) driveBody=`<div class="drive-message">Buscando en Drive…</div>`;
@@ -545,6 +577,7 @@ function libraryParts(){
     else if(!driveList.length) driveBody=`<div class="drive-message">No encontré coincidencias en Drive para “${esc(state.librarySearch)}”.</div>`;
     else driveBody=`<div class="drive-results-head"><strong>Google Drive</strong><span>${driveList.length} resultado${driveList.length===1?"":"s"}</span></div><div class="library-grid drive-grid">${driveList.map(x=>`<a class="library-card drive-card" href="${esc(x.webViewLink||'#')}" target="_blank" rel="noopener"><div class="library-preview ${x.thumbnailLink?'has-thumb':''}" ${x.thumbnailLink?`style="background-image:url('${esc(x.thumbnailLink)}')"`:''}>${x.thumbnailLink?'':driveIcon(x)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(driveTypeText(x))}</span><span class="drive-source">Drive</span></div><h3>${esc(x.name||"Sin nombre")}</h3><p>${esc(x.description||`Modificado ${x.modifiedTime?new Date(x.modifiedTime).toLocaleDateString("es-AR"):""}`)}</p></div></a>`).join("")}</div>`;
   }
+<<<<<<< HEAD
   const savedBody=`<div class="saved-library-head"><strong>Guardados en Pixel</strong><span>${list.length} recurso${list.length===1?"":"s"}</span></div>
     ${list.length?`<div class="library-grid">${list.map(x=>`<article class="library-card" data-library-id="${x.id}"><div class="library-preview">${libraryIcon(x.categoria)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(String(x.categoria||"Otro").replace("DISENO","Diseño"))}</span></div><h3>${esc(x.nombre||"Sin nombre")}</h3><p>${esc(x.descripcion||"Sin descripción")}</p><div class="tag-row">${(x.tags||[]).slice(0,5).map(t=>`<span>${esc(t)}</span>`).join("")}</div></div></article>`).join("")}</div>`:`<div class="empty"><strong>No encontré recursos guardados</strong>${state.biblioteca.length?"Probá otra búsqueda o filtro.":"Podés agregar recursos manualmente o encontrarlos directamente en Drive."}</div>`}`;
   return {driveBody,savedBody};
@@ -586,6 +619,20 @@ function renderLibrary(){
   };
   $$('[data-library-filter]').forEach(b=>b.onclick=()=>{state.libraryFilter=b.dataset.libraryFilter;renderLibrary()});
   bindLibraryResultEvents();
+=======
+  content.innerHTML=`<section class="section">
+    <div class="section-head"><div><h2>Biblioteca</h2><p>Encontrá tus recursos guardados y buscá también dentro de Google Drive.</p></div><div class="right"><button class="btn primary" id="newLibraryBtn">+ Agregar recurso</button></div></div>
+    <div class="section-body slim"><div class="toolbar"><div class="search"><input id="librarySearch" placeholder="Buscar: cajita, sticker, resina, molde..." value="${esc(state.librarySearch)}"></div><div class="segmented library-filters">${cats.map(([v,t])=>`<button data-library-filter="${v}" class="${state.libraryFilter===v?"active":""}">${t}</button>`).join("")}</div></div>${driveStatus}</div>
+    ${driveBody}
+    <div class="saved-library-head"><strong>Guardados en Pixel</strong><span>${list.length} recurso${list.length===1?"":"s"}</span></div>
+    ${list.length?`<div class="library-grid">${list.map(x=>`<article class="library-card" data-library-id="${x.id}"><div class="library-preview">${libraryIcon(x.categoria)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(String(x.categoria||"Otro").replace("DISENO","Diseño"))}</span></div><h3>${esc(x.nombre||"Sin nombre")}</h3><p>${esc(x.descripcion||"Sin descripción")}</p><div class="tag-row">${(x.tags||[]).slice(0,5).map(t=>`<span>${esc(t)}</span>`).join("")}</div></div></article>`).join("")}</div>`:`<div class="empty"><strong>No encontré recursos guardados</strong>${state.biblioteca.length?"Probá otra búsqueda o filtro.":"Podés agregar recursos manualmente o encontrarlos directamente en Drive."}</div>`}
+  </section>`;
+  $("#newLibraryBtn").onclick=()=>openLibraryForm();
+  $("#connectDriveBtn")?.addEventListener("click",connectDrive);$("#disconnectDriveBtn")?.addEventListener("click",disconnectDrive);
+  $("#librarySearch").oninput=e=>{state.librarySearch=e.target.value;renderLibrary();scheduleDriveSearch(state.librarySearch);setTimeout(()=>{const x=$("#librarySearch");if(x){x.focus();x.selectionStart=x.selectionEnd=x.value.length}},0)};
+  $$('[data-library-filter]').forEach(b=>b.onclick=()=>{state.libraryFilter=b.dataset.libraryFilter;renderLibrary()});
+  $$('[data-library-id]').forEach(c=>c.onclick=()=>openLibraryDetail(c.dataset.libraryId));
+>>>>>>> a09c9f457131d032ddaacaf6e96f8099da72c7ff
 }
 
 function openLibraryDetail(id){
