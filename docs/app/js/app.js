@@ -168,10 +168,33 @@ function openOrderDetail(id){
     <div class="block-title">Pagos</div>
     ${payments.length?payments.map(x=>`<div class="payment-row"><div><strong>${esc(x.medio||"Pago")}</strong><div class="meta">${dateText(x.fecha)}</div></div><strong>${money(x.monto)}</strong></div>`).join(""):`<div class="muted">Todavía no hay pagos detallados.</div>`}
     ${p.nota?`<div class="block-title">Nota</div><div class="mini-card">${esc(p.nota)}</div>`:""}
-  `,footer:`<button class="btn danger" id="detailDelete">Eliminar pedido</button><span class="footer-spacer"></span><button class="btn ghost" id="detailClose">Cerrar</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
+  `,footer:`<button class="btn danger" id="detailDelete">Eliminar pedido</button><span class="footer-spacer"></span><button class="btn ghost" id="detailClose">Cerrar</button><button class="btn soft" id="detailWhatsApp">WhatsApp</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
   $("#detailClose").addEventListener("click",closeDrawer);
   $("#detailEdit").addEventListener("click",()=>openOrderForm(p));
   $("#detailDelete").addEventListener("click",()=>openDeleteOrderConfirm(p));
+  $("#detailWhatsApp").addEventListener("click",()=>sendOrderWhatsApp(p));
+}
+
+function sendOrderWhatsApp(p){
+  const client=clientByName(p.cliente || p.clienteNombre || "");
+  const rawPhone=p.telefono || p.whatsapp || p.clienteTelefono || client?.telefono || client?.whatsapp || "";
+  const telefono=String(rawPhone).replace(/\D/g, "");
+  const total=orderTotal(p), paid=orderPaid(p), debt=Math.max(0,total-paid);
+  const nombre=p.clienteApodo || client?.apodo || p.cliente || p.clienteNombre || "";
+  const items=(p.items||[]).map(i=>{
+    const qty=Number(i.cantidad||1);
+    const itemName=i.nombre||i.producto||"Ítem";
+    const subtotal=Number(i.subtotal||0);
+    return `• ${qty} x ${itemName} (${money(subtotal)})`;
+  }).join("\n");
+  const pagoTexto=debt>0
+    ? `💳 Pagado: ${money(paid)}\n⏳ Pendiente: ${money(debt)}`
+    : `✅ Pedido pagado`;
+  const mensaje=`Hola ${nombre} 👋\n\nTe paso el detalle de tu pedido:\n\n${items}\n\n💰 Total: ${money(total)}\n${pagoTexto}\n📦 Estado: ${statusText(p.estado)}\n\n💳 Podés pagar en efectivo o por transferencia al alias:\n👉 barbi-mp (a nombre de Barbara Davel)\n📸 Enviame el comprobante cuando puedas\n\n✨ Instagram:\n👉 https://www.instagram.com/pixel.stickerss/\n\nGracias 🤍 Pixel`;
+  const url=telefono
+    ? `https://api.whatsapp.com/send?phone=${telefono}&text=${encodeURIComponent(mensaje)}`
+    : `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+  window.open(url,"_blank");
 }
 
 function openDeleteOrderConfirm(p){
@@ -209,9 +232,10 @@ function openOrderForm(order=null, prefilledClient=""){
   state.draftItems=(order?.items||[]).map(x=>({...x}));
   state.draftPayments=(order?.pagos||[]).map(x=>({...x}));
   const clientName=order?.cliente || order?.clienteNombre || "";
-  const existingClient=clientByName(clientName);
-  openDrawer({eyebrow:order?"Editar pedido":"Nuevo pedido",title:order?clientName||"Pedido":"Crear pedido",body:orderFormHtml(order,existingClient,prefilledClient),footer:`<button class="btn ghost" id="orderCancel">Cancelar</button><button class="btn primary" id="orderSave">${order?"Guardar cambios":"Crear pedido"}</button>`});
+  const existingClient=state.clientes.find(c=>c.id===order?.clienteId) || clientByName(clientName);
+  openDrawer({eyebrow:order?"Editar pedido":"Nuevo pedido",title:order?clientName||"Pedido":"Crear pedido",body:orderFormHtml(order,existingClient,prefilledClient),footer:`${order?`<button class="btn danger" id="orderDelete">Eliminar pedido</button><span class="footer-spacer"></span>`:""}<button class="btn ghost" id="orderCancel">Cancelar</button><button class="btn primary" id="orderSave">${order?"Guardar cambios":"Crear pedido"}</button>`});
   bindOrderForm(order);
+  if(order) $("#orderDelete")?.addEventListener("click",()=>openDeleteOrderConfirm(order));
 }
 
 function orderFormHtml(order,existingClient,prefilledClient=""){
@@ -220,14 +244,14 @@ function orderFormHtml(order,existingClient,prefilledClient=""){
   return `
   <div class="form-section">
     <h3>Cliente</h3>
-    <div class="field"><label>Nombre</label><input id="fClient" list="clientesList" value="${esc(order?.cliente || order?.clienteNombre || prefilledClient || "")}" placeholder="Buscar o escribir un cliente"></div>
+    <div class="field client-picker"><label>Nombre</label><input id="fClient" autocomplete="off" value="${esc(order?.cliente || order?.clienteNombre || prefilledClient || "")}" placeholder="Buscar o escribir un cliente"><div id="clientSuggestions" class="client-suggestions"></div></div>
     <details class="collapsible"><summary>Datos opcionales del cliente</summary><div class="inside form-grid"><div class="field"><label>Celular</label><input id="fPhone" value="${esc(phone)}" placeholder="WhatsApp"></div><div class="field"><label>Instagram / contacto</label><input id="fRed" value="${esc(red)}" placeholder="@usuario"></div></div></details>
   </div>
   <div class="form-section">
     <h3>Productos o trabajos</h3>
     <div class="order-item-editor">
       <div class="field item-name"><label>Producto o trabajo</label><input id="fItemName" list="productosList" placeholder="Ej. 60 etiquetas XV"></div>
-      <div class="field"><label>Cant.</label><input id="fQty" type="number" min="0.01" step="0.01" value="1"></div>
+      <div class="field"><label>Cant.</label><input id="fQty" type="number" min="1" step="1" inputmode="numeric" value="1"></div>
       <div class="field"><label>Precio</label><input id="fPrice" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field price-mode"><label>Tipo</label><select id="fPriceMode"><option value="total">Total</option><option value="unit">Por unidad</option></select></div>
       <button type="button" class="btn soft add-action" id="addDraftItem">Agregar</button>
@@ -246,6 +270,28 @@ function orderFormHtml(order,existingClient,prefilledClient=""){
 
 function bindOrderForm(order){
   renderDraftItems(); renderDraftPayments();
+  let selectedClient = state.clientes.find(c=>c.id===order?.clienteId) || clientByName(order?.cliente || order?.clienteNombre || "") || null;
+  const clientInput=$("#fClient"), suggestions=$("#clientSuggestions");
+  const fillClient=(c)=>{
+    selectedClient=c; clientInput.value=c.nombre||"";
+    $("#fPhone").value=c.telefono||c.whatsapp||"";
+    $("#fRed").value=c.instagram||c.red||"";
+    suggestions.innerHTML=""; suggestions.classList.remove("show");
+    clientInput.dataset.clientId=c.id||"";
+  };
+  const showClients=()=>{
+    const q=norm(clientInput.value.trim());
+    if(!q){suggestions.innerHTML="";suggestions.classList.remove("show");return;}
+    const matches=state.clientes.filter(c=>norm(`${c.nombre||""} ${c.apodo||""} ${c.telefono||c.whatsapp||""}`).includes(q)).slice(0,8);
+    if(!matches.length){suggestions.innerHTML=`<div class="client-suggestion empty-suggestion">Cliente nuevo: <strong>${esc(clientInput.value.trim())}</strong></div>`;suggestions.classList.add("show");return;}
+    suggestions.innerHTML=matches.map(c=>`<button type="button" class="client-suggestion" data-client-id="${c.id}"><span><strong>${esc(c.nombre||"Sin nombre")}</strong>${c.apodo?`<small>${esc(c.apodo)}</small>`:""}</span><small>${esc(c.telefono||c.whatsapp||c.red||c.instagram||"Sin teléfono")}</small></button>`).join("");
+    suggestions.classList.add("show");
+    $$("[data-client-id]",suggestions).forEach(b=>b.onclick=()=>{const c=state.clientes.find(x=>x.id===b.dataset.clientId);if(c)fillClient(c)});
+  };
+  clientInput.addEventListener("input",()=>{ if(selectedClient && norm(clientInput.value)!==norm(selectedClient.nombre)){selectedClient=null;delete clientInput.dataset.clientId;} showClients(); });
+  clientInput.addEventListener("focus",showClients);
+  clientInput.addEventListener("blur",()=>setTimeout(()=>{suggestions?.classList.remove("show")},180));
+  if(selectedClient) clientInput.dataset.clientId=selectedClient.id||"";
   $("#fItemName").addEventListener("change",e=>{const p=productByName(e.target.value); if(p){ $("#fPrice").value=Number(p.precio||p.valor||p.importe||0); $("#fPriceMode").value="unit"; }});
   const addOrderItem=()=>{
     const name=$("#fItemName")?.value.trim()||"";
@@ -254,7 +300,7 @@ function bindOrderForm(order){
     const price=Number(priceRaw);
     const mode=$("#fPriceMode")?.value||"total";
     if(!name) return showFormError("Ingresá un producto o trabajo.");
-    if(!Number.isFinite(qty) || qty<=0) return showFormError("Ingresá una cantidad válida.");
+    if(!Number.isInteger(qty) || qty<1) return showFormError("La cantidad debe ser un número entero desde 1.");
     if(priceRaw==="" || !Number.isFinite(price) || price<0) return showFormError("Ingresá un precio válido.");
     const subtotal=mode==="unit"?qty*price:price;
     state.draftItems.push({nombre:name,cantidad:qty,precioUnitario:mode==="unit"?price:(qty?price/qty:price),subtotal,tipoPrecio:mode});
@@ -305,11 +351,11 @@ async function saveOrder(existing){
   if(!state.draftItems.length)return showFormError("Agregá al menos un producto o trabajo.");
   const phone=$("#fPhone").value.trim(), red=$("#fRed").value.trim();
   const total=draftTotal(), paid=state.draftPayments.reduce((a,x)=>a+Number(x.monto||0),0);
-  const payload={cliente,clienteNombre:cliente,telefono:phone,whatsapp:phone,instagram:red,red,items:state.draftItems,total,pagos:state.draftPayments,pagado:paid>=total && total>0,fecha:$("#fDate").value||today(),estado:$("#fStatus").value,nota:$("#fNote").value.trim(),updatedAt:serverTimestamp()};
+  let cl=state.clientes.find(c=>c.id===$("#fClient").dataset.clientId) || clientByName(cliente);
   try{
-    let cl=clientByName(cliente);
-    if(!cl){const ref=await addDoc(collection(db,"clientes"),{nombre:cliente,telefono:phone,whatsapp:phone,instagram:red,red,createdAt:serverTimestamp()});state.clientes.push({id:ref.id,nombre:cliente,telefono:phone,whatsapp:phone,instagram:red,red});}
+    if(!cl){const ref=await addDoc(collection(db,"clientes"),{nombre:cliente,telefono:phone,whatsapp:phone,instagram:red,red,createdAt:serverTimestamp()});cl={id:ref.id,nombre:cliente,telefono:phone,whatsapp:phone,instagram:red,red};state.clientes.push(cl);}
     else if(phone || red){await updateDoc(doc(db,"clientes",cl.id),{telefono:phone||cl.telefono||"",whatsapp:phone||cl.whatsapp||"",instagram:red||cl.instagram||"",red:red||cl.red||""}); Object.assign(cl,{telefono:phone||cl.telefono,whatsapp:phone||cl.whatsapp,instagram:red||cl.instagram,red:red||cl.red});}
+    const payload={cliente,clienteNombre:cliente,clienteId:cl.id,clienteTelefono:phone||cl.telefono||cl.whatsapp||"",telefono:phone||cl.telefono||cl.whatsapp||"",whatsapp:phone||cl.telefono||cl.whatsapp||"",instagram:red||cl.instagram||cl.red||"",red:red||cl.instagram||cl.red||"",items:state.draftItems,total,pagos:state.draftPayments,pagado:paid>=total && total>0,fecha:$("#fDate").value||today(),estado:$("#fStatus").value,nota:$("#fNote").value.trim(),updatedAt:serverTimestamp()};
     if(existing){await updateDoc(doc(db,"pedidos",existing.id),payload);Object.assign(existing,payload);toast("Pedido actualizado");}
     else{const ref=await addDoc(collection(db,"pedidos"),{...payload,createdAt:serverTimestamp()});state.pedidos.unshift({id:ref.id,...payload});toast("Pedido creado");}
     clientesList.innerHTML=state.clientes.map(x=>`<option value="${esc(x.nombre)}"></option>`).join(""); closeDrawer(); render();
