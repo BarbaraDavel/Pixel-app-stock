@@ -17,7 +17,7 @@ const productosList = $("#productosList");
 
 // Google Drive: este Client ID es publico por diseno en una app web.
 // Nunca agregar el Client Secret al frontend ni al repositorio.
-const GOOGLE_CLIENT_ID = "342382119563-4pgth5tn1fp5fsjip2uuknja767evk5d.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "342382110563-4pgth5tn1fp5fsjp2uuknja767evk5d.apps.googleusercontent.com";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 let driveTokenClient = null;
 
@@ -168,9 +168,37 @@ function openOrderDetail(id){
     <div class="block-title">Pagos</div>
     ${payments.length?payments.map(x=>`<div class="payment-row"><div><strong>${esc(x.medio||"Pago")}</strong><div class="meta">${dateText(x.fecha)}</div></div><strong>${money(x.monto)}</strong></div>`).join(""):`<div class="muted">Todavía no hay pagos detallados.</div>`}
     ${p.nota?`<div class="block-title">Nota</div><div class="mini-card">${esc(p.nota)}</div>`:""}
-  `,footer:`<button class="btn ghost" id="detailClose">Cerrar</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
+  `,footer:`<button class="btn danger" id="detailDelete">Eliminar pedido</button><span class="footer-spacer"></span><button class="btn ghost" id="detailClose">Cerrar</button><button class="btn primary" id="detailEdit">Editar pedido</button>`});
   $("#detailClose").addEventListener("click",closeDrawer);
   $("#detailEdit").addEventListener("click",()=>openOrderForm(p));
+  $("#detailDelete").addEventListener("click",()=>openDeleteOrderConfirm(p));
+}
+
+function openDeleteOrderConfirm(p){
+  const total=orderTotal(p);
+  const cliente=p.cliente || p.clienteNombre || "este cliente";
+  openDrawer({
+    eyebrow:"Eliminar pedido",
+    title:"¿Eliminar este pedido?",
+    body:`<div class="delete-confirm"><div class="delete-confirm-icon">!</div><p>Vas a eliminar el pedido de <strong>${esc(cliente)}</strong> por <strong>${money(total)}</strong>.</p><p class="muted">El pedido y los pagos guardados dentro de él dejarán de aparecer en Pedidos, Inicio, Clientes y Caja. El cliente, los productos y los insumos no se eliminan.</p><div id="deleteOrderError" class="form-error"></div></div>`,
+    footer:`<button class="btn ghost" id="deleteOrderCancel">Cancelar</button><button class="btn danger" id="deleteOrderConfirm">Sí, eliminar pedido</button>`
+  });
+  $("#deleteOrderCancel").addEventListener("click",()=>openOrderDetail(p.id));
+  $("#deleteOrderConfirm").addEventListener("click",async()=>{
+    const btn=$("#deleteOrderConfirm");
+    btn.disabled=true; btn.textContent="Eliminando…";
+    try{
+      await deleteDoc(doc(db,"pedidos",p.id));
+      state.pedidos=state.pedidos.filter(x=>x.id!==p.id);
+      closeDrawer();
+      toast("Pedido eliminado");
+      render();
+    }catch(err){
+      console.error(err);
+      btn.disabled=false; btn.textContent="Sí, eliminar pedido";
+      $("#deleteOrderError").textContent="No se pudo eliminar el pedido. Probá de nuevo.";
+    }
+  });
 }
 
 function productByName(name){ return state.productos.find(p=>norm(p.nombre||p.producto||p.titulo)===norm(name)); }
@@ -202,7 +230,7 @@ function orderFormHtml(order,existingClient,prefilledClient=""){
       <div class="field"><label>Cant.</label><input id="fQty" type="number" min="0.01" step="0.01" value="1"></div>
       <div class="field"><label>Precio</label><input id="fPrice" type="number" min="0" step="0.01" placeholder="0"></div>
       <div class="field price-mode"><label>Tipo</label><select id="fPriceMode"><option value="total">Total</option><option value="unit">Por unidad</option></select></div>
-      <button class="btn soft add-action" id="addDraftItem">Agregar</button>
+      <button type="button" class="btn soft add-action" id="addDraftItem">Agregar</button>
     </div>
     <div class="order-items" id="draftItems"></div>
     <div class="total-line"><span>Total del pedido</span><strong id="draftTotal">${money(0)}</strong></div>
@@ -210,7 +238,7 @@ function orderFormHtml(order,existingClient,prefilledClient=""){
   <div class="form-section">
     <h3>Pago</h3>
     <div id="draftPaymentSummary"></div>
-    <details class="collapsible"><summary>+ Registrar pago</summary><div class="inside"><div class="pay-inline"><div class="field"><label>Monto</label><input id="fPayAmount" type="number" min="0" step="0.01" placeholder="0"></div><div class="field"><label>Medio</label><select id="fPayMethod"><option>Mercado Pago</option><option>Transferencia</option><option>Efectivo</option><option>Otro</option></select></div><div class="field full"><label>Fecha</label><input id="fPayDate" type="date" value="${today()}"></div></div><button class="btn soft small" id="addDraftPayment" style="margin-top:10px">Agregar pago</button></div></details>
+    <details class="collapsible"><summary>+ Registrar pago</summary><div class="inside"><div class="pay-inline"><div class="field"><label>Monto</label><input id="fPayAmount" type="number" min="0" step="0.01" placeholder="0"></div><div class="field"><label>Medio</label><select id="fPayMethod"><option>Mercado Pago</option><option>Transferencia</option><option>Efectivo</option><option>Otro</option></select></div><div class="field full"><label>Fecha</label><input id="fPayDate" type="date" value="${today()}"></div></div><button type="button" class="btn soft small" id="addDraftPayment" style="margin-top:10px">Agregar pago</button></div></details>
   </div>
   <details class="collapsible" ${order?"open":""}><summary>Más opciones</summary><div class="inside form-grid"><div class="field"><label>Fecha</label><input id="fDate" type="date" value="${esc(order?.fecha || today())}"></div><div class="field"><label>Estado</label><select id="fStatus">${["PENDIENTE","PROCESO","LISTO","ENTREGADO"].map(s=>`<option value="${s}" ${(order?.estado||"PENDIENTE")===s?"selected":""}>${statusText(s)}</option>`).join("")}</select></div><div class="field full"><label>Nota</label><textarea id="fNote" rows="3" placeholder="Solo si hace falta">${esc(order?.nota||"")}</textarea></div></div></details>
   <div id="orderFormError" class="form-error"></div>`;
@@ -219,14 +247,25 @@ function orderFormHtml(order,existingClient,prefilledClient=""){
 function bindOrderForm(order){
   renderDraftItems(); renderDraftPayments();
   $("#fItemName").addEventListener("change",e=>{const p=productByName(e.target.value); if(p){ $("#fPrice").value=Number(p.precio||p.valor||p.importe||0); $("#fPriceMode").value="unit"; }});
-  $("#addDraftItem").addEventListener("click",()=>{
-    const name=$("#fItemName").value.trim(), qty=Number($("#fQty").value||0), price=Number($("#fPrice").value||0), mode=$("#fPriceMode").value;
-    if(!name || qty<=0 || price<0) return showFormError("Completá producto, cantidad y precio.");
+  const addOrderItem=()=>{
+    const name=$("#fItemName")?.value.trim()||"";
+    const qty=Number($("#fQty")?.value||0);
+    const priceRaw=$("#fPrice")?.value;
+    const price=Number(priceRaw);
+    const mode=$("#fPriceMode")?.value||"total";
+    if(!name) return showFormError("Ingresá un producto o trabajo.");
+    if(!Number.isFinite(qty) || qty<=0) return showFormError("Ingresá una cantidad válida.");
+    if(priceRaw==="" || !Number.isFinite(price) || price<0) return showFormError("Ingresá un precio válido.");
     const subtotal=mode==="unit"?qty*price:price;
     state.draftItems.push({nombre:name,cantidad:qty,precioUnitario:mode==="unit"?price:(qty?price/qty:price),subtotal,tipoPrecio:mode});
     $("#fItemName").value=""; $("#fQty").value="1"; $("#fPrice").value=""; $("#fPriceMode").value="total";
-    renderDraftItems(); renderDraftPayments(); $("#fItemName").focus();
-  });
+    renderDraftItems(); renderDraftPayments();
+    $("#fItemName")?.focus();
+  };
+  $("#addDraftItem").onclick=(e)=>{e.preventDefault();addOrderItem();};
+  [$("#fItemName"),$("#fQty"),$("#fPrice")].forEach(el=>el?.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){e.preventDefault();addOrderItem();}
+  }));
   $("#addDraftPayment").addEventListener("click",()=>{
     const amount=Number($("#fPayAmount").value||0); if(amount<=0)return showFormError("Ingresá un monto de pago válido.");
     state.draftPayments.push({monto:amount,medio:$("#fPayMethod").value,fecha:$("#fPayDate").value||today()});
@@ -239,8 +278,19 @@ function showFormError(msg){$("#orderFormError").textContent=msg;setTimeout(()=>
 function draftTotal(){return state.draftItems.reduce((a,x)=>a+Number(x.subtotal||0),0)}
 function renderDraftItems(){
   const host=$("#draftItems"); if(!host)return;
-  host.innerHTML=state.draftItems.length?state.draftItems.map((x,i)=>`<div class="editable-item"><div><div class="name">${esc(x.nombre||x.producto||"Ítem")}</div><div class="meta">${x.cantidad||1} · ${x.tipoPrecio==="unit"?`${money(x.precioUnitario)} c/u`:"precio total"}</div></div><strong class="item-price">${money(x.subtotal)}</strong><button class="icon-btn remove-item" data-i="${i}" style="width:34px;height:34px;font-size:16px">×</button></div>`).join(""):`<div class="muted" style="font-size:12px">Todavía no agregaste productos.</div>`;
+  host.innerHTML=state.draftItems.length?state.draftItems.map((x,i)=>`<div class="editable-item"><div><div class="name">${esc(x.nombre||x.producto||"Ítem")}</div><div class="meta">${x.cantidad||1} · ${x.tipoPrecio==="unit"?`${money(x.precioUnitario)} c/u`:"precio total"}</div></div><strong class="item-price">${money(x.subtotal)}</strong><button type="button" class="icon-btn edit-item" data-i="${i}" title="Editar ítem" style="width:34px;height:34px;font-size:14px">✎</button><button type="button" class="icon-btn remove-item" data-i="${i}" title="Quitar ítem" style="width:34px;height:34px;font-size:16px">×</button></div>`).join(""):`<div class="muted" style="font-size:12px">Todavía no agregaste productos.</div>`;
   $("#draftTotal").textContent=money(draftTotal());
+  $$(".edit-item",host).forEach(b=>b.addEventListener("click",()=>{
+    const i=Number(b.dataset.i), x=state.draftItems[i]; if(!x)return;
+    $("#fItemName").value=x.nombre||x.producto||"";
+    $("#fQty").value=Number(x.cantidad||1);
+    const mode=x.tipoPrecio||"total";
+    $("#fPriceMode").value=mode;
+    $("#fPrice").value=mode==="unit"?Number(x.precioUnitario||0):Number(x.subtotal||0);
+    state.draftItems.splice(i,1);
+    renderDraftItems();renderDraftPayments();
+    $("#fItemName")?.focus();
+  }));
   $$(".remove-item",host).forEach(b=>b.addEventListener("click",()=>{state.draftItems.splice(Number(b.dataset.i),1);renderDraftItems();renderDraftPayments();}));
 }
 function renderDraftPayments(){
@@ -460,9 +510,19 @@ async function driveQuery(q){
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||"No pude consultar Google Drive.");}
   return (await res.json()).files||[];
 }
+let driveSearchTimer=null;
+let driveSearchSeq=0;
+
 async function searchDrive(query){
-  const q=query.trim(); if(!state.driveAccessToken||q.length<2){state.driveResults=[];state.driveLastQuery=q;renderLibrary();return;}
-  state.driveLoading=true;state.driveError="";state.driveLastQuery=q;renderLibrary();
+  const q=query.trim();
+  const seq=++driveSearchSeq;
+  if(!state.driveAccessToken||q.length<2){
+    state.driveResults=[];state.driveLastQuery=q;state.driveLoading=false;state.driveError="";
+    updateLibraryResults();
+    return;
+  }
+  state.driveLoading=true;state.driveError="";state.driveLastQuery=q;
+  updateLibraryResults();
   try{
     const escaped = q.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
     const nq=norm(q);
@@ -472,27 +532,32 @@ async function searchDrive(query){
       driveQuery(`trashed = false and fullText contains '${escaped}'`),
       driveQuery(`trashed = false and name contains '${escapedSeed}'`)
     ]);
+    // Si el usuario siguió escribiendo, esta respuesta ya quedó vieja.
+    if(seq!==driveSearchSeq || q!==state.librarySearch.trim()) return;
     const byId=new Map(contentHits.map(f=>[f.id,f]));
     nameCandidates
       .filter(f=>norm(f.name||"").includes(nq))
       .forEach(f=>byId.set(f.id,f));
     state.driveResults=[...byId.values()].sort((a,b)=>String(b.modifiedTime||"").localeCompare(String(a.modifiedTime||"")));
-  }catch(err){console.error(err);state.driveResults=[];state.driveError=err.message||"No pude buscar en Drive.";}
-  finally{state.driveLoading=false;renderLibrary();}
+  }catch(err){
+    if(seq!==driveSearchSeq) return;
+    console.error(err);state.driveResults=[];state.driveError=err.message||"No pude buscar en Drive.";
+  } finally {
+    if(seq===driveSearchSeq){state.driveLoading=false;updateLibraryResults();}
+  }
 }
-let driveSearchTimer=null;
-function scheduleDriveSearch(q){clearTimeout(driveSearchTimer);driveSearchTimer=setTimeout(()=>searchDrive(q),450)}
-function renderLibrary(){
+function scheduleDriveSearch(q){
+  clearTimeout(driveSearchTimer);
+  const value=q;
+  driveSearchTimer=setTimeout(()=>searchDrive(value),400);
+}
+function libraryParts(){
   const q=norm(state.librarySearch);
-  const cats=[["TODOS","Todos"],["INSTRUCTIVO","Instructivos"],["MOLDE","Moldes"],["IMAGEN","Imágenes"],["PDF","PDF"],["DISENO","Diseños"],["MATERIAL","Materiales"],["PACKAGING","Packaging"],["OTRO","Otros"]];
   const list=state.biblioteca.filter(x=>{
     const matches=!q||norm([x.nombre,x.descripcion,(x.tags||[]).join(" "),x.categoria].join(" ")).includes(q);
     return matches&&(state.libraryFilter==="TODOS"||String(x.categoria||"OTRO").toUpperCase()===state.libraryFilter);
   });
   const driveList=state.driveResults.filter(x=>state.libraryFilter==="TODOS"||driveCategory(x)===state.libraryFilter);
-  const driveStatus=state.driveConnected
-    ? `<div class="drive-status connected"><span>● Drive conectado</span><button class="btn ghost small" id="disconnectDriveBtn">Desconectar</button></div>`
-    : `<div class="drive-connect"><div><strong>Buscá directamente en tu Google Drive</strong><p>Pixel solo tendrá acceso de lectura: no puede modificar ni borrar tus archivos.</p></div><button class="btn primary" id="connectDriveBtn">Conectar Google Drive</button></div>`;
   let driveBody="";
   if(state.driveConnected){
     if(state.driveLoading) driveBody=`<div class="drive-message">Buscando en Drive…</div>`;
@@ -502,18 +567,47 @@ function renderLibrary(){
     else if(!driveList.length) driveBody=`<div class="drive-message">No encontré coincidencias en Drive para “${esc(state.librarySearch)}”.</div>`;
     else driveBody=`<div class="drive-results-head"><strong>Google Drive</strong><span>${driveList.length} resultado${driveList.length===1?"":"s"}</span></div><div class="library-grid drive-grid">${driveList.map(x=>`<a class="library-card drive-card" href="${esc(x.webViewLink||'#')}" target="_blank" rel="noopener"><div class="library-preview ${x.thumbnailLink?'has-thumb':''}" ${x.thumbnailLink?`style="background-image:url('${esc(x.thumbnailLink)}')"`:''}>${x.thumbnailLink?'':driveIcon(x)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(driveTypeText(x))}</span><span class="drive-source">Drive</span></div><h3>${esc(x.name||"Sin nombre")}</h3><p>${esc(x.description||`Modificado ${x.modifiedTime?new Date(x.modifiedTime).toLocaleDateString("es-AR"):""}`)}</p></div></a>`).join("")}</div>`;
   }
+  const savedBody=`<div class="saved-library-head"><strong>Guardados en Pixel</strong><span>${list.length} recurso${list.length===1?"":"s"}</span></div>
+    ${list.length?`<div class="library-grid">${list.map(x=>`<article class="library-card" data-library-id="${x.id}"><div class="library-preview">${libraryIcon(x.categoria)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(String(x.categoria||"Otro").replace("DISENO","Diseño"))}</span></div><h3>${esc(x.nombre||"Sin nombre")}</h3><p>${esc(x.descripcion||"Sin descripción")}</p><div class="tag-row">${(x.tags||[]).slice(0,5).map(t=>`<span>${esc(t)}</span>`).join("")}</div></div></article>`).join("")}</div>`:`<div class="empty"><strong>No encontré recursos guardados</strong>${state.biblioteca.length?"Probá otra búsqueda o filtro.":"Podés agregar recursos manualmente o encontrarlos directamente en Drive."}</div>`}`;
+  return {driveBody,savedBody};
+}
+function bindLibraryResultEvents(){
+  $$('[data-library-id]').forEach(c=>c.onclick=()=>openLibraryDetail(c.dataset.libraryId));
+}
+function updateLibraryResults(){
+  if(state.view!=="biblioteca") return;
+  const host=$("#libraryDynamicResults");
+  if(!host) return;
+  const {driveBody,savedBody}=libraryParts();
+  host.innerHTML=driveBody+savedBody;
+  bindLibraryResultEvents();
+}
+function renderLibrary(){
+  const cats=[["TODOS","Todos"],["INSTRUCTIVO","Instructivos"],["MOLDE","Moldes"],["IMAGEN","Imágenes"],["PDF","PDF"],["DISENO","Diseños"],["MATERIAL","Materiales"],["PACKAGING","Packaging"],["OTRO","Otros"]];
+  const driveStatus=state.driveConnected
+    ? `<div class="drive-status connected"><span>● Drive conectado</span><button class="btn ghost small" id="disconnectDriveBtn">Desconectar</button></div>`
+    : `<div class="drive-connect"><div><strong>Buscá directamente en tu Google Drive</strong><p>Pixel solo tendrá acceso de lectura: no puede modificar ni borrar tus archivos.</p></div><button class="btn primary" id="connectDriveBtn">Conectar Google Drive</button></div>`;
+  const {driveBody,savedBody}=libraryParts();
   content.innerHTML=`<section class="section">
     <div class="section-head"><div><h2>Biblioteca</h2><p>Encontrá tus recursos guardados y buscá también dentro de Google Drive.</p></div><div class="right"><button class="btn primary" id="newLibraryBtn">+ Agregar recurso</button></div></div>
-    <div class="section-body slim"><div class="toolbar"><div class="search"><input id="librarySearch" placeholder="Buscar: cajita, sticker, resina, molde..." value="${esc(state.librarySearch)}"></div><div class="segmented library-filters">${cats.map(([v,t])=>`<button data-library-filter="${v}" class="${state.libraryFilter===v?"active":""}">${t}</button>`).join("")}</div></div>${driveStatus}</div>
-    ${driveBody}
-    <div class="saved-library-head"><strong>Guardados en Pixel</strong><span>${list.length} recurso${list.length===1?"":"s"}</span></div>
-    ${list.length?`<div class="library-grid">${list.map(x=>`<article class="library-card" data-library-id="${x.id}"><div class="library-preview">${libraryIcon(x.categoria)}</div><div class="library-card-body"><div class="library-card-top"><span class="badge done">${esc(String(x.categoria||"Otro").replace("DISENO","Diseño"))}</span></div><h3>${esc(x.nombre||"Sin nombre")}</h3><p>${esc(x.descripcion||"Sin descripción")}</p><div class="tag-row">${(x.tags||[]).slice(0,5).map(t=>`<span>${esc(t)}</span>`).join("")}</div></div></article>`).join("")}</div>`:`<div class="empty"><strong>No encontré recursos guardados</strong>${state.biblioteca.length?"Probá otra búsqueda o filtro.":"Podés agregar recursos manualmente o encontrarlos directamente en Drive."}</div>`}
+    <div class="section-body slim"><div class="toolbar"><div class="search"><input id="librarySearch" inputmode="search" autocomplete="off" enterkeyhint="search" placeholder="Buscar: cajita, sticker, resina, molde..." value="${esc(state.librarySearch)}"></div><div class="segmented library-filters">${cats.map(([v,t])=>`<button data-library-filter="${v}" class="${state.libraryFilter===v?"active":""}">${t}</button>`).join("")}</div></div>${driveStatus}</div>
+    <div id="libraryDynamicResults">${driveBody}${savedBody}</div>
   </section>`;
   $("#newLibraryBtn").onclick=()=>openLibraryForm();
   $("#connectDriveBtn")?.addEventListener("click",connectDrive);$("#disconnectDriveBtn")?.addEventListener("click",disconnectDrive);
-  $("#librarySearch").oninput=e=>{state.librarySearch=e.target.value;renderLibrary();scheduleDriveSearch(state.librarySearch);setTimeout(()=>{const x=$("#librarySearch");if(x){x.focus();x.selectionStart=x.selectionEnd=x.value.length}},0)};
+  $("#librarySearch").oninput=e=>{
+    state.librarySearch=e.target.value;
+    // No renderizamos Biblioteca: conservar este mismo input mantiene abierto el teclado móvil.
+    updateLibraryResults();
+    scheduleDriveSearch(state.librarySearch);
+  };
+  $("#librarySearch").onkeydown=e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();clearTimeout(driveSearchTimer);searchDrive(state.librarySearch);
+    }
+  };
   $$('[data-library-filter]').forEach(b=>b.onclick=()=>{state.libraryFilter=b.dataset.libraryFilter;renderLibrary()});
-  $$('[data-library-id]').forEach(c=>c.onclick=()=>openLibraryDetail(c.dataset.libraryId));
+  bindLibraryResultEvents();
 }
 
 function openLibraryDetail(id){
