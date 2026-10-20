@@ -1,21 +1,89 @@
 import {initializeApp,getApps,getApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
 import {getAuth,sendSignInLinkToEmail,isSignInWithEmailLink,signInWithEmailLink,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
 import {firebaseConfig} from './v12-firebase-config.js';
+
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const form=document.getElementById('emailLinkForm');
 const message=document.getElementById('authMessage');
 const input=document.getElementById('accessEmail');
+const sendButton=document.getElementById('sendAccessLink');
 const out=document.getElementById('signOutClub');
-const show=t=>{message.textContent=t;};
+const verifyForm=document.getElementById('confirmEmailForm');
+const verifyInput=document.getElementById('confirmAccessEmail');
 const emailKey='pixel_mail_club_pending_email';
-form.addEventListener('submit',async e=>{e.preventDefault();const email=input.value.trim().toLowerCase();if(!email)return;
-try{await sendSignInLinkToEmail(auth,email,{url:location.origin+location.pathname,handleCodeInApp:true});sessionStorage.setItem(emailKey,email);show('Te enviamos un enlace a tu correo. Revisá también la carpeta de spam.');}
-catch(err){console.error(err);show('No pudimos enviar el enlace. Revisá que Email/Password (enlace por email) y el dominio estén habilitados en Firebase Authentication.');}});
-if(isSignInWithEmailLink(auth,location.href)){
- let email=sessionStorage.getItem(emailKey);
- if(!email){email=window.prompt('Por seguridad, ingresá el mismo email al que enviamos el enlace:');}
- if(email){signInWithEmailLink(auth,email,location.href).then(()=>{sessionStorage.removeItem(emailKey);history.replaceState({},document.title,location.pathname);show('¡Bienvenida al club! Tu correo está verificado.');}).catch(err=>{console.error(err);show('El enlace expiró o no corresponde a este email. Solicitá uno nuevo.');});}
+const show=(text,isError=false)=>{message.textContent=text;message.dataset.error=String(isError);};
+const normalizeEmail=value=>value.trim().toLowerCase();
+const linkInUrl=isSignInWithEmailLink(auth,window.location.href);
+let completingLink=false;
+
+function readableError(err){
+ const code=err?.code||'';
+ if(code==='auth/unauthorized-domain'||code==='auth/invalid-continue-uri')return 'El dominio de esta página no está autorizado en Firebase Authentication. Revisá Dominios autorizados.';
+ if(code==='auth/too-many-requests')return 'Se solicitaron demasiados enlaces. Esperá un momento y volvé a intentar.';
+ if(code==='auth/invalid-email')return 'Revisá que el correo electrónico esté escrito correctamente.';
+ if(code==='auth/invalid-action-code'||code==='auth/expired-action-code')return 'Este enlace ya se utilizó o venció. Solicitá uno nuevo.';
+ if(code==='auth/network-request-failed')return 'No pudimos conectarnos. Revisá tu conexión e intentá nuevamente.';
+ return 'No pudimos completar el acceso. Probá de nuevo o solicitá otro enlace.';
 }
-onAuthStateChanged(auth,user=>{out.hidden=!user;form.hidden=!!user;if(user)show('Sesión iniciada como '+user.email+'. La reserva online todavía no está habilitada: falta validar cupos de forma segura.');});
-out.addEventListener('click',()=>signOut(auth));
+
+form.addEventListener('submit',async event=>{
+ event.preventDefault();
+ const email=normalizeEmail(input.value);
+ if(!email||!input.checkValidity())return;
+ sendButton.disabled=true;
+ show('Preparando tu enlace de acceso…');
+ try{
+  await sendSignInLinkToEmail(auth,email,{
+   url:new URL(window.location.pathname,window.location.origin).href,
+   handleCodeInApp:true
+  });
+  sessionStorage.setItem(emailKey,email);
+  show('¡Listo! Si el correo puede recibir enlaces, revisá tu bandeja de entrada y spam. Abrí el enlace para continuar.');
+ }catch(err){console.error('Mail Club Auth:',err.code||err);show(readableError(err),true);}
+ finally{sendButton.disabled=false;}
+});
+
+async function completeLink(email){
+ if(completingLink)return;
+ completingLink=true;
+ verifyForm.hidden=true;
+ show('Verificando tu enlace de acceso…');
+ try{
+  await signInWithEmailLink(auth,email,window.location.href);
+  sessionStorage.removeItem(emailKey);
+  // El código de acceso no debe permanecer visible en la barra de direcciones.
+  window.history.replaceState({},document.title,window.location.pathname);
+  show('¡Correo verificado! Ya podés cerrar sesión cuando quieras. La consulta de cartitas y las reservas estarán disponibles próximamente.');
+ }catch(err){
+  console.error('Mail Club Auth:',err.code||err);
+  show(readableError(err),true);
+  verifyForm.hidden=false;
+ }finally{completingLink=false;}
+}
+
+if(linkInUrl){
+ form.hidden=true;
+ const pending=sessionStorage.getItem(emailKey);
+ if(pending){completeLink(pending);}
+ else{
+  verifyForm.hidden=false;
+  show('Para proteger tu cuenta, confirmá el mismo correo al que enviamos el enlace.');
+ }
+}
+verifyForm.addEventListener('submit',event=>{
+ event.preventDefault();
+ const email=normalizeEmail(verifyInput.value);
+ if(!email||!verifyInput.checkValidity())return;
+ completeLink(email);
+});
+onAuthStateChanged(auth,user=>{
+ out.hidden=!user;
+ if(user){form.hidden=true;verifyForm.hidden=true;
+  if(!completingLink)show('Sesión iniciada como '+user.email+'. El acceso a tus cartitas y las reservas online todavía no están habilitados.');
+ }else if(!linkInUrl){form.hidden=false;}
+});
+out.addEventListener('click',async()=>{
+ try{await signOut(auth);show('Cerraste sesión. Podés pedir otro enlace cuando quieras.');}
+ catch(err){show(readableError(err),true);}
+});
