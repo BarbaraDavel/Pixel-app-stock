@@ -1,3 +1,5 @@
+import { pixelConfirm } from "./pixel-dialog.js";
+import { renderMailClub } from "./mailclub.js";
 import { db } from "../../js/firebase.js";
 import {
   collection, getDocs, addDoc, updateDoc, setDoc, deleteDoc, doc, serverTimestamp
@@ -74,6 +76,7 @@ function setView(view){
     productos:["Productos","Tu catálogo reutilizable, no una obligación para vender."],
     insumos:["Insumos","Costos y materiales cuando realmente los necesitás."],
     caja:["Caja","Cobros, saldos y movimientos de Pixel."],
+    mailclub:["Pixel Mail Club","Ediciones, reservas, cobros y entregas."],
     biblioteca:["Biblioteca","Encontrá instructivos, moldes, diseños y recursos sin revolver todo Drive."]
   }[view];
   $("#pageTitle").textContent=meta[0]; $("#pageSubtitle").textContent=meta[1];
@@ -81,6 +84,7 @@ function setView(view){
 }
 
 function render(){
+  if(state.view==="mailclub") return renderMailClub();
   if(state.view==="inicio") return renderHome();
   if(state.view==="pedidos") return renderOrders();
   if(state.view==="clientes") return renderClients();
@@ -691,7 +695,7 @@ function openLibraryDetail(id){
   setDrawer("Biblioteca",x.nombre||"Recurso",`<div class="detail-hero"><div><div class="big library-detail-icon">${libraryIcon(x.categoria)}</div><div class="sub">${esc(x.categoria||"Otro")}</div></div></div><div class="block-title">Descripción</div><div class="soft-note">${esc(x.descripcion||"Sin descripción")}</div><div class="block-title">Palabras clave</div><div class="tag-row drawer-tags">${(x.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")||"<span>Sin tags</span>"}</div>${x.url?`<div class="block-title">Archivo</div><a class="btn soft library-open" href="${esc(x.url)}" target="_blank" rel="noopener">Abrir archivo en Drive ↗</a>`:""}`,`<button class="btn ghost" id="deleteLibraryBtn">Eliminar</button><button class="btn primary" id="editLibraryBtn">Editar</button>`);
   $("#editLibraryBtn").onclick=()=>openLibraryForm(x);
   $("#deleteLibraryBtn").onclick=async()=>{
-    const ok=confirm(`¿Eliminar “${x.nombre||"este recurso"}” de la Biblioteca? El archivo de Drive no se toca.`); if(!ok)return;
+    const ok=await pixelConfirm({title:"¿Eliminar recurso de Biblioteca?",message:`Se eliminará “${x.nombre||"este recurso"}” del catálogo.`,detail:"El archivo original de Google Drive no se eliminará.",confirmText:"Eliminar recurso",danger:true}); if(!ok)return;
     try{await deleteDoc(doc(db,"biblioteca",x.id));state.biblioteca=state.biblioteca.filter(r=>r.id!==x.id);closeDrawer();toast("Recurso eliminado");renderLibrary()}catch(err){console.error(err);toast("No se pudo eliminar","error")};
   };
 }
