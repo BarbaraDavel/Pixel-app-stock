@@ -32,3 +32,6 @@ header{padding:0 8px 8px}.brand{gap:12px}.brand strong{font-size:32px;letter-spa
 
 /* V12: acceso por correo consistente con la identidad de Pixel */
 #secureAccess{margin-top:32px;}#secureAccess form{display:grid;gap:12px;max-width:480px;margin:18px auto;}#secureAccess form label{text-align:left;}#authMessage{min-height:1.5em;}
+
+/* V12.1: acceso unificado */
+#secureAccess{padding:38px 40px;text-align:center;}#secureAccess h2{font-family:'DM Serif Display',Georgia,serif;}#secureAccess>p:first-of-type{max-width:680px;margin:12px auto 0;line-height:1.7;}#secureAccess .access-note{font-size:12px;color:#927a72;margin:8px auto 0;}@media(max-width:600px){#secureAccess{padding:28px 20px;}#secureAccess h2{font-size:26px;}}
