@@ -50,3 +50,13 @@ header{padding:0 8px 8px}.brand{gap:12px}.brand strong{font-size:32px;letter-spa
 #confirmEmailForm{max-width:545px;margin:16px auto 0}
 #authMessage[data-error="true"]{color:#9a3f47;font-weight:600}
 #sendAccessLink:disabled{opacity:.65;cursor:wait}
+
+/* V13.1: bienvenida compacta para cuentas autenticadas */
+#secureAccess [hidden]{display:none!important;}
+#secureAccess .club-welcome{max-width:570px;margin:20px auto 10px;padding:10px 0;text-align:center;}
+#secureAccess .club-welcome-icon{font-size:27px;color:#a96f74;}
+#secureAccess .club-welcome h3{font-family:'DM Serif Display',Georgia,serif;font-size:clamp(23px,3vw,30px);color:#694e4b;margin:10px 0;}
+#secureAccess .club-welcome p{font-size:14px;line-height:1.7;color:#806862;margin:8px auto;}
+#secureAccess .club-welcome .club-welcome-email{font-size:12px;overflow-wrap:anywhere;color:#9a7775;}
+#secureAccess #signOutClub{display:inline-block;width:auto;max-width:100%;padding:9px 22px;margin:9px auto 0;background:transparent;color:#8b6665;border:1px solid #cfaeaa;border-radius:12px;font-size:13px;}
+#secureAccess #authMessage:empty{display:none;}

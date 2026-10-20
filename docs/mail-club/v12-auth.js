@@ -4,11 +4,17 @@ import {firebaseConfig} from './v12-firebase-config.js';
 
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
 const auth=getAuth(app);
+// Solicitar los mensajes de Firebase Authentication en español.
+auth.languageCode='es';
 const form=document.getElementById('emailLinkForm');
 const message=document.getElementById('authMessage');
 const input=document.getElementById('accessEmail');
 const sendButton=document.getElementById('sendAccessLink');
 const out=document.getElementById('signOutClub');
+const welcome=document.getElementById('clubWelcome');
+const welcomeEmail=document.getElementById('clubWelcomeEmail');
+const intro=document.getElementById('clubAccessIntro');
+const accessNote=document.getElementById('clubAccessNote');
 const verifyForm=document.getElementById('confirmEmailForm');
 const verifyInput=document.getElementById('confirmAccessEmail');
 const emailKey='pixel_mail_club_pending_email';
@@ -54,7 +60,7 @@ async function completeLink(email){
   sessionStorage.removeItem(emailKey);
   // El código de acceso no debe permanecer visible en la barra de direcciones.
   window.history.replaceState({},document.title,window.location.pathname);
-  show('¡Correo verificado! Ya podés cerrar sesión cuando quieras. La consulta de cartitas y las reservas estarán disponibles próximamente.');
+  show('¡Correo verificado! Bienvenida a Pixel Mail Club.');
  }catch(err){
   console.error('Mail Club Auth:',err.code||err);
   show(readableError(err),true);
@@ -79,9 +85,16 @@ verifyForm.addEventListener('submit',event=>{
 });
 onAuthStateChanged(auth,user=>{
  out.hidden=!user;
- if(user){form.hidden=true;verifyForm.hidden=true;
-  if(!completingLink)show('Sesión iniciada como '+user.email+'. El acceso a tus cartitas y las reservas online todavía no están habilitados.');
- }else if(!linkInUrl){form.hidden=false;}
+ welcome.hidden=!user;
+ intro.hidden=!!user;
+ accessNote.hidden=!!user;
+ if(user){
+  form.hidden=true;verifyForm.hidden=true;
+  welcomeEmail.textContent=user.email||'';
+  show('');
+ }else if(!linkInUrl){
+  form.hidden=false;verifyForm.hidden=true;welcomeEmail.textContent='';
+ }
 });
 out.addEventListener('click',async()=>{
  try{await signOut(auth);show('Cerraste sesión. Podés pedir otro enlace cuando quieras.');}
