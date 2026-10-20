@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel – Calendario de pedidos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+
+    <button class="hamburger" aria-label="Menú">☰</button>
+
+    <nav class="nav-links">
+      <a href="./index.html">Inicio</a>
+      <a href="./insumos.html">Insumos</a>
+      <a href="./stock.html">Stock</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./clientes.html">Clientes</a>
+     <a href="./guia.html">Guía</a>
+      <a href="./costos.html">Costos</a>
+      <a href="./recetas_borrador.html">Recetas guardadas</a>
+      <a href="./pedidos.html">Pedidos</a>
+      <a href="./catalogo.html">Catálogo</a>
+      <a class="active" href="./calendario.html">Calendario</a>
+    </nav>
+  </header>
+
+  <main class="main">
+    <h1>📅 Calendario de pedidos</h1>
+
+    <!-- 🔔 AVISO VISUAL -->
+    <div id="avisoManiana" class="aviso-maniana hidden"></div>
+
+    <!-- Leyenda -->
+    <div class="leyenda-estados">
+      <span class="badge badge-pendiente">🟥 Pendiente</span>
+      <span class="badge badge-proceso">🟨 En proceso</span>
+      <span class="badge badge-listo">🟪 Listo</span>
+    </div>
+
+    <!-- Navegación -->
+    <div class="calendario-header">
+      <button id="prevMes">◀</button>
+      <h2 id="mesActual"></h2>
+      <button id="nextMes">▶</button>
+    </div>
+
+    <div class="calendario-grid" id="calendario"></div>
+  </main>
+
+  <!-- MODAL -->
+  <div id="modalCalendario" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3 id="calTitulo"></h3>
+      <p id="calEstado"></p>
+      <p id="calFecha"></p>
+      <div id="calItems"></div>
+      <p id="calNota"></p>
+      <p id="calTotal" style="font-weight:700;"></p>
+
+      <div
+        style="
+          text-align:right;
+          margin-top:1rem;
+          display:flex;
+          justify-content:flex-end;
+          gap:0.5rem;
+          flex-wrap:wrap;
+        "
+      >
+        <button id="calGoogleCalendar" class="btn btn-outline" style="display:none">
+          📅 Google Calendar
+        </button>
+
+        <button id="calQuitarCalendar" class="btn btn-outline" style="display:none">
+          🗑️ Quitar del calendario
+        </button>
+        <button id="calCerrar" class="btn btn-primary">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="js/calendario.js"></script>
+</body>
+</html>

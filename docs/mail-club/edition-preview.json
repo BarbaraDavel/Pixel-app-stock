@@ -1,0 +1,19 @@
+{
+  "id": "001",
+  "nombre": "Cartitas bajo el árbol",
+  "periodo": "Diciembre 2026",
+  "descripcion": "Hay cosas que nunca pierden su magia: una carta inesperada, un sobre lleno de sorpresas y la ilusión de la Navidad.",
+  "precio": 0,
+  "cupos": 20,
+  "tema": "navidad",
+  "imagen": "./zorrito-navidad.png",
+  "contenido": [
+    "Una carta escrita por Pixel, especialmente para vos",
+    "Una hoja de papel de carta ilustrado",
+    "Una postal coleccionable de la edición",
+    "Dos stickers individuales adicionales",
+    "Una plancha de stickers ilustrados de la colección",
+    "Un marcapáginas ilustrado",
+    "Un regalito especial sorpresa"
+  ]
+}

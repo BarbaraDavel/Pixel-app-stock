@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Costos - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
+  </div>
+
+  <div class="nav-links">
+    <a href="./index.html">Inicio</a>
+    <a href="./insumos.html">Insumos</a>
+    <a href="./stock.html">Stock</a>
+<!--     <a href="./movimientos_stock.html">Movimientos</a>-->
+<!--     <a href="./recetas.html">Recetas</a>-->
+    <a href="./productos.html">Productos</a>
+    <a href="./clientes.html">Clientes</a>
+    <a href="./guia.html">Guia</a>
+    <a class="active" href="./costos.html">Costos</a>
+    <a href="./recetas_borrador.html">Recetas guardadas</a>
+    <a href="./pedidos.html">Pedidos</a>
+    <a href="./catalogo.html">Catalogo</a>
+    <a href="./biblioteca.html">Biblioteca</a>
+    <a href="./calendario.html">Calendario</a>
+  </div>
+</div>
+<!-- 👆 ACÁ estaba el error: este cierre faltaba -->
+
+<!-- CONTENIDO -->
+<div class="main">
+
+  <div class="card">
+    <h1>🧮 Calculadora de costos</h1>
+    <p class="hint">
+      Cuánto cuesta producir un producto usando insumos reales.
+    </p>
+
+    <input id="nombreProducto" class="input-pixel" placeholder="Nombre del producto">
+
+    <table class="tabla-insumos">
+      <thead>
+        <tr>
+          <th>Insumo</th>
+          <th>Cantidad usada</th>
+          <th>Costo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="lineasCostos"></tbody>
+    </table>
+
+    <div style="margin-top:12px;">
+      <button id="btnAgregarLinea" class="btn btn-secondary">
+        ➕ Agregar insumo
+      </button>
+      <button id="btnAgregarCostosBase" class="btn btn-outline">
+        ⚡ Agregar costos base
+      </button>
+
+    </div>
+    
+
+    <hr>
+
+    <!-- RESULTADO -->
+    <div class="card" style="margin-top:16px;">
+      <h3>Resultado</h3>
+
+      <p style="font-size:1.3em;">
+        <strong>Costo total:</strong>
+        $<span id="costoTotal">0</span>
+      </p>
+
+      <button id="btnGuardarReceta" class="btn btn-primary">
+        💾 Guardar receta
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/costos.js"></script>
+
+</body>
+</html>

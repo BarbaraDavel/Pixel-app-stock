@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía de anillos - Pixel</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<!-- HEADER PIXEL -->
+<div class="topbar">
+  <div class="brand">
+    <span class="logo-fox">🦊</span> Pixel
+  </div>
+
+  <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+    ☰
+  </button>
+
+  <div class="nav-links">
+     <a href="./index.html">Inicio</a>
+     <a href="./insumos.html">Insumos</a>
+     <a href="./stock.html">Stock</a>
+<!--     <a href="./movimientos_stock.html">Movimientos</a>-->
+<!--     <a href="./recetas.html">Recetas</a>-->
+     <a href="./productos.html">Productos</a>
+     <a href="./clientes.html">Clientes</a>     
+     <a class="active" href="./guia.html">Guia</a>
+    <a href="./costos.html">Costos</a>
+     <a href="./recetas_borrador.html">Recetas guardadas</a>
+     <a href="./pedidos.html">Pedidos</a>
+     <a href="./catalogo.html">Catalogo</a>
+     <a href="./calendario.html">Calendario</a>
+   </div>
+</div>
+
+      <div class="card">
+        <h1>📘 Guía rápida de anillos (Wire)</h1>
+        <p class="hint">
+          Referencia para agendas A5 con papel interior 90 g y tapas de 2 mm cada una (4 mm en total).
+        </p>
+
+        <div class="card" style="margin-bottom:1.5rem;">
+      <h2>🧮 Calculadora rápida de anillo</h2>
+
+      <p class="hint">
+        Ingresá la cantidad de hojas (papel 90 g, tapas de 2 mm).
+      </p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cantidad de hojas</label>
+          <input type="number" id="calcHojas" min="1" placeholder="Ej: 120">
+        </div>
+
+        <div class="form-group" style="align-self:flex-end;">
+          <button class="btn btn-primary" id="calcBtn">
+            Calcular anillo
+          </button>
+        </div>
+      </div>
+
+      <div id="calcResultado" class="hint" style="margin-top:1rem;"></div>
+    </div>
+
+    <table class="tabla-insumos">
+      <thead>
+        <tr>
+          <th>Cantidad de hojas</th>
+          <th>Grosor interior aprox.</th>
+          <th>Tapas</th>
+          <th>Grosor total</th>
+          <th>Anillo recomendado</th>
+          <th>Alternativa</th>
+        </tr>
+      </thead>
+
+          <tbody>
+      <tr>
+        <td>30 hojas</td>
+        <td>≈ 3,5–4 mm</td>
+        <td>4 mm</td>
+        <td>≈ 8 mm</td>
+        <td><strong>1/4" (6,5 mm)</strong></td>
+        <td>5/16" (8 mm) si querés más juego</td>
+      </tr>
+
+      <tr>
+        <td>50 hojas</td>
+        <td>≈ 6 mm</td>
+        <td>4 mm</td>
+        <td>≈ 10 mm</td>
+        <td><strong>5/16" (8 mm)</strong></td>
+        <td>3/8" (9,5 mm) más cómodo</td>
+      </tr>
+
+      <tr>
+        <td>60 hojas</td>
+        <td>≈ 7–7,5 mm</td>
+        <td>4 mm</td>
+        <td>≈ 11–12 mm</td>
+        <td><strong>3/8" (9,5 mm)</strong></td>
+        <td>7/16" (11 mm)</td>
+      </tr>
+
+      <tr>
+        <td>80 hojas</td>
+        <td>≈ 9,5–10 mm</td>
+        <td>4 mm</td>
+        <td>≈ 14 mm</td>
+        <td><strong>7/16" (11 mm)</strong></td>
+        <td>1/2" (12,7 mm)</td>
+      </tr>
+
+      <tr>
+        <td>100 hojas</td>
+        <td>≈ 12 mm</td>
+        <td>4 mm</td>
+        <td>≈ 16 mm</td>
+        <td><strong>1/2" (12,7 mm)</strong></td>
+        <td>9/16" (15 mm)</td>
+      </tr>
+
+      <tr>
+        <td>120 hojas</td>
+        <td>≈ 14–15 mm</td>
+        <td>4 mm</td>
+        <td>≈ 19 mm</td>
+        <td><strong>9/16" (15 mm)</strong></td>
+        <td>5/8" (16 mm)</td>
+      </tr>
+
+      <tr>
+        <td>135 hojas</td>
+        <td>≈ 16 mm</td>
+        <td>4 mm</td>
+        <td>≈ 20 mm</td>
+        <td><strong>5/8" (16 mm)</strong></td>
+        <td>3/4" (19 mm)</td>
+      </tr>
+
+      <tr>
+        <td>160 hojas</td>
+        <td>≈ 19 mm</td>
+        <td>4 mm</td>
+        <td>≈ 23 mm</td>
+        <td><strong>3/4" (19 mm)</strong></td>
+        <td>7/8" (22 mm)</td>
+      </tr>
+
+      <tr>
+        <td>190 hojas</td>
+        <td>≈ 22–23 mm</td>
+        <td>4 mm</td>
+        <td>≈ 27 mm</td>
+        <td><strong>7/8" (22 mm)</strong></td>
+        <td>1" (25,4 mm)</td>
+      </tr>
+
+      <tr>
+        <td>220 hojas</td>
+        <td>≈ 26 mm</td>
+        <td>4 mm</td>
+        <td>≈ 30 mm</td>
+        <td><strong>1" (25,4 mm)</strong></td>
+        <td>1-1/8" (28,5 mm)</td>
+      </tr>
+
+      <tr>
+        <td>250 hojas</td>
+        <td>≈ 30 mm</td>
+        <td>4 mm</td>
+        <td>≈ 34 mm</td>
+        <td><strong>1-1/8" (28,5 mm)</strong></td>
+        <td>1-1/4" (32 mm)</td>
+      </tr>
+
+      <tr>
+        <td>280 hojas</td>
+        <td>≈ 34 mm</td>
+        <td>4 mm</td>
+        <td>≈ 38 mm</td>
+        <td><strong>1-1/4" (32 mm)</strong></td>
+        <td>1-1/2" (38 mm)</td>
+      </tr>
+
+      <tr>
+        <td>380 hojas</td>
+        <td>≈ 46 mm</td>
+        <td>4 mm</td>
+        <td>≈ 50 mm</td>
+        <td><strong>1-1/2" (38 mm)</strong></td>
+        <td>⚠️ Ya queda muy pesado</td>
+      </tr>
+    </tbody>
+
+
+
+    </table>
+
+    <p class="hint" style="margin-top:12px;">
+      ℹ️ Tip Pixel: para agendas A5 gruesas (120 hojas o más) con tapas de 2 mm
+      en sistema 2:1, el anillo <strong>D-25 (25 mm)</strong> es el punto justo:
+      abre bien, no fuerza el cierre y permite pasar hojas cómodo.
+    </p>
+  </div>
+
+</div>
+
+    <script>
+      const calcBtn = document.getElementById("calcBtn");
+      const calcHojas = document.getElementById("calcHojas");
+      const calcResultado = document.getElementById("calcResultado");
+
+      // Tabla base (misma lógica que la guía)
+      const tablaAnillos = [
+        { hojas: 20,  interior: 4,   recomendado: '1/4" (6,5 mm)',   alt: '5/16" (8 mm)' },
+        { hojas: 30,  interior: 6,   recomendado: '5/16" (8 mm)',   alt: '3/8" (9,5 mm)' },
+        { hojas: 50,  interior: 7.5, recomendado: '3/8" (9,5 mm)',  alt: '7/16" (11 mm)' },
+        { hojas: 70,  interior: 10,  recomendado: '7/16" (11 mm)',  alt: '1/2" (12,7 mm)' },
+        { hojas: 90, interior: 12,  recomendado: '1/2" (12,7 mm)', alt: '9/16" (15 mm)' },
+        { hojas: 110, interior: 15,  recomendado: '9/16" (15 mm)',  alt: '5/8" (16 mm)' },
+        { hojas: 135, interior: 16,  recomendado: '5/8" (16 mm)',   alt: '3/4" (19 mm)' },
+        { hojas: 149, interior: 19,  recomendado: '3/4" (19 mm)',   alt: '7/8" (22 mm)' },
+        { hojas: 170, interior: 23,  recomendado: '7/8" (22 mm)',   alt: '1" (25,4 mm)' },
+        { hojas: 220, interior: 26,  recomendado: '1" (25,4 mm)',   alt: '1-1/8" (28,5 mm)' },
+        { hojas: 250, interior: 30,  recomendado: '1-1/8" (28,5 mm)', alt: '1-1/4" (32 mm)' },
+        { hojas: 280, interior: 34,  recomendado: '1-1/4" (32 mm)', alt: '1-1/2" (38 mm)' },
+        { hojas: 380, interior: 46,  recomendado: '1-1/2" (38 mm)', alt: 'Muy pesado ⚠️' }
+      ];
+
+      calcBtn.addEventListener("click", () => {
+        const hojas = Number(calcHojas.value);
+        if (!hojas || hojas <= 0) {
+          calcResultado.innerHTML = "⚠️ Ingresá una cantidad válida de hojas.";
+          return;
+        }
+
+        // Buscar el primer rango que soporte esa cantidad
+        const match = tablaAnillos.find(t => hojas <= t.hojas);
+
+        if (!match) {
+          calcResultado.innerHTML = `
+            📕 Proyecto muy grueso.<br>
+            Recomendación: anillo <strong>1-1/2" (38 mm)</strong> o replantear el formato.
+          `;
+          return;
+        }
+
+        const tapas = 4; // 2 mm + 2 mm
+        const total = match.interior + tapas;
+
+        calcResultado.innerHTML = `
+          <strong>Resultado:</strong><br>
+          📄 Grosor interior: ≈ ${match.interior} mm<br>
+          📕 Tapas: 4 mm<br>
+          📐 Grosor total: ≈ ${total} mm<br><br>
+          🔗 <strong>Anillo recomendado:</strong> ${match.recomendado}<br>
+          🔁 <strong>Alternativa:</strong> ${match.alt}
+        `;
+      });
+    </script>
+
+</body>
+</html>

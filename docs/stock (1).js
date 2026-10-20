@@ -1,0 +1,216 @@
+// js/recetas_borrador.js
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  getDoc,
+  addDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+/* ============================================================
+   DOM
+============================================================ */
+const grid = document.getElementById("listaRecetas");
+
+// MODAL
+const modal = document.getElementById("modalReceta");
+const modalTitulo = document.getElementById("modalTitulo");
+const modalInsumos = document.getElementById("modalInsumos");
+const modalTotal = document.getElementById("modalTotal");
+const modalFicha = document.getElementById("modalFicha");
+
+const btnCerrar = document.getElementById("btnCerrarModal");
+const btnEditar = document.getElementById("btnEditarReceta");
+const btnConvertir = document.getElementById("btnConvertirProducto");
+
+/* ============================================================
+   STATE
+============================================================ */
+let recetaActualId = null;
+let recetaActual = null;
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function n(v) {
+  const num = Number(v);
+  return Number.isFinite(num) ? num : 0;
+}
+
+/* ============================================================
+   CARGAR RECETAS
+============================================================ */
+async function cargarRecetas() {
+  grid.innerHTML = "";
+
+  const snap = await getDocs(collection(db, "recetas_borrador"));
+
+  if (snap.empty) {
+    grid.innerHTML = `
+      <div class="card">
+        <p class="hint">No hay recetas guardadas.</p>
+      </div>
+    `;
+    return;
+  }
+
+  snap.forEach(d => {
+    const r = d.data();
+
+    grid.innerHTML += `
+      <div class="receta-card">
+        <div class="receta-info">
+          <div class="receta-nombre">
+            📄 ${r.nombre || "Receta sin nombre"}
+          </div>
+
+          <div class="receta-meta">
+            ${(r.items || []).length} insumos
+          </div>
+
+          <div class="receta-costo">
+            Costo total: $${n(r.costoTotal).toFixed(2)}
+          </div>
+        </div>
+
+        <div class="receta-actions">
+          <button class="btn btn-outline" onclick="verReceta('${d.id}')">
+            👁 Ver
+          </button>
+          <button class="btn btn-delete-pp" onclick="eliminarReceta('${d.id}')">
+            ✖
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+/* ============================================================
+   VER RECETA → MODAL (ROBUSTO)
+============================================================ */
+window.verReceta = async function (id) {
+  const snap = await getDoc(doc(db, "recetas_borrador", id));
+  if (!snap.exists()) return;
+
+  recetaActualId = id;
+  recetaActual = snap.data();
+
+  // TITULO Y TOTAL
+  modalTitulo.textContent = recetaActual.nombre || "Receta";
+  modalTotal.textContent = n(recetaActual.costoTotal).toFixed(2);
+
+  // LIMPIAR MODAL
+  modalInsumos.innerHTML = "";
+  modalFicha.innerHTML = "";
+
+  // INSUMOS / COSTOS BASE
+  (recetaActual.items || []).forEach(i => {
+
+    // COSTO BASE
+    if (i.tipo === "base") {
+      modalInsumos.innerHTML += `
+        <p>
+          ⚡ <strong>${i.nombre || "Costo base"}</strong><br>
+          <span class="hint">
+            Costo fijo: $${n(i.subtotal).toFixed(2)}
+          </span>
+        </p>
+      `;
+      return;
+    }
+
+    // INSUMO NORMAL (viejo o nuevo)
+    modalInsumos.innerHTML += `
+      <p>
+        • ${n(i.cantidad)} × ${i.nombre || "Insumo"}<br>
+        <span class="hint">
+          Unit: $${n(i.costoUnit).toFixed(2)} — 
+          Subtotal: $${n(i.subtotal).toFixed(2)}
+        </span>
+      </p>
+    `;
+  });
+
+  // FICHA TÉCNICA
+  const f = recetaActual.ficha || {};
+  modalFicha.innerHTML = `
+    ${f.materiales ? `<p><strong>Materiales:</strong> ${f.materiales}</p>` : ""}
+    ${f.impresion ? `<p><strong>Impresión:</strong> ${f.impresion}</p>` : ""}
+    ${f.corte ? `<p><strong>Corte:</strong> ${f.corte}</p>` : ""}
+    ${f.notas ? `<p><strong>Notas:</strong> ${f.notas}</p>` : ""}
+    ${!f.materiales && !f.impresion && !f.corte && !f.notas
+      ? `<p class="hint">Sin ficha técnica</p>`
+      : ""}
+  `;
+
+  modal.classList.remove("hidden");
+};
+
+/* ============================================================
+   CERRAR MODAL
+============================================================ */
+btnCerrar.onclick = () => {
+  modal.classList.add("hidden");
+};
+
+/* ============================================================
+   ELIMINAR RECETA
+============================================================ */
+window.eliminarReceta = async function (id) {
+  if (!confirm("¿Eliminar esta receta?")) return;
+  await deleteDoc(doc(db, "recetas_borrador", id));
+  cargarRecetas();
+};
+
+/* ============================================================
+   EDITAR RECETA (futuro)
+============================================================ */
+btnEditar.onclick = () => {
+  localStorage.setItem(
+    "recetaEnEdicion",
+    JSON.stringify({
+      id: recetaActualId,
+      data: recetaActual
+    })
+  );
+  window.location.href = "costos.html";
+};
+
+/* ============================================================
+   CONVERTIR EN PRODUCTO
+============================================================ */
+btnConvertir.onclick = async () => {
+  const precio = prompt("Precio de venta del producto:");
+  if (!precio) return;
+
+  // Crear producto
+  const prodRef = await addDoc(collection(db, "productos"), {
+    nombre: recetaActual.nombre,
+    precio: n(precio)
+  });
+
+  // Crear receta real
+  await setDoc(doc(db, "recetas", prodRef.id), {
+    productoId: prodRef.id,
+    items: recetaActual.items || [],
+    ficha: recetaActual.ficha || {},
+    costoUnitario: n(recetaActual.costoTotal)
+  });
+
+  // Eliminar borrador
+  await deleteDoc(doc(db, "recetas_borrador", recetaActualId));
+
+  modal.classList.add("hidden");
+  cargarRecetas();
+
+  alert("Producto creado correctamente ✔");
+};
+
+/* ============================================================
+   INIT
+============================================================ */
+cargarRecetas();

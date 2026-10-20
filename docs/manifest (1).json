@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel – Catálogo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-fox">🦊</span> Pixel
+    </div>
+
+    <nav class="nav-links">
+      <a href="./index.html">Inicio</a>
+      <a href="./insumos.html">Insumos</a>
+      <a href="./stock.html">Stock</a>
+      <a href="./productos.html">Productos</a>
+      <a href="./clientes.html">Clientes</a>
+     <a href="./guia.html">Guía</a>
+      <a href="./costos.html">Costos</a>
+      <a href="./recetas_borrador.html">Recetas guardadas</a>
+      <a href="./pedidos.html">Pedidos</a>
+      <a class="active" href="./catalogo.html">Catálogo</a>
+      <a href="./calendario.html">Calendario</a>
+    </nav>
+  </div>
+
+  <!-- ================= CONTENIDO ================= -->
+  <main class="main">
+    <h1 style="text-align:center; margin-bottom:1.5rem;">
+      Catálogo de productos
+    </h1>
+
+    <div id="catalogo" class="catalogo-grid"></div>
+  </main>
+
+  <!-- ================= SCRIPT ================= -->
+  <script>
+    const productos = [
+      {
+        id: 1,
+        nombre: "Diario de recuerdos",
+        categoria: "Agendas",
+        precio: 25000,
+        foto: "imagenes/productos/diario_de_recuerdos.jpg"
+      },
+      {
+        id: 2,
+        nombre: "Agenda A5",
+        categoria: "Agendas",
+        precio: 19000,
+        foto: "imagenes/productos/agenda_A5.jpg"
+      },
+      {
+        id: 3,
+        nombre: "Libro para colorear x 70 hojas",
+        categoria: "Cuadernos",
+        precio: 12000,
+        foto: "imagenes/productos/libro_colorear.jpg"
+      },
+      {
+        id: 4,
+        nombre: "Reading journal",
+        categoria: "Cuadernos",
+        precio: 15000,
+        foto: "imagenes/productos/reading_journal.jpg"
+      },   
+      {
+        id: 5,
+        nombre: "Llavero libro",
+        categoria: "Llaveros",
+        precio: 7000,
+        foto: "imagenes/productos/llavero_libro.jpg"
+      },  
+      {
+        id: 6,
+        nombre: "Carpetas",
+        categoria: "Carpetas",
+        precio: 7000,
+        foto: "imagenes/productos/carpetas_n3.jpg"
+      }                
+    ];
+
+    const contenedor = document.getElementById("catalogo");
+
+    productos.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "catalogo-card";
+
+      card.innerHTML = `
+        <img src="${p.foto}" alt="${p.nombre}">
+        <h3>${p.nombre}</h3>
+        <p class="precio">$${p.precio}</p>
+
+        <div class="acciones">
+          <button onclick="copiarTexto('${p.nombre}')">📋 Nombre</button>
+          <button onclick="copiarTexto('$${p.precio}')">💰 Precio</button>
+        </div>
+      `;
+
+      contenedor.appendChild(card);
+    });
+
+    function copiarTexto(texto) {
+      navigator.clipboard.writeText(texto);
+      alert("Copiado: " + texto);
+    }
+  </script>
+
+</body>
+</html>
