@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Stock · Vista previa</title>
+<style>
+:root{font-family:Nunito,system-ui,sans-serif;color-scheme:dark;background:#100c18;color:#f7effb}
+*{box-sizing:border-box}body{margin:0;padding:24px;max-width:1300px;margin:auto}
+h1{margin-bottom:4px}p,.muted{color:#bbaec9}.notice{background:#2b2039;padding:14px;border-radius:14px;margin:16px 0}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+input,select,button{background:#241a32;color:white;border:1px solid #554465;border-radius:10px;padding:10px;font:inherit}
+button{cursor:pointer}button.primary{background:#ffac62;color:#211325;font-weight:bold}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+.card{padding:16px;background:#21182d;border-radius:14px}.card strong{font-size:26px;display:block}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#1b1426}th,td{padding:12px;border-bottom:1px solid #392b48;text-align:left}th{color:#c5b8d2;font-size:13px}
+.low{color:#ffca76}.empty{color:#ff909b}.pill{font-size:12px;border-radius:9px;padding:4px 8px;background:#382a49}
+dialog{background:#21182d;color:white;border:1px solid #604b72;border-radius:18px;max-width:540px;width:95%}
+form{display:grid;gap:12px}label{display:grid;gap:5px}menu{display:flex;gap:8px;justify-content:flex-end;padding:0}
+a{color:#ffb779}small{color:#b9aac8}
+</style></head><body>
+<a href="../app/">← Volver a Pixel Gestión</a><h1>🦊 Pixel Stock</h1><p>Inventario aproximado de materiales y planificación de compras.</p>
+<div class="notice"><strong>Vista previa aislada.</strong> Los cambios se guardan solamente en este navegador (localStorage). No se escriben datos en Firebase ni se modifica Insumos. La carga inicial es orientativa; revisá las cantidades.</div>
+<div class="cards" id="cards"></div>
+<div class="toolbar"><input id="search" placeholder="Buscar material o marca" aria-label="Buscar">
+<select id="category"><option value="">Todas las categorías</option></select>
+<select id="status"><option value="">Todos los estados</option><option value="low">Por pedir</option><option value="unset">Sin mínimo definido</option></select>
+<button id="new" class="primary">+ Material</button><button id="export">Exportar CSV</button><button id="reset">Restablecer ejemplo</button></div>
+<div class="tablewrap"><table><thead><tr><th>Material</th><th>Marca</th><th>Existencia</th><th>Paquetes</th><th>Mínimo</th><th>Precio/paquete</th><th>Estado</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<dialog id="editor"><form id="form"><h2 id="formTitle">Editar material</h2><input type="hidden" name="id">
+<label>Nombre<input name="nombre" required></label><label>Marca<input name="marca" required></label>
+<label>Categoría<input name="categoria" required></label>
+<label>Hojas aproximadas<input name="cantidad" type="number" min="0" step="1" required></label>
+<label>Paquetes cerrados<input name="paquetesCerrados" type="number" min="0" step="1" required></label>
+<label>Hojas en paquetes abiertos<input name="hojasAbiertas" type="number" min="0" step="1" required></label>
+<label>Hojas por paquete cerrado<input name="hojasPorPaquete" type="number" min="0" step="1" required></label>
+<label>Mínimo de reposición (opcional)<input name="minimo" type="number" min="0" step="1"></label>
+<label>Precio por paquete en ARS (opcional)<input name="precioPaquete" type="number" min="0" step=".01"></label>
+<label>Proveedor<input name="proveedor"></label><label>URL de compra<input name="url" type="url"></label>
+<label>Fecha del precio<input name="fechaPrecio" type="date"></label>
+<menu><button type="button" id="cancel">Cancelar</button><button type="submit" class="primary">Guardar</button></menu></form></dialog>
+<script type="module" src="./stock.js"></script></body></html>
