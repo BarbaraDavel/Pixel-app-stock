@@ -13,7 +13,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 17850,
+    "precioReferenciaProducto": "Fotográfico brillante doble faz 240g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-002",
@@ -45,7 +50,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 17646,
+    "precioReferenciaProducto": "Fotográfico adhesivo 115g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-004",
@@ -61,7 +71,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 10302,
+    "precioReferenciaProducto": "Fotográfico brillante 180g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-005",
@@ -77,7 +92,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 11424,
+    "precioReferenciaProducto": "Fotográfico brillante Flex 200g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-006",
@@ -109,7 +129,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 10506,
+    "precioReferenciaProducto": "Filmilo blanco frío",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-008",
@@ -125,7 +150,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 8262,
+    "precioReferenciaProducto": "Filmilo blanco reluciente",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-009",
@@ -205,7 +235,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 6936,
+    "precioReferenciaProducto": "Matelina adhesiva roble vintage",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/texturada/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-014",
@@ -221,7 +256,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 6222,
+    "precioReferenciaProducto": "Matelina adhesiva bambú cremoso",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/texturada/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-015",
@@ -253,7 +293,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 6732,
+    "precioReferenciaProducto": "Matelina doble faz 180g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-017",
@@ -269,7 +314,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 6426,
+    "precioReferenciaProducto": "Matelina doble faz 220g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-018",
@@ -285,7 +335,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 9078,
+    "precioReferenciaProducto": "Matelina doble faz 260g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-019",
@@ -301,7 +356,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 10098,
+    "precioReferenciaProducto": "Texturado telar norteño 230g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/texturada/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-020",
@@ -317,7 +377,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 10098,
+    "precioReferenciaProducto": "Texturado cuerina clásica 230g",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/art-jet/papeles/matelina/texturada/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-021",
@@ -413,7 +478,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 12954,
+    "precioReferenciaProducto": "Winky blanco",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/",
+    "precioReferenciaNota": "Precio de catálogo Art-Jet; variante y cantidad de hojas del paquete sin confirmar. No equivale necesariamente al costo de tu paquete.",
+    "precioReferenciaFecha": "2026-10-23"
   },
   {
     "id": "pixel-027",
