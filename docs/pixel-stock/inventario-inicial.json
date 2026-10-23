@@ -414,7 +414,12 @@
     "proveedor": "Artjet",
     "url": "",
     "fechaPrecio": "",
-    "observaciones": "Carga inicial aproximada 23/10/2026"
+    "observaciones": "Carga inicial aproximada 23/10/2026",
+    "precioReferencia": 12342,
+    "precioReferenciaProducto": "Holofan Efecto Diamante Transparente",
+    "precioReferenciaUrl": "https://www.eshop.art-jet.com.ar/productos/holofan-efecto-diamante-transparente/",
+    "precioReferenciaFecha": "2026-10-23",
+    "precioReferenciaNota": "Precio publicado en Art-Jet; confirmar variante Tamaño antes de atribuirlo a un paquete concreto."
   },
   {
     "id": "pixel-023",
