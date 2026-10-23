@@ -387,7 +387,7 @@ try{initial=[
   },
   {
     "id": "pixel-020",
-    "nombre": "Canvas querina clásica",
+    "nombre": "Canvas cuerina clásica",
     "marca": "Artjet",
     "categoria": "Matelina y canvas",
     "cantidad": 50,
@@ -419,7 +419,7 @@ try{initial=[
   },
   {
     "id": "pixel-022",
-    "nombre": "Olofan efecto diamante transparente",
+    "nombre": "Holofan efecto diamante transparente",
     "marca": "Artjet",
     "categoria": "Especiales",
     "cantidad": 7,
@@ -435,7 +435,7 @@ try{initial=[
   },
   {
     "id": "pixel-023",
-    "nombre": "Olofan colores variados",
+    "nombre": "Holofan colores variados",
     "marca": "Artjet",
     "categoria": "Especiales",
     "cantidad": 10,
@@ -561,5 +561,5 @@ try{initial=[
     "fechaPrecio": "",
     "observaciones": "Carga inicial aproximada 23/10/2026"
   }
-];const stored=localStorage.getItem(KEY);items=stored?JSON.parse(stored):structuredClone(initial);for(const x of items){const prices={"pixel-007":[10506,"https://www.eshop.art-jet.com.ar/productos/blanco-frio/"],"pixel-008":[8262,"https://www.eshop.art-jet.com.ar/productos/filmilo-adhesivo-blanco-reluciente/"]};if(prices[x.id]&&x.precioPaquete==null){x.precioPaquete=prices[x.id][0];x.url=prices[x.id][1];x.fechaPrecio="2026-10-23";x.precioNota="Precio publicado para la variante inicial; confirmar presentación antes de comprar"}}render()}catch(e){$("rows").innerHTML='<tr><td colspan="9">Error cargando inventario: '+esc(e.message)+'</td></tr>'}
+];const stored=localStorage.getItem(KEY);items=stored?JSON.parse(stored):structuredClone(initial);for(const x of items){x.nombre=x.nombre.replace(/Olofan/g,"Holofan").replace("Canvas querina clásica","Canvas cuerina clásica")}for(const x of items){const prices={"pixel-007":[10506,"https://www.eshop.art-jet.com.ar/productos/blanco-frio/"],"pixel-008":[8262,"https://www.eshop.art-jet.com.ar/productos/filmilo-adhesivo-blanco-reluciente/"]};if(prices[x.id]&&x.precioPaquete==null){x.precioPaquete=prices[x.id][0];x.url=prices[x.id][1];x.fechaPrecio="2026-10-23";x.precioNota="Precio publicado para la variante inicial; confirmar presentación antes de comprar"}}render()}catch(e){$("rows").innerHTML='<tr><td colspan="9">Error cargando inventario: '+esc(e.message)+'</td></tr>'}
 </script></body></html>
