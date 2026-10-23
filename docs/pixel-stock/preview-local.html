@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Stock · Vista previa</title>
+<style>
+:root{font-family:Nunito,system-ui,sans-serif;color-scheme:dark;background:#100c18;color:#f7effb}
+*{box-sizing:border-box}body{margin:0;padding:24px;max-width:1300px;margin:auto}
+h1{margin-bottom:4px}p,.muted{color:#bbaec9}.notice{background:#2b2039;padding:14px;border-radius:14px;margin:16px 0}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+input,select,button{background:#241a32;color:white;border:1px solid #554465;border-radius:10px;padding:10px;font:inherit}
+button{cursor:pointer}button.primary{background:#ffac62;color:#211325;font-weight:bold}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+.card{padding:16px;background:#21182d;border-radius:14px}.card strong{font-size:26px;display:block}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#1b1426}th,td{padding:12px;border-bottom:1px solid #392b48;text-align:left}th{color:#c5b8d2;font-size:13px}
+.low{color:#ffca76}.empty{color:#ff909b}.pill{font-size:12px;border-radius:9px;padding:4px 8px;background:#382a49}
+dialog{background:#21182d;color:white;border:1px solid #604b72;border-radius:18px;max-width:540px;width:95%}
+form{display:grid;gap:12px}label{display:grid;gap:5px}menu{display:flex;gap:8px;justify-content:flex-end;padding:0}
+a{color:#ffb779}small{color:#b9aac8}
+</style></head><body>
+<p class="muted">Pixel Gestión · Vista previa local independiente</p><h1>🦊 Pixel Stock</h1><p>Inventario aproximado de materiales y planificación de compras.</p>
+<div class="notice"><strong>Vista previa aislada.</strong> Los cambios se guardan solamente en este navegador (localStorage). No se escriben datos en Firebase ni se modifica Insumos. La carga inicial es orientativa; revisá las cantidades.</div>
+<div class="cards" id="cards"></div>
+<div class="toolbar"><input id="search" placeholder="Buscar material o marca" aria-label="Buscar">
+<select id="category"><option value="">Todas las categorías</option></select>
+<select id="status"><option value="">Todos los estados</option><option value="low">Stock bajo</option><option value="buy">🛒 Marcados para comprar</option><option value="unset">Con mínimo predeterminado</option></select>
+<button id="new" class="primary">+ Material</button><button id="export">Exportar CSV</button><button id="reset">Restablecer ejemplo</button></div>
+<div class="tablewrap"><table><thead><tr><th>Comprar</th><th>Material</th><th>Marca</th><th>Existencia</th><th>Paquetes</th><th>Mínimo</th><th>Precio/paquete</th><th>Estado</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<dialog id="editor"><form id="form"><h2 id="formTitle">Editar material</h2><input type="hidden" name="id">
+<label>Nombre<input name="nombre" required></label><label>Marca<input name="marca" required></label>
+<label>Categoría<input name="categoria" required></label>
+<label>Hojas aproximadas<input name="cantidad" type="number" min="0" step="1" required></label>
+<label>Paquetes cerrados<input name="paquetesCerrados" type="number" min="0" step="1" required></label>
+<label>Hojas en paquetes abiertos<input name="hojasAbiertas" type="number" min="0" step="1" required></label>
+<label>Hojas por paquete cerrado<input name="hojasPorPaquete" type="number" min="0" step="1" required></label>
+<label>Avisar si quedan menos de (vacío = 10)<input name="minimo" type="number" min="0" step="1"></label>
+<label>Precio por paquete en ARS (opcional)<input name="precioPaquete" type="number" min="0" step=".01"></label>
+<label>Proveedor<input name="proveedor"></label><label>URL de compra<input name="url" type="url"></label>
+<label>Fecha del precio<input name="fechaPrecio" type="date"></label>
+<menu><button type="button" id="cancel">Cancelar</button><button type="submit" class="primary">Guardar</button></menu></form></dialog>
+<script type="module">
+const KEY="pixel-stock-preview-v1";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let initial=[],items=[];
+const num=v=>v===""||v===null?null:Number(v);
+const save=()=>localStorage.setItem(KEY,JSON.stringify(items));
+function state(x){return x.cantidad===0?"Agotado":x.cantidad<(x.minimo??10)?"Por pedir":"Disponible"}
+function render(){
+ const cats=[...new Set(items.map(x=>x.categoria))].sort();
+ const old=$("category").value;$("category").innerHTML='<option value="">Todas las categorías</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("");$("category").value=cats.includes(old)?old:"";
+ const marked=items.filter(x=>x.pedir).length;
+ const low=items.filter(x=>x.cantidad<(x.minimo??10)).length;
+ $("cards").innerHTML=[["Materiales",items.length],["⚠️ Por pedir",low],["🛒 Marcados para comprar",marked],["Mínimo predeterminado: 10",items.filter(x=>x.minimo===null).length],["Hojas estimadas",items.reduce((s,x)=>s+x.cantidad,0)]].map(([k,v])=>'<div class="card"><small>'+k+'</small><strong>'+Number(v).toLocaleString("es-AR")+'</strong></div>').join("");
+ const q=$("search").value.toLowerCase(),cat=$("category").value,st=$("status").value;
+ $("rows").innerHTML=items.filter(x=>(x.nombre+" "+x.marca).toLowerCase().includes(q)&&(!cat||x.categoria===cat)&&(!st||(st==="low"?x.minimo!==null&&x.cantidad<=x.minimo:x.minimo===null))).map(x=>'<tr><td><input type="checkbox" data-buy="'+esc(x.id)+'" '+(x.pedir?'checked':'')+' aria-label="Marcar para comprar '+esc(x.nombre)+'"></td><td><b>'+esc(x.nombre)+'</b><br><small>'+esc(x.categoria)+'</small></td><td>'+esc(x.marca)+'</td><td>'+x.cantidad+'</td><td>'+x.paquetesCerrados+' cerrados · '+x.hojasAbiertas+' sueltas</td><td>'+(x.minimo??"10 (pred.)")+'</td><td>'+(x.precioPaquete===null?"—":"$"+x.precioPaquete.toLocaleString("es-AR")+(x.url?' <a href="'+esc(x.url)+'" target="_blank" rel="noopener">Tienda ↗</a>':""))+'</td><td><span class="pill '+(x.cantidad<(x.minimo??10)?"low":"")+'">'+state(x)+'</span></td><td><button data-edit="'+esc(x.id)+'">Editar</button></td></tr>').join("")||'<tr><td colspan="9">Sin resultados</td></tr>';
+ document.querySelectorAll("[data-buy]").forEach(b=>b.onchange=()=>{const x=items.find(i=>i.id===b.dataset.buy);if(x){x.pedir=b.checked;save();render()}});
+ document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>edit(b.dataset.edit));
+}
+function edit(id){
+ const x=items.find(i=>i.id===id)||{id:"",nombre:"",marca:"Artjet",categoria:"Fotográficos",cantidad:0,paquetesCerrados:0,hojasAbiertas:0,hojasPorPaquete:0,minimo:10,precioPaquete:null,proveedor:"",url:"",fechaPrecio:""};
+ for(const [k,v] of Object.entries(x)){if($("form").elements.namedItem(k))$("form").elements.namedItem(k).value=v??""}
+ $("formTitle").textContent=id?"Editar material":"Nuevo material";$("editor").showModal();
+}
+$("form").onsubmit=e=>{
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.target));
+ for(const k of ["cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete","minimo","precioPaquete"])d[k]=num(d[k]);
+ if(["cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete"].some(k=>!Number.isInteger(d[k])||d[k]<0)){alert("Ingresá cantidades enteras no negativas");return}
+ if(d.minimo!==null&&(!Number.isInteger(d.minimo)||d.minimo<0)){alert("Mínimo inválido");return}
+ if(d.precioPaquete!==null&&(!Number.isFinite(d.precioPaquete)||d.precioPaquete<0)){alert("Precio inválido");return}
+ if(d.hojasPorPaquete>0&&d.cantidad!==d.paquetesCerrados*d.hojasPorPaquete+d.hojasAbiertas){if(!confirm("El total no coincide con los paquetes y hojas abiertas. ¿Guardar igual como estimación?"))return}
+ if(!d.id)d.id="pixel-"+Date.now();
+ const index=items.findIndex(x=>x.id===d.id);if(index>=0)items[index]=d;else items.push(d);
+ save();$("editor").close();render();
+};
+$("cancel").onclick=()=>$("editor").close();$("new").onclick=()=>edit(null);
+for(const id of ["search","category","status"])$(id).addEventListener(id==="search"?"input":"change",render);
+$("reset").onclick=()=>{if(confirm("¿Reemplazar los cambios locales por el inventario inicial?")){items=structuredClone(initial);save();render()}};
+$("export").onclick=()=>{
+ const keys=["pedir","nombre","marca","categoria","cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete","minimo","precioPaquete","proveedor","url","fechaPrecio"];
+ const csv=[keys.join(";"),...items.map(x=>keys.map(k=>'"'+String(x[k]??"").replace(/"/g,'""')+'"').join(";"))].join("\r\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="pixel-stock.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+try{initial=[
+  {
+    "id": "pixel-001",
+    "nombre": "Fotográfico brillante doble faz 240 g",
+    "marca": "Artjet",
+    "categoria": "Fotográficos",
+    "cantidad": 230,
+    "paquetesCerrados": 2,
+    "hojasAbiertas": 30,
+    "hojasPorPaquete": 100,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-002",
+    "nombre": "Fotográfico brillante doble faz 120 g",
+    "marca": "Artjet",
+    "categoria": "Fotográficos",
+    "cantidad": 240,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 140,
+    "hojasPorPaquete": 100,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-003",
+    "nombre": "Fotográfico adhesivo",
+    "marca": "Artjet",
+    "categoria": "Fotográficos",
+    "cantidad": 140,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 40,
+    "hojasPorPaquete": 100,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-004",
+    "nombre": "Fotográfico brillante 180 g",
+    "marca": "Artjet",
+    "categoria": "Fotográficos",
+    "cantidad": 180,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 80,
+    "hojasPorPaquete": 100,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-005",
+    "nombre": "Fotográfico brillante Flex 200 g",
+    "marca": "Artjet",
+    "categoria": "Fotográficos",
+    "cantidad": 20,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 20,
+    "hojasPorPaquete": 0,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-006",
+    "nombre": "Filmilo blanco perlado",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 58,
+    "paquetesCerrados": 2,
+    "hojasAbiertas": 18,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-007",
+    "nombre": "Filmilo blanco frío",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 70,
+    "paquetesCerrados": 3,
+    "hojasAbiertas": 10,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-008",
+    "nombre": "Filmilo blanco reluciente",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 60,
+    "paquetesCerrados": 3,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-009",
+    "nombre": "Filmilo blanco mate",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 20,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-010",
+    "nombre": "Filmilo oro antiguo",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 60,
+    "paquetesCerrados": 3,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-011",
+    "nombre": "Filmilo aluminio perlado",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 40,
+    "paquetesCerrados": 2,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-012",
+    "nombre": "Filmilo acetato vidrio fino",
+    "marca": "Artjet",
+    "categoria": "Filmilo",
+    "cantidad": 79,
+    "paquetesCerrados": 3,
+    "hojasAbiertas": 19,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-013",
+    "nombre": "Matelina roble vintage adhesivo",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 36,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 36,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-014",
+    "nombre": "Matelina bambú cremoso adhesivo",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 20,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-015",
+    "nombre": "Matelina doble faz 120 g",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 50,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-016",
+    "nombre": "Matelina doble faz 180 g",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 110,
+    "paquetesCerrados": 2,
+    "hojasAbiertas": 10,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-017",
+    "nombre": "Matelina doble faz 220 g",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 70,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 70,
+    "hojasPorPaquete": 0,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-018",
+    "nombre": "Matelina doble faz 260 g",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 50,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-019",
+    "nombre": "Canvas telar norteño",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 50,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-020",
+    "nombre": "Canvas querina clásica",
+    "marca": "Artjet",
+    "categoria": "Matelina y canvas",
+    "cantidad": 50,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-021",
+    "nombre": "Holográfico transparente glitter",
+    "marca": "Smart Print",
+    "categoria": "Especiales",
+    "cantidad": 17,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 7,
+    "hojasPorPaquete": 10,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-022",
+    "nombre": "Olofan efecto diamante transparente",
+    "marca": "Artjet",
+    "categoria": "Especiales",
+    "cantidad": 7,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 7,
+    "hojasPorPaquete": 20,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-023",
+    "nombre": "Olofan colores variados",
+    "marca": "Artjet",
+    "categoria": "Especiales",
+    "cantidad": 10,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 10,
+    "hojasPorPaquete": 0,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-024",
+    "nombre": "Film Inject diamante autoadhesivo",
+    "marca": "Coby",
+    "categoria": "Especiales",
+    "cantidad": 10,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 10,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-025",
+    "nombre": "Vinílico transparente",
+    "marca": "Atahualpa",
+    "categoria": "Especiales",
+    "cantidad": 90,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 40,
+    "hojasPorPaquete": 50,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-026",
+    "nombre": "Papel Winky",
+    "marca": "Artjet",
+    "categoria": "Especiales",
+    "cantidad": 37,
+    "paquetesCerrados": 3,
+    "hojasAbiertas": 7,
+    "hojasPorPaquete": 10,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "Artjet",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-027",
+    "nombre": "Fotográfico transparente",
+    "marca": "AQX",
+    "categoria": "Especiales",
+    "cantidad": 15,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 15,
+    "hojasPorPaquete": 0,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-028",
+    "nombre": "Imán flexible",
+    "marca": "Baby Craft",
+    "categoria": "Especiales",
+    "cantidad": 40,
+    "paquetesCerrados": 4,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 10,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-029",
+    "nombre": "Imán flexible autoadhesivo",
+    "marca": "Marca por confirmar",
+    "categoria": "Especiales",
+    "cantidad": 10,
+    "paquetesCerrados": 1,
+    "hojasAbiertas": 0,
+    "hojasPorPaquete": 10,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  },
+  {
+    "id": "pixel-030",
+    "nombre": "Pouch para plastificado",
+    "marca": "Ivy Craft",
+    "categoria": "Especiales",
+    "cantidad": 90,
+    "paquetesCerrados": 0,
+    "hojasAbiertas": 90,
+    "hojasPorPaquete": 100,
+    "minimo": null,
+    "precioPaquete": null,
+    "proveedor": "",
+    "url": "",
+    "fechaPrecio": "",
+    "observaciones": "Carga inicial aproximada 23/10/2026"
+  }
+];const stored=localStorage.getItem(KEY);items=stored?JSON.parse(stored):structuredClone(initial);for(const x of items){const prices={"pixel-007":[10506,"https://www.eshop.art-jet.com.ar/productos/blanco-frio/"],"pixel-008":[8262,"https://www.eshop.art-jet.com.ar/productos/filmilo-adhesivo-blanco-reluciente/"]};if(prices[x.id]&&x.precioPaquete==null){x.precioPaquete=prices[x.id][0];x.url=prices[x.id][1];x.fechaPrecio="2026-10-23";x.precioNota="Precio publicado para la variante inicial; confirmar presentación antes de comprar"}}render()}catch(e){$("rows").innerHTML='<tr><td colspan="8">Error cargando inventario: '+esc(e.message)+'</td></tr>'}
+</script></body></html>
