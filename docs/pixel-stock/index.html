@@ -22,7 +22,7 @@ a{color:#ffb779}small{color:#b9aac8}
 <div class="toolbar"><input id="search" placeholder="Buscar material o marca" aria-label="Buscar">
 <select id="category"><option value="">Todas las categorías</option></select>
 <select id="status"><option value="">Todos los estados</option><option value="low">Por pedir</option><option value="unset">Sin mínimo definido</option></select>
-<button id="new" class="primary">+ Material</button><button id="export">Exportar CSV</button><button id="reset">Restablecer ejemplo</button></div>
+<button id="import">Importar CSV</button><input id="importFile" type="file" accept=".csv,text/csv" hidden><button id="new" class="primary">+ Material</button><button id="export">Exportar CSV</button><button id="reset">Restablecer ejemplo</button></div>
 <div class="tablewrap"><table><thead><tr><th>Material</th><th>Marca</th><th>Existencia</th><th>Paquetes</th><th>Mínimo</th><th>Precio/paquete</th><th>Estado</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
 <dialog id="editor"><form id="form"><h2 id="formTitle">Editar material</h2><input type="hidden" name="id">
 <label>Nombre<input name="nombre" required></label><label>Marca<input name="marca" required></label>
