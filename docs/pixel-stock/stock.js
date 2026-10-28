@@ -40,4 +40,49 @@ $("export").onclick=()=>{
  const csv=[keys.join(";"),...items.map(x=>keys.map(k=>'"'+String(x[k]??"").replace(/"/g,'""')+'"').join(";"))].join("\r\n");
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="pixel-stock.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
+
+function parseCSV(text){
+ const records=[];let row=[],field="",quoted=false;
+ text=text.replace(/^\uFEFF/,"");
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}
+  else if(c===";"&&!quoted){row.push(field);field=""}
+  else if((c==="\n"||c==="\r")&&!quoted){if(c==="\r"&&text[i+1]==="\n")i++;row.push(field);if(row.some(x=>x!==""))records.push(row);row=[];field=""}
+  else field+=c;
+ }
+ if(quoted)throw Error("CSV con comillas sin cerrar");
+ row.push(field);if(row.some(x=>x!==""))records.push(row);
+ const headers=records.shift();
+ if(!headers||!["nombre","cantidad","precioPaquete"].every(k=>headers.includes(k)))throw Error("Formato CSV incompatible");
+ return records.map(cols=>Object.fromEntries(headers.map((k,i)=>[k,cols[i]??""])));
+}
+$("import").onclick=()=>$("importFile").click();
+$("importFile").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{
+  const incoming=parseCSV(await file.text());
+  if(!incoming.length)throw Error("El archivo está vacío");
+  const parsed=incoming.map((x,i)=>{
+   const o={...x};
+   for(const k of ["cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete","minimo","precioPaquete"])o[k]=num(o[k]);
+   if(!o.nombre||!Number.isInteger(o.cantidad)||o.cantidad<0)throw Error("Fila "+(i+2)+" inválida");
+   for(const k of ["paquetesCerrados","hojasAbiertas","hojasPorPaquete"])if(!Number.isInteger(o[k])||o[k]<0)throw Error("Fila "+(i+2)+": "+k+" inválido");
+   return o;
+  });
+  const oldByName=new Map(items.map(x=>[x.nombre.trim().toLocaleLowerCase("es"),x]));
+  const seen=new Set();
+  const next=parsed.map((x,i)=>{
+   const key=x.nombre.trim().toLocaleLowerCase("es");
+   if(seen.has(key))throw Error("Material duplicado: "+x.nombre);
+   seen.add(key);
+   const previous=oldByName.get(key);
+   return {...previous,...x,id:previous?.id??("pixel-import-"+i+"-"+Date.now()),pedir:previous?.pedir??(x.pedir==="true")};
+  });
+  if(!confirm("¿Importar "+next.length+" materiales? Se reemplazará el inventario guardado en este navegador. Exportá una copia antes si querés conservarlo."))return;
+  items=next;save();render();alert("Inventario importado: "+next.length+" materiales.");
+ }catch(err){alert("No se pudo importar: "+err.message)}
+ finally{e.target.value=""}
+};
+
 try{const r=await fetch("./inventario-inicial.json");if(!r.ok)throw Error("No se pudo leer inventario");initial=await r.json();const stored=localStorage.getItem(KEY);items=stored?JSON.parse(stored):structuredClone(initial);for(const x of items){const prices={"pixel-007":[10506,"https://www.eshop.art-jet.com.ar/productos/blanco-frio/"],"pixel-008":[8262,"https://www.eshop.art-jet.com.ar/productos/filmilo-adhesivo-blanco-reluciente/"]};if(prices[x.id]&&x.precioPaquete==null){x.precioPaquete=prices[x.id][0];x.url=prices[x.id][1];x.fechaPrecio="2026-10-23";x.precioNota="Precio publicado para la variante inicial; confirmar presentación antes de comprar"}}render()}catch(e){$("rows").innerHTML='<tr><td colspan="8">Error cargando inventario: '+esc(e.message)+'</td></tr>'}
