@@ -34,6 +34,54 @@ $("form").onsubmit=e=>{
 };
 $("cancel").onclick=()=>$("editor").close();$("new").onclick=()=>edit(null);
 for(const id of ["search","category","status"])$(id).addEventListener(id==="search"?"input":"change",render);
+
+$("import").onclick=()=>$("importFile").click();
+$("importFile").onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const raw=(await file.text()).replace(/^\uFEFF/,"");
+  const records=[];let record=[],field="",quoted=false;
+  for(let i=0;i<raw.length;i++){
+   const ch=raw[i];
+   if(ch==='"'){
+    if(quoted&&raw[i+1]==='"'){field+='"';i++}else quoted=!quoted;
+   }else if(ch===';'&&!quoted){record.push(field);field=""}
+   else if((ch==='\n'||ch==='\r')&&!quoted){
+    if(ch==='\r'&&raw[i+1]==='\n')i++;
+    record.push(field);field="";
+    if(record.some(v=>v!==""))records.push(record);
+    record=[];
+   }else field+=ch;
+  }
+  if(quoted)throw Error("Comillas sin cerrar en el CSV");
+  if(field!==""||record.length){record.push(field);records.push(record)}
+  const header=records.shift()?.map(v=>v.trim());
+  const required=["nombre","marca","categoria","cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete","precioPaquete"];
+  if(!header||required.some(k=>!header.includes(k)))throw Error("El archivo no tiene las columnas de Pixel Stock");
+  const seen=new Set();
+  const parsed=records.map((values,i)=>{
+   const d=Object.fromEntries(header.map((k,j)=>[k,values[j]??""]));
+   if(values.length!==header.length)throw Error("Cantidad de columnas incorrecta en fila "+(i+2));
+   if(!d.nombre.trim())throw Error("Material sin nombre en fila "+(i+2));
+   const key=d.nombre.trim().toLocaleLowerCase("es-AR");
+   if(seen.has(key))throw Error("Material duplicado: "+d.nombre);
+   seen.add(key);
+   for(const k of ["cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete"]){
+    d[k]=Number(d[k]);if(!Number.isInteger(d[k])||d[k]<0)throw Error("Cantidad inválida para "+d.nombre);
+   }
+   for(const k of ["minimo","precioPaquete"]){
+    d[k]=d[k]===""?null:Number(d[k]);
+    if(d[k]!==null&&(!Number.isFinite(d[k])||d[k]<0))throw Error("Valor inválido para "+d.nombre);
+   }
+   const existing=items.find(x=>x.nombre.trim().toLocaleLowerCase("es-AR")===key);
+   return {...existing,...d,id:existing?.id||"pixel-import-"+(i+1),pedir:d.pedir===""?(existing?.pedir??false):["true","1","si","sí"].includes(String(d.pedir).toLowerCase())};
+  });
+  if(!parsed.length)throw Error("El archivo no contiene materiales");
+  if(!confirm("Se reemplazarán los "+items.length+" materiales actuales por los "+parsed.length+" del CSV. ¿Continuar?"))return;
+  items=parsed;save();render();alert("¡Inventario importado! "+items.length+" materiales cargados.");
+ }catch(err){alert("No se pudo importar: "+err.message)}
+ finally{e.target.value=""}
+};
 $("reset").onclick=()=>{if(confirm("¿Reemplazar los cambios locales por el inventario inicial?")){items=structuredClone(initial);save();render()}};
 $("export").onclick=()=>{
  const keys=["pedir","nombre","marca","categoria","cantidad","paquetesCerrados","hojasAbiertas","hojasPorPaquete","minimo","precioPaquete","proveedor","url","fechaPrecio"];
